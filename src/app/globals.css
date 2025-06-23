@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+
+html,
+body {
+  height: 100%;
+}
+
+
+@theme {
+  /* custom colors */
+  --color-primary: #FFD700;
+  --color-secondary: #FFFFFF;
+
+  /* custom font */
+  --font-heading: "Open Sans", sans-serif;
+  --font-base: "Open Sans", sans-serif;
+
+  /* custom spacing */
+  --spacing-7: 1.78rem;
+}
+
+@layer base {
+  a{
+    color: white;
+    @apply hover:underline;
+  }
+  
+}
+
+@layer components {
+  /*reusable components*/
+  .btn {
+    @apply px-4 bg-amber-300 text-black rounded hover:bg-amber-500 transition-colors py-3;
+  }
+  .btn-navigation {
+    @apply bg-red-500;
+  }
+}
+
+@font-face {
+  font-family: 'Open Sans';
+}
