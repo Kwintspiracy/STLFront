@@ -1,11 +1,6 @@
 import { Product } from "@/types/product";
 import { mockProducts } from "@/data/mock-products";
-
-// ⬇️ Switch central
-const USE_MOCK_DATA = true;
-
-// 🔁 Base URL de l'API – à centraliser plus tard dans un fichier .env
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+import { API_BASE_URL, USE_MOCK_DATA } from "@/lib/api/config";
 
 /**
  * Récupère tous les produits

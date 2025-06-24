@@ -1,4 +1,5 @@
 import NavButton from '@/components/buttons/NavButton';
+import Link from 'next/link';
 
 const Header = () => {
   return (
@@ -19,7 +20,7 @@ const Header = () => {
         {/* User Actions */}
         <div className="flex items-center space-x-4">
           <span className="cursor-pointer">Cart</span>
-          <span className="cursor-pointer btn">Sign In</span>
+          <span className="cursor-pointer btn"><a href="auth/signin">Sign In</a></span>
         </div>
       </div>
     </header>

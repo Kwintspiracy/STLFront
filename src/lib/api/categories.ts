@@ -1,23 +1,17 @@
-// src/lib/api/categories.ts
-
 import { Category } from "@/types/product";
+import { mockCategories } from "@/data/mock-categories"; // create this mock
+import { API_BASE_URL, USE_MOCK_DATA } from "@/lib/api/config"; // optional shared config
 
 export async function getAllCategories(): Promise<Category[]> {
-  const res = await fetch("http://127.0.0.1:8000/api/", { cache: "no-store" });
+  if (USE_MOCK_DATA) {
+    return mockCategories;
+  }
+
+  const res = await fetch(`${API_BASE_URL}/categories/`, { cache: "no-store" });
 
   if (!res.ok) {
     throw new Error("Failed to fetch categories");
   }
 
-  const products = await res.json();
-
-  const categoryMap = new Map<number, Category>();
-
-  for (const product of products) {
-    for (const cat of product.category) {
-      categoryMap.set(cat.id, cat); // dédupliqué par ID
-    }
-  }
-
-  return Array.from(categoryMap.values());
+  return res.json();
 }
