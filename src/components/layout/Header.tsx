@@ -4,7 +4,7 @@ import Link from 'next/link';
 const Header = () => {
   return (
     <header className="text-white w-full bg-[#0F1213]  border-b-[#272D31] border-b-1">
-      <div className="max-w-[1920px] mx-auto flex items-center justify-between py-4 px-4 lg:px-0 text-black border">
+      <div className="max-w-[1920px] mx-auto flex items-center justify-between py-4 px-4 lg:px-0">
 
 
         {/* Logo */}
@@ -19,8 +19,12 @@ const Header = () => {
 
         {/* User Actions */}
         <div className="flex items-center space-x-4">
+          <Link href="http://localhost:3000/cart">
           <span className="cursor-pointer">Cart</span>
-          <span className="cursor-pointer btn"><a href="auth/signin">Sign In</a></span>
+          </Link>
+          <Link href="http://localhost:3000/auth/signin">
+          <span className="cursor-pointer btn">Sign In</span>
+          </Link>
         </div>
       </div>
     </header>

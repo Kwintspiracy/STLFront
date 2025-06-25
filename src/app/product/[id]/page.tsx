@@ -75,8 +75,8 @@ export default async function ProductPage(props: ProductPageProps) {
             </div>
           </div>
 
-          <CardCartButton href="/fantasy">
-            <RiShoppingCart2Fill className="w-6 h-6" />
+          <CardCartButton href="/cart/">
+            <RiShoppingCart2Fill className="w-6 h-6"/>
           </CardCartButton>
 
           <div className="h-px bg-zinc-800 my-6" />

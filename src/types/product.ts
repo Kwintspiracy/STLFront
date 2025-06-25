@@ -27,6 +27,10 @@ export interface ProductTag {
   name: String;
 }
 
+export interface ProductPrice {
+  
+}
+
 export interface Product {
   id: number;
   name: string;
