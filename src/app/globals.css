@@ -9,15 +9,35 @@ body {
 
 @theme {
   /* custom colors */
-  --color-primary: #FFD700;
-  --color-secondary: #FFFFFF;
+
+  /* Theme A */
+  /* --color-primary: #139B8A;
+  --color-secondary: #F4F4F4;
+  --color-primarybackground: #14142B;
+  --color-secondarybackground: #262338; */
+
+    /* Theme B */
+  /* --color-primary: #139B8A;
+  --color-secondary: #F4F4F4;
+  --color-primarybackground: #14142B;
+  --color-secondarybackground: #262338; */
+
+      /* Theme B */
+  --color-primary: #49C5C9;
+  --color-secondary: #F4F4F4;
+  --color-primarybackground: #181D22;
+  --color-secondarybackground: #242C32;
+  --color-cardbackground: #0F1517;
 
   /* custom font */
   --font-heading: "Open Sans", sans-serif;
   --font-base: "Open Sans", sans-serif;
+  --font-primarycolor: #0D0D0D;
 
   /* custom spacing */
   --spacing-7: 1.78rem;
+
+  --breakpoint-3xl: 120rem;
 }
 
 @layer base {

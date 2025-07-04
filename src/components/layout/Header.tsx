@@ -3,8 +3,8 @@ import Link from 'next/link';
 
 const Header = () => {
   return (
-    <header className="text-white w-full bg-[#0F1213]  border-b-[#272D31] border-b-1">
-      <div className="max-w-[1920px] mx-auto flex items-center justify-between py-4 px-4 lg:px-0">
+    <header className="text-white w-full bg-primarybackground  border-b-[#272D31] border-b-1">
+      <div className="max-w-[1920px] mx-auto flex items-center justify-between py-6 px-4 lg:px-0">
 
 
         {/* Logo */}
