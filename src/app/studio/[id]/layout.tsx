@@ -2,7 +2,7 @@
 import { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { studios } from "@/data/mock-studios";
-import StudioClientLayout from "./StudioNav";
+import StudioClientLayout from "./StudioClientLayout";
 
 interface Props {
   children: ReactNode;

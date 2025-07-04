@@ -3,11 +3,11 @@ export const studios = [
   {
     id: 1,
     name: "Magnetic Foundry",
-    creatorlogo: "/imgs/studios/magnetic.png",
+    creatorlogo: "https://picsum.photos/seed/logo1/100",
   },
   {
     id: 2,
     name: "Elven Forge",
-    creatorlogo: "/imgs/studios/elvenforge.png",
+    creatorlogo: "https://picsum.photos/seed/logo1/100",
   },
 ];

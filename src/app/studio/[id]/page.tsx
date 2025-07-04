@@ -15,13 +15,7 @@ export default function StudioDashboard({ params }: Props) {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">
-        Welcome to <span className="text-primary">{studio.name}</span>
-      </h1>
-      <p className="text-stone-400">
-        Here you can manage your products, view sales, and update your studio settings.
-      </p>
+    <div className="space-y-6 bg-amber-300">
     </div>
   );
 }
