@@ -3,11 +3,12 @@ import { studios } from "@/data/mock-studios";
 import { notFound } from "next/navigation";
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default function StudioDashboard({ params }: Props) {
-  const studioId = parseInt(params.id, 10);
+export default async function StudioDashboard({ params }: Props) {
+  const resolvedParams = await params;
+  const studioId = parseInt(resolvedParams.id, 10);
   const studio = studios.find((s) => s.id === studioId);
 
   if (!studio) {

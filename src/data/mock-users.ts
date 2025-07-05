@@ -10,7 +10,7 @@ export interface User {
   username: string;
   profilePicture: string;
   password: string;
-  role: "admin" | "user";
+  role: "admin" | "user" | "member";
   studio?: Studio; // facultatif : présent seulement pour les membres de studio
 }
 
@@ -35,4 +35,16 @@ export const mockUsers: User[] = [
     role: "user",
     // pas de studio : simple utilisateur
   },
+  {
+    id: 3,
+    username: "papuche",
+    profilePicture: "https://picsum.photos/seed/mf/50",
+    password: "123456",
+    role: "member",
+    studio: {
+      id: 1,
+      name: "Magnetic Foundry",
+      badge: "https://picsum.photos/seed/mf/50", // ou ton vrai logo
+  },
+},
 ];

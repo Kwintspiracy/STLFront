@@ -1,5 +1,3 @@
-import { Product } from "@/types/product";
-
 export const mockProducts = [
   {
     "id": 1,
@@ -60,7 +58,7 @@ export const mockProducts = [
   },
   {
     "id": 2,
-    "name": "Elaria Moonshade",
+    "name": "Elaria Moonshade of the Vale",
     "price": "8.75",
     "description": "An enigmatic elven sorceress wielding arcane power. Sculpted in a flowing pose with spell effects dancing at her fingertips.",
     "images": [

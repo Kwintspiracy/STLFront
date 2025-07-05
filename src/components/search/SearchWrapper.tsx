@@ -99,11 +99,11 @@ export default function SearchWrapper() {
             <div className="absolute inset-0 bg-secondarybackground opacity-[0.85] z-10" />
 
             {/* Contenu */}
-            <div className="relative z-20 max-w-[1920px] mx-auto flex flex-col items-center px-4 sm:px-6 lg:px-8 py-10">
-                <h1 className="text-2xl sm:text-5xl font-bold text-center text-white pb-2 sm:pb-4">
+            <div className="relative z-20 max-w-[1440px] mx-auto flex flex-col items-center px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-center text-white pb-3 sm:pb-4">
                     Find your perfect Miniature
                 </h1>
-                <p className="text-base lg:text-lg text-center text-stone-400 pb-6 sm:pb-8">
+                <p className="text-base sm:text-lg lg:text-xl text-center text-gray-300 pb-8 sm:pb-10 max-w-2xl">
                     Join a community of tabletop players and 3D artists
                 </p>
 

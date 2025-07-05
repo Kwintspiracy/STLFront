@@ -1,5 +1,5 @@
 type TagPillProps = {
-  tag: String;
+  tag: string;
 };
 
 const TagPill = ({ tag = 'test' }: TagPillProps) => {

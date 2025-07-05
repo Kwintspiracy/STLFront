@@ -6,11 +6,12 @@ import StudioClientLayout from "./StudioClientLayout";
 
 interface Props {
   children: ReactNode;
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default function StudioLayout({ children, params }: Props) {
-  const studioId = Number(params.id);
+export default async function StudioLayout({ children, params }: Props) {
+  const resolvedParams = await params;
+  const studioId = Number(resolvedParams.id);
   const studio = studios.find((s) => s.id === studioId);
 
   if (!studio) notFound();
