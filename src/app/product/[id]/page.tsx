@@ -20,6 +20,7 @@ export default function ProductPage(props: ProductPageProps) {
   const [selectedLicense, setSelectedLicense] = useState<'personal' | 'commercial'>('personal');
   const [imageError, setImageError] = useState(false);
 
+
   useEffect(() => {
     const loadProduct = async () => {
       try {

@@ -9,13 +9,6 @@ export interface Studio {
   creatorlogo: string
 }
 
-// export interface Preview {
-//   id: number;
-//   title: string;
-//   rank: number;
-//   image: string;
-// }
-
 export interface ProductImage {
   id: number;
   url: string;
@@ -25,10 +18,6 @@ export interface ProductImage {
 export interface ProductTag {
   id: number;
   name: string;
-}
-
-export interface ProductPrice {
-  
 }
 
 export interface Product {
