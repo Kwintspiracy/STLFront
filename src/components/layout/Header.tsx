@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
 import { logout } from '@/lib/utils/sessionService';
@@ -145,11 +146,11 @@ const Header = () => {
 
   const handleSearch = () => {
     const selectedTags = elements
-      .filter((el) => el.type === "tag")
-      .map((el) => (el as any).value.name.toLowerCase());
+      .filter((el): el is { type: "tag"; value: Tag } => el.type === "tag")
+      .map((el) => el.value.name.toLowerCase());
 
     const searchTerms = elements
-      .filter((el) => el.type === "text")
+      .filter((el): el is { type: "text"; value: string } => el.type === "text")
       .map((el) => el.value.toLowerCase());
 
     if (selectedTags.length === 0 && searchTerms.length === 0) return;
@@ -161,7 +162,9 @@ const Header = () => {
     router.push(`/search?${params.toString()}`);
   };
 
-  const selectedTags = elements.filter((el) => el.type === "tag").map((el) => (el as any).value);
+  const selectedTags = elements
+    .filter((el): el is { type: "tag"; value: Tag } => el.type === "tag")
+    .map((el) => el.value);
 
   const suggestions =
     input.trim() === ""
@@ -229,9 +232,11 @@ const Header = () => {
                 aria-label="User menu"
                 aria-expanded={dropdownOpen}
               >
-                <img
+                <Image
                   src={user.profilePicture || 'https://via.placeholder.com/40'}
                   alt={`${user.username}'s profile`}
+                  width={40}
+                  height={40}
                   className="w-8 h-8 lg:w-10 lg:h-10 rounded-full border-2 border-gray-600 group-hover:border-primary/50 transition-colors duration-200"
                 />
                 <FaChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
@@ -252,9 +257,11 @@ const Header = () => {
                     {/* Sidebar Header with User Info and Close Button */}
                     <div className="flex items-center justify-between p-4 h-16 border-b border-gray-700/50">
                       <div className="flex items-center space-x-3">
-                        <img
+                        <Image
                           src={user.profilePicture || 'https://via.placeholder.com/40'}
                           alt="Profile"
+                          width={40}
+                          height={40}
                           className="w-10 h-10 rounded-full border border-primary/50"
                         />
                         <div>

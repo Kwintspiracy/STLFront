@@ -9,6 +9,7 @@ import TagPill from "@/components/card/TagPill";
 import ProductImageGallery from "@/components/product/ProductImageGallery";
 import { useState, useEffect } from "react";
 import { Product } from "@/types/product";
+import Image from "next/image";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
@@ -85,7 +86,7 @@ export default function ProductPage(props: ProductPageProps) {
     <main className="max-w-[1440px] mx-auto text-white px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
       {/* Breadcrumb Navigation */}
       <nav className="flex flex-wrap items-center gap-2 sm:gap-4 py-4 sm:py-6" aria-label="Breadcrumb">
-        {product.tag.map((tag: any) => (
+        {product.tag.map((tag: { id: number; name: string }) => (
           <TagPill key={tag.id} tag={tag.name} />
         ))}
       </nav>
@@ -110,10 +111,12 @@ export default function ProductPage(props: ProductPageProps) {
             {/* Creator Info */}
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="relative">
-                <img
+                <Image
                   className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg ring-2 ring-gray-600 object-cover"
                   src={imageError ? '/placeholder-avatar.png' : product.creator.creatorlogo}
                   alt={`${product.creator.name} logo`}
+                  width={48}
+                  height={48}
                   onError={() => setImageError(true)}
                 />
               </div>

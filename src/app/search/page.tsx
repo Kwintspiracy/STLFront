@@ -3,15 +3,16 @@ import ProductCard from "@/components/card/ProductCard";
 
 
 interface SearchParams {
-  searchParams: {
+  searchParams: Promise<{
     tags?: string;
     terms?: string;
-  };
+  }>;
 }
 
-export default function SearchPage({ searchParams }: SearchParams) {
-  const selectedTags = searchParams.tags?.split(",").map((t) => t.toLowerCase()) || [];
-  const searchTerms = searchParams.terms?.split(",").map((t) => t.toLowerCase()) || [];
+export default async function SearchPage({ searchParams }: SearchParams) {
+  const params = await searchParams;
+  const selectedTags = params.tags?.split(",").map((t) => t.toLowerCase()) || [];
+  const searchTerms = params.terms?.split(",").map((t) => t.toLowerCase()) || [];
 
   const filteredProducts = mockProducts.filter((product) => {
     const productTags = product.tag.map((tag) => tag.name.toLowerCase());

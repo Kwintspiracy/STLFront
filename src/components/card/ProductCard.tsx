@@ -5,6 +5,7 @@ import { RiImageLine } from "react-icons/ri";
 import { TbShoppingCartPlus } from "react-icons/tb";
 import CardCartButton from './CardCartButton';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react'
 
 interface ProductCardProps {
@@ -82,14 +83,15 @@ export default function ProductCard({ product, loading = false }: ProductCardPro
 
             {/* Main image */}
             {mainImage && !imageError ? (
-              <img
+              <Image
                 src={mainImage}
                 alt={product.name}
-                className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${imageLoading ? 'opacity-0' : 'opacity-100'
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className={`object-cover transition-all duration-500 group-hover:scale-105 ${imageLoading ? 'opacity-0' : 'opacity-100'
                   }`}
                 onLoad={handleImageLoad}
                 onError={handleImageError}
-                loading="lazy"
               />
             ) : (
               <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500">
@@ -122,9 +124,11 @@ export default function ProductCard({ product, loading = false }: ProductCardPro
           <div className="flex items-center gap-3 pb-1 text-sm sm:text-base text-stone-400">
             <div className="relative flex-shrink-0">
               {product.creator.creatorlogo ? (
-                <img
+                <Image
                   src={product.creator.creatorlogo}
                   alt={`${product.creator.name} logo`}
+                  width={32}
+                  height={32}
                   className="w-8 h-8 rounded-lg object-cover ring-2 ring-gray-600/50"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';

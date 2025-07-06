@@ -62,11 +62,11 @@ export default function SearchWrapper() {
 
     const handleSearch = () => {
         const selectedTags = elements
-            .filter((el) => el.type === "tag")
-            .map((el) => (el as any).value.name.toLowerCase());
+            .filter((el): el is { type: "tag"; value: Tag } => el.type === "tag")
+            .map((el) => el.value.name.toLowerCase());
 
         const searchTerms = elements
-            .filter((el) => el.type === "text")
+            .filter((el): el is { type: "text"; value: string } => el.type === "text")
             .map((el) => el.value.toLowerCase());
 
         if (selectedTags.length === 0 && searchTerms.length === 0) return;
@@ -79,7 +79,9 @@ export default function SearchWrapper() {
     };
 
 
-    const selectedTags = elements.filter((el) => el.type === "tag").map((el) => (el as any).value);
+    const selectedTags = elements
+        .filter((el): el is { type: "tag"; value: Tag } => el.type === "tag")
+        .map((el) => el.value);
 
     const suggestions =
         input.trim() === ""
