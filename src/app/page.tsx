@@ -1,8 +1,6 @@
-import { getAllCategories } from "@/lib/api/categories";
 import { getAllProducts } from "@/lib/api/products";
 import ProductList from "@/components/product/ProductsList";
 import SearchWrapper from "@/components/search/SearchWrapper";
-import { Tag } from "@/data/mock-tags";
 
 export default async function Home() {
   const products = await getAllProducts();

@@ -8,13 +8,14 @@ import { RiShoppingCart2Fill, RiDownloadLine } from "react-icons/ri";
 import TagPill from "@/components/card/TagPill";
 import ProductImageGallery from "@/components/product/ProductImageGallery";
 import { useState, useEffect } from "react";
+import { Product } from "@/types/product";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
 }
 
 export default function ProductPage(props: ProductPageProps) {
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedLicense, setSelectedLicense] = useState<'personal' | 'commercial'>('personal');
   const [imageError, setImageError] = useState(false);
@@ -60,7 +61,7 @@ export default function ProductPage(props: ProductPageProps) {
             <div className="h-6 bg-gray-700 rounded-full w-20"></div>
             <div className="h-6 bg-gray-700 rounded-full w-14"></div>
           </div>
-          
+
           {/* Content skeleton */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
             <div className="lg:col-span-3">
@@ -90,7 +91,7 @@ export default function ProductPage(props: ProductPageProps) {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
-        
+
         {/* Product Image Gallery */}
         <div className="lg:col-span-3">
           <ProductImageGallery images={product.images} name={product.name} />
@@ -98,7 +99,7 @@ export default function ProductPage(props: ProductPageProps) {
 
         {/* Product Information */}
         <div className="lg:col-span-2 space-y-6">
-          
+
           {/* Product Header */}
           <div className="space-y-4">
             <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight text-white">
@@ -147,28 +148,26 @@ export default function ProductPage(props: ProductPageProps) {
             <h3 className="text-white text-base sm:text-lg font-semibold">
               Select License Type
             </h3>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button 
+              <button
                 onClick={() => setSelectedLicense('personal')}
-                className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                  selectedLicense === 'personal' 
-                    ? 'border-primary bg-primary/10 text-white shadow-lg' 
-                    : 'border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
-                }`}
+                className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${selectedLicense === 'personal'
+                  ? 'border-primary bg-primary/10 text-white shadow-lg'
+                  : 'border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
+                  }`}
                 aria-pressed={selectedLicense === 'personal'}
               >
                 <div className="font-medium">Personal</div>
                 <div className="text-xs text-gray-400 mt-1">For personal use only</div>
               </button>
-              
-              <button 
+
+              <button
                 onClick={() => setSelectedLicense('commercial')}
-                className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                  selectedLicense === 'commercial' 
-                    ? 'border-primary bg-primary/10 text-white shadow-lg' 
-                    : 'border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
-                }`}
+                className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${selectedLicense === 'commercial'
+                  ? 'border-primary bg-primary/10 text-white shadow-lg'
+                  : 'border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
+                  }`}
                 aria-pressed={selectedLicense === 'commercial'}
               >
                 <div className="font-medium">Commercial</div>
@@ -180,12 +179,12 @@ export default function ProductPage(props: ProductPageProps) {
             <div className="bg-gray-900/50 rounded-lg p-4 text-sm text-gray-300 leading-relaxed">
               {selectedLicense === 'personal' ? (
                 <>
-                  <strong className="text-white">Personal License:</strong> Print and use for personal projects only. 
+                  <strong className="text-white">Personal License:</strong> Print and use for personal projects only.
                   Files and printed models cannot be distributed, shared, or sold.
                 </>
               ) : (
                 <>
-                  <strong className="text-white">Commercial License:</strong> Use for commercial projects, 
+                  <strong className="text-white">Commercial License:</strong> Use for commercial projects,
                   including selling printed models. Includes rights for business use and resale.
                 </>
               )}
@@ -195,7 +194,7 @@ export default function ProductPage(props: ProductPageProps) {
           {/* Add to Cart Button */}
           <div className="sticky bottom-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 p-4 -mx-4 lg:relative lg:bg-transparent lg:border-0 lg:p-0 lg:mx-0">
             <CardCartButton href="/cart/" className="w-full">
-              <RiShoppingCart2Fill className="w-5 h-5"/>
+              <RiShoppingCart2Fill className="w-5 h-5" />
               <span className="font-semibold">Add to Cart - ${getCurrentPrice()}</span>
             </CardCartButton>
           </div>
@@ -209,12 +208,12 @@ export default function ProductPage(props: ProductPageProps) {
               <RiDownloadLine className="w-5 h-5 text-primary" />
               Included Files
             </h2>
-            
+
             <div className="space-y-2">
               {Array.isArray(product.files) && product.files.length > 0 ? (
                 product.files.map((file: string, i: number) => (
-                  <div 
-                    key={i} 
+                  <div
+                    key={i}
                     className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg border border-gray-700"
                   >
                     <RiDownloadLine className="w-4 h-4 text-gray-400 flex-shrink-0" />
