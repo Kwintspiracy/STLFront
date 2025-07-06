@@ -1,18 +1,11 @@
 import { getAllCategories } from "@/lib/api/categories";
 import { getAllProducts } from "@/lib/api/products";
 import ProductList from "@/components/product/ProductsList";
-import Link from "next/link";
 import SearchWrapper from "@/components/search/SearchWrapper";
 import { Tag } from "@/data/mock-tags";
 
 export default async function Home() {
   const products = await getAllProducts();
-  const categories = await getAllCategories();
-  const handleSearch = (tags: Tag[], text: string) => {
-    console.log("Tags:", tags);
-    console.log("Free text:", text);
-    // TODO: Lancer la recherche ici
-  };
   
   return (
     <div className="mx-auto">

@@ -24,7 +24,7 @@ export interface ProductImage {
 
 export interface ProductTag {
   id: number;
-  name: String;
+  name: string;
 }
 
 export interface ProductPrice {
@@ -44,4 +44,3 @@ export interface Product {
   release_date: string;
   files?: string[];
 }
-

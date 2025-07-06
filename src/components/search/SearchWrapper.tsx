@@ -2,7 +2,6 @@
 
 import SearchBar from "./SearchBar";
 import { allTags, Tag } from "@/data/mock-tags";
-import { mockProducts } from "@/data/mock-products";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 

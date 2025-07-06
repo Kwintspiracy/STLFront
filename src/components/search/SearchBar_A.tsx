@@ -1,7 +1,7 @@
 "use client";
 
 import { Tag } from "@/data/mock-tags";
-import { useRef, useEffect, useState } from "react";
+import { useRef } from "react";
 
 interface Props {
   selectedTags: Tag[];

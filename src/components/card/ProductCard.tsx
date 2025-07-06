@@ -1,13 +1,11 @@
 'use client';
 
 import { Product } from "@/types/product";
-import { RiImageLine, RiShoppingCartLine } from "react-icons/ri";
+import { RiImageLine } from "react-icons/ri";
 import { TbShoppingCartPlus } from "react-icons/tb";
 import CardCartButton from './CardCartButton';
-import TagPill from './TagPill';
 import Link from 'next/link';
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState } from 'react'
 
 interface ProductCardProps {
   product: Product;
@@ -20,9 +18,6 @@ export default function ProductCard({ product, loading = false }: ProductCardPro
 
   const sortedImages = [...product.images].sort((a, b) => a.rank - b.rank);
   const mainImage = sortedImages[0]?.url;
-
-  // Get first 2 tags for display
-  const displayTags = product.tag?.slice(0, 2) || [];
 
   const handleImageLoad = () => {
     setImageLoading(false);

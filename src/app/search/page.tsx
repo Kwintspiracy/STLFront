@@ -1,6 +1,6 @@
 import { mockProducts } from "@/data/mock-products";
 import ProductCard from "@/components/card/ProductCard";
-import { Tag } from "@/data/mock-tags";
+
 
 interface SearchParams {
   searchParams: {
