@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "check-env": "powershell -ExecutionPolicy Bypass -File ./scripts/env-check.ps1"
   },
   "dependencies": {
     "lucide-react": "^0.515.0",
