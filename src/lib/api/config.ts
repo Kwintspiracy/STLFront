@@ -1,5 +1,5 @@
 // src/lib/api/config.ts
-export const USE_MOCK_DATA = false; // Set to true to use mock data for products
+export const USE_MOCK_DATA = true; // Set to true to use mock data for products
 export const USE_REAL_API = true; // Set to false to disable real API calls for auth
 
 // API Configuration

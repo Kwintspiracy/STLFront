@@ -73,9 +73,9 @@ export default function SearchBar({
             {/* Search Button */}
             <button
                 onClick={onSearch}
-                className="bg-primary text-black px-6 py-3.5 rounded-xl text-base font-semibold hover:bg-[#3f6061] hover:text-secondary transition-colors flex items-center justify-center min-w-[56px] shadow-lg"
+                className="bg-gray-700 text-gray-300 px-4 py-3.5 rounded-xl text-base font-medium hover:bg-gray-600 hover:text-white transition-colors flex items-center justify-center min-w-[56px] border border-gray-600"
             >
-                <span className="block sm:hidden"><FiSearch size={20} /></span>
+                <span className="block sm:hidden"><FiSearch size={18} /></span>
                 <span className="hidden sm:block">Search</span>
             </button>
 

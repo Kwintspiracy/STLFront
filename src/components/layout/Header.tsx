@@ -47,6 +47,7 @@ const Header = () => {
   const [input, setInput] = useState("");
 
   const isHomePage = pathname === '/';
+  const isStudioPage = pathname.startsWith('/studio/');
 
   const toggleDropdown = useCallback(() => {
     if (!dropdownOpen) {
@@ -211,7 +212,6 @@ const Header = () => {
     { href: '/', label: 'Home', icon: FaHome, active: pathname === '/' },
     { href: '/trending', label: 'Trending', icon: FaFire, active: pathname === '/trending' },
     { href: '/featured', label: 'Featured', icon: FaCrown, active: pathname === '/featured' },
-    { href: '/categories', label: 'Categories', icon: FaBars, active: pathname.startsWith('/category') },
   ];
 
   return (
@@ -252,28 +252,26 @@ const Header = () => {
               </nav>
             </div>
 
-            {/* Center: Search Bar (non-homepage) */}
-            {!isHomePage && (
-              <div className="hidden md:flex flex-1 max-w-lg mx-8">
-                <div className="w-full">
-                  <SearchBar
-                    elements={elements}
-                    input={input}
-                    onInputChange={handleInputChange}
-                    onTagAdd={handleTagAdd}
-                    onTagRemove={handleTagRemove}
-                    onKeyDown={handleKeyDown}
-                    suggestions={suggestions}
-                    onSearch={handleSearch}
-                  />
-                </div>
+            {/* Center: Search Bar (non-homepage and non-studio pages) */}
+            {!isHomePage && !isStudioPage && (
+              <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-full max-w-lg">
+                <SearchBar
+                  elements={elements}
+                  input={input}
+                  onInputChange={handleInputChange}
+                  onTagAdd={handleTagAdd}
+                  onTagRemove={handleTagRemove}
+                  onKeyDown={handleKeyDown}
+                  suggestions={suggestions}
+                  onSearch={handleSearch}
+                />
               </div>
             )}
 
             {/* Right: Actions + User */}
             <div className="flex items-center gap-3">
               {/* Mobile Search Button */}
-              {!isHomePage && (
+              {!isHomePage && !isStudioPage && (
                 <button className="md:hidden p-2 text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors">
                   <FaSearch className="w-4 h-4" />
                 </button>
@@ -294,6 +292,15 @@ const Header = () => {
                     className="hidden sm:flex p-2 text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
                   >
                     <FaHeart className="w-4 h-4" />
+                  </Link>
+
+                  {/* Public Profile */}
+                  <Link 
+                    href="/profile"
+                    className="hidden sm:flex p-2 text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+                    title="My Profile"
+                  >
+                    <FaUser className="w-4 h-4" />
                   </Link>
                 </>
               )}

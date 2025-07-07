@@ -23,5 +23,5 @@ export const allTags: Tag[] = [
   { id: 15, name: "Dwarf" },
   { id: 16, name: "Dragon" },
   { id: 17, name: "Paladin" },
-  { id: 18, name: "Figther" },
+  { id: 18, name: "Fighter" },
 ];
