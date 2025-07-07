@@ -39,6 +39,8 @@ body {
   /* custom spacing */
   --spacing-7: 1.78rem;
 
+  /* custom breakpoints */
+  --breakpoint-xs: 26.875rem; /* 430px - for large mobile devices like iPhone Pro Max */
   --breakpoint-3xl: 120rem;
 }
 

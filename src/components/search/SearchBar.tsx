@@ -30,19 +30,19 @@ export default function SearchBar({
     const inputRef = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="relative w-full max-w-2xl flex items-center gap-2">
+        <div className="relative w-full max-w-3xl flex items-center gap-3">
             {/* Search Field */}
-            <div className="flex-1 bg-[#424A50] rounded px-3 flex flex-wrap items-center gap-2 h-14 overflow-hidden">
+            <div className="flex-1 bg-primarybackground border border-gray-700 rounded-xl px-4 py-3 flex flex-wrap items-center gap-2 min-h-[56px] focus-within:border-primary transition-colors">
                 {elements.map((el, index) =>
                     el.type === "tag" ? (
                         <div
                             key={`tag-${el.value.id}`}
-                            className="bg-[#2D3235] text-white text-base px-3 py-1 rounded-full flex items-center gap-2"
+                            className="bg-primary text-black text-sm px-3 py-1.5 rounded-full flex items-center gap-2 font-medium"
                         >
                             {el.value.name}
                             <button
                                 onClick={() => onTagRemove(el.value.id)}
-                                className="text-gray-400 hover:text-red-400"
+                                className="text-black/70 hover:text-red-600 font-bold text-lg leading-none"
                             >
                                 ×
                             </button>
@@ -50,7 +50,7 @@ export default function SearchBar({
                     ) : (
                         <span
                             key={`text-${index}`}
-                            className="text-white text-sm bg-transparent px-1"
+                            className="text-white text-base"
                         >
                             {el.value}
                         </span>
@@ -63,9 +63,9 @@ export default function SearchBar({
                     value={input}
                     onChange={(e) => onInputChange(e.target.value)}
                     onKeyDown={onKeyDown}
-                    className="bg-transparent text-white outline-none text-base grow min-w-[100px] h-full"
+                    className="bg-transparent text-white outline-none text-base grow min-w-[120px] placeholder-gray-400"
                     placeholder={
-                        elements.length === 0 && input === "" ? "Search by tag or keyword..." : ""
+                        elements.length === 0 && input === "" ? "Search miniatures, creators, or tags..." : ""
                     }
                 />
             </div>
@@ -73,16 +73,15 @@ export default function SearchBar({
             {/* Search Button */}
             <button
                 onClick={onSearch}
-                className="bg-gradient-to-br from-[#3538e0] to-primary text-secondary px-6 h-14 rounded text-base font-semibold hover:bg-[#a0f060] transition flex items-center justify-center cursor-pointer"
+                className="bg-primary text-black px-6 py-3.5 rounded-xl text-base font-semibold hover:bg-[#3f6061] hover:text-secondary transition-colors flex items-center justify-center min-w-[56px] shadow-lg"
             >
-                <span className="block sm:hidden"><FiSearch size={24} /></span>
+                <span className="block sm:hidden"><FiSearch size={20} /></span>
                 <span className="hidden sm:block">Search</span>
             </button>
 
-
             {/* Suggestions Dropdown */}
             {suggestions.length > 0 && (
-                <ul className="absolute left-0 top-full mt-1 w-full bg-[#1B1F22] border border-[#2A2A2A] rounded shadow text-sm text-white max-h-[180px] overflow-y-auto z-10">
+                <ul className="absolute left-0 top-full mt-2 w-full bg-cardbackground border border-gray-700 rounded-xl shadow-xl text-sm text-white max-h-[200px] overflow-y-auto z-50">
                     {suggestions.map((tag) => (
                         <li
                             key={tag.id}
@@ -90,9 +89,10 @@ export default function SearchBar({
                                 onTagAdd(tag);
                                 inputRef.current?.focus();
                             }}
-                            className="px-4 py-2 hover:bg-[#2D3235] cursor-pointer"
+                            className="px-4 py-3 hover:bg-primarybackground cursor-pointer border-b border-gray-800 last:border-b-0 transition-colors"
                         >
-                            {tag.name}
+                            <span className="font-medium">{tag.name}</span>
+                            <span className="text-xs text-gray-400 ml-2">Tag</span>
                         </li>
                     ))}
                 </ul>
