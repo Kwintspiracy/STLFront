@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
-import { useUser } from '@/context/UserContext';
-import { logout } from '@/lib/utils/sessionService';
+import { useAuth } from '@/context/AuthContext';
+import { useStudio } from '@/context/StudioContext';
 import { 
   FaUserCircle, 
   FaShoppingCart, 
@@ -32,7 +32,7 @@ import { allTags, Tag } from "@/data/mock-tags";
 type SearchElement = { type: "tag"; value: Tag } | { type: "text"; value: string };
 
 const Header = () => {
-  const { user, setUser } = useUser();
+  const { user, logout, isAuthenticated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
@@ -114,7 +114,6 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
-    setUser(null);
     setDropdownOpen(false);
     router.push('/');
   };
@@ -201,10 +200,11 @@ const Header = () => {
             !selectedTags.some((t) => t.id === tag.id)
         );
 
-  // Check if user has studio and their role
-  const hasStudio = user?.studio;
-  const isStudioAdmin = user?.role === 'admin';
-  const isStudioMember = user?.role === 'member' || user?.role === 'admin';
+  // Get studio information from StudioContext
+  const { myStudio } = useStudio();
+  const hasStudio = myStudio !== null;
+  const isStudioAdmin = myStudio?.membership.role === 'admin' || myStudio?.membership.role === 'owner';
+  const isStudioMember = myStudio?.membership.role === 'member' || myStudio?.membership.role === 'admin' || myStudio?.membership.role === 'owner';
 
   // Navigation items
   const navigationItems = [
@@ -490,63 +490,73 @@ const Header = () => {
                 </div>
 
                 {/* Studio Section */}
-                {hasStudio && isStudioMember && (
-                  <div className="px-4 py-2 border-t border-gray-700/50 mt-2">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-1">
-                      Studio
-                    </p>
-                    
-                    <Link
-                      href={`/studio/${user.studio?.id}`}
-                      className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
-                    >
-                      <FaStore className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />
-                      {user.studio?.name}
-                    </Link>
-
-                    <Link
-                      href={`/studio/${user.studio?.id}/products`}
-                      className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
-                    >
-                      <FaStore className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
-                      Manage Products
-                    </Link>
-
-                    <Link
-                      href={`/studio/${user.studio?.id}/add-product`}
-                      className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
-                    >
-                      <FaPlus className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
-                      Add Product
-                    </Link>
-
-                    {isStudioAdmin && (
+                <div className="px-4 py-2 border-t border-gray-700/50 mt-2">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-1">
+                    Studio
+                  </p>
+                  
+                  {hasStudio && isStudioMember ? (
+                    <>
                       <Link
-                        href={`/studio/${user.studio?.id}/settings`}
+                        href={`/studio/${myStudio?.studio.id}`}
                         className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
                       >
-                        <FaCog className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
-                        Studio Settings
+                        <FaStore className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />
+                        {myStudio?.studio.name}
                       </Link>
-                    )}
 
+                      <Link
+                        href={`/studio/${myStudio?.studio.id}/products`}
+                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                      >
+                        <FaStore className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
+                        Manage Products
+                      </Link>
+
+                      <Link
+                        href={`/studio/${myStudio?.studio.id}/add-product`}
+                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                      >
+                        <FaPlus className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
+                        Add Product
+                      </Link>
+
+                      {isStudioAdmin && (
+                        <Link
+                          href={`/studio/${myStudio?.studio.id}/settings`}
+                          className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                        >
+                          <FaCog className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
+                          Studio Settings
+                        </Link>
+                      )}
+
+                      <Link
+                        href={`/studio/${myStudio?.studio.id}/earnings`}
+                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                      >
+                        <FaDollarSign className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
+                        Earnings
+                      </Link>
+
+                      <Link
+                        href={`/studio/${myStudio?.studio.id}/payout`}
+                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                      >
+                        <FaCreditCard className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
+                        Payout
+                      </Link>
+                    </>
+                  ) : (
                     <Link
-                      href={`/studio/${user.studio?.id}/earnings`}
+                      href="/studio/create"
                       className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
                     >
-                      <FaDollarSign className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
-                      Earnings
+                      <FaPlus className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />
+                      Create Studio
                     </Link>
-
-                    <Link
-                      href={`/studio/${user.studio?.id}/payout`}
-                      className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
-                    >
-                      <FaCreditCard className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
-                      Payout
-                    </Link>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Logout */}
                 <div className="px-4 py-2 border-t border-gray-700/50 mt-2">

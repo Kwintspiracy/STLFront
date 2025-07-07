@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Studio } from '@/types/product';
+import { Studio } from '@/types/studio';
 import { RiMenuLine, RiCloseLine, RiDashboardLine, RiTBoxLine, RiSettingsLine } from 'react-icons/ri';
 
 interface StudioClientLayoutProps {
@@ -49,11 +49,17 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
       {/* Mobile Header */}
       <div className="lg:hidden bg-[#0F1213] border-b border-[#2A2D30] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <img
-            src={studio.creatorlogo}
-            alt={`${studio.name} logo`}
-            className="w-8 h-8 rounded-lg object-cover"
-          />
+          {studio.badge ? (
+            <img
+              src={studio.badge}
+              alt={`${studio.name} logo`}
+              className="w-8 h-8 rounded-lg object-cover"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-lg bg-gray-600 flex items-center justify-center">
+              <span className="text-xs font-bold">{studio.name.charAt(0)}</span>
+            </div>
+          )}
           <span className="text-lg font-semibold">{studio.name}</span>
         </div>
         <button
@@ -83,11 +89,17 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
         <div className="p-4 border-b border-[#2A2D30]">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <img
-                src={studio.creatorlogo}
-                alt={`${studio.name} logo`}
-                className="w-10 h-10 rounded-lg object-cover"
-              />
+              {studio.badge ? (
+                <img
+                  src={studio.badge}
+                  alt={`${studio.name} logo`}
+                  className="w-10 h-10 rounded-lg object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-lg bg-gray-600 flex items-center justify-center">
+                  <span className="text-sm font-bold">{studio.name.charAt(0)}</span>
+                </div>
+              )}
               <div>
                 <h2 className="text-lg font-semibold">{studio.name}</h2>
                 <p className="text-sm text-gray-400">Studio Dashboard</p>
@@ -133,11 +145,17 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
         <div className="hidden lg:block w-100 bg-[#0F1213] border-r border-[#2A2D30] min-h-screen">
           <div className="p-6 border-b border-[#2A2D30]">
             <div className="flex items-center space-x-3">
-              <img
-                src={studio.creatorlogo}
-                alt={`${studio.name} logo`}
-                className="w-12 h-12 rounded-lg object-cover"
-              />
+              {studio.badge ? (
+                <img
+                  src={studio.badge}
+                  alt={`${studio.name} logo`}
+                  className="w-12 h-12 rounded-lg object-cover"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-lg bg-gray-600 flex items-center justify-center">
+                  <span className="text-lg font-bold">{studio.name.charAt(0)}</span>
+                </div>
+              )}
               <div>
                 <h2 className="text-xl font-semibold">{studio.name}</h2>
                 <p className="text-sm text-gray-400">Studio Dashboard</p>
