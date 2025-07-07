@@ -4,20 +4,20 @@ import Link from "next/link";
 import { FaFire, FaArrowRight, FaCrown, FaHeart, FaDownload } from "react-icons/fa";
 
 export default async function Home() {
-  const products = await getAllProducts();
+  // const products = await getAllProducts();
   
   // Simulate different product categories for demo
-  const featuredProducts = products.slice(0, 4);
-  const trendingProducts = products.slice(4, 8);
-  const newProducts = products.slice(8, 12);
+  // const featuredProducts = products.slice(0, 4);
+  // const trendingProducts = products.slice(4, 8);
+  // const newProducts = products.slice(8, 12);
   
   return (
     <div className="mx-auto">
       {/* Hero Section */}
-      <SearchWrapper />
+      {/* <SearchWrapper /> */}
       
       {/* Stats Section */}
-      <div className="bg-primarybackground border-b border-gray-800">
+      {/* <div className="bg-primarybackground border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center">
@@ -38,10 +38,10 @@ export default async function Home() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Featured Section */}
-      <div className="bg-primarybackground">
+      {/* <div className="bg-primarybackground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
@@ -90,10 +90,10 @@ export default async function Home() {
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Categories Section */}
-      <div className="bg-cardbackground border-y border-gray-800">
+      {/* <div className="bg-cardbackground border-y border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-2xl font-bold text-white mb-8 text-center">Browse by Tags</h2>
           
@@ -120,10 +120,10 @@ export default async function Home() {
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Trending Section */}
-      <div className="bg-primarybackground">
+      {/* <div className="bg-primarybackground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
@@ -178,10 +178,10 @@ export default async function Home() {
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Creator Spotlight */}
-      <div className="bg-cardbackground border-y border-gray-800">
+      {/* <div className="bg-cardbackground border-y border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-white mb-2">Creator Spotlight</h2>
@@ -216,10 +216,10 @@ export default async function Home() {
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Commercial License Available */}
-      <div className="bg-primarybackground">
+      {/* <div className="bg-primarybackground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
@@ -277,7 +277,7 @@ export default async function Home() {
                 </div>
               </div>
             ))}
-          </div>
+          </div> */}
           
           {/* Need Commercial Rights */}
           {/* <div className="mt-8 text-center">
@@ -302,12 +302,12 @@ export default async function Home() {
               </div>
             </div>
           </div> */}
-
+{/* 
         </div>
-      </div>
+      </div> */}
 
       {/* Latest Additions */}
-      <div className="bg-primarybackground">
+      {/* <div className="bg-primarybackground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -320,10 +320,10 @@ export default async function Home() {
             >
               View All <FaArrowRight className="w-3 h-3" />
             </Link>
-          </div>
+          </div> */}
           
           {/* Use existing ProductList component for latest products */}
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+          {/* <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             {newProducts.map((product) => (
               <div key={product.id} className="bg-cardbackground border border-gray-800 rounded-lg overflow-hidden hover:border-gray-700 transition-colors group">
                 <div className="aspect-square relative overflow-hidden">
@@ -355,10 +355,10 @@ export default async function Home() {
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Call to Action */}
-      <div className="bg-gradient-to-r from-primary/10 to-primary/5 border-y border-primary/20">
+      {/* <div className="bg-gradient-to-r from-primary/10 to-primary/5 border-y border-primary/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to Start Creating?</h2>
           <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
@@ -379,7 +379,7 @@ export default async function Home() {
             </Link>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
