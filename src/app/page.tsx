@@ -1,8 +1,7 @@
 import { getAllProducts } from "@/lib/api/products";
-import ProductList from "@/components/product/ProductsList";
 import SearchWrapper from "@/components/search/SearchWrapper";
 import Link from "next/link";
-import { FaFire, FaStar, FaUsers, FaArrowRight, FaCrown, FaHeart, FaDownload } from "react-icons/fa";
+import { FaFire, FaArrowRight, FaCrown, FaHeart, FaDownload } from "react-icons/fa";
 
 export default async function Home() {
   const products = await getAllProducts();

@@ -25,7 +25,7 @@ import {
   FaBars,
   FaChevronRight
 } from 'react-icons/fa';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import SearchBar from '@/components/search/SearchBar';
 import { allTags, Tag } from "@/data/mock-tags";
 
@@ -39,7 +39,7 @@ const Header = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [backdropVisible, setBackdropVisible] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
+  const [searchFocused] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Search state
@@ -48,6 +48,16 @@ const Header = () => {
 
   const isHomePage = pathname === '/';
 
+  const toggleDropdown = useCallback(() => {
+    if (!dropdownOpen) {
+      setDropdownOpen(true);
+      setBackdropVisible(true);
+    } else {
+      setBackdropVisible(false);
+      setDropdownOpen(false);
+    }
+  }, [dropdownOpen]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -55,7 +65,14 @@ const Header = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const sidebarElement = document.querySelector('[data-sidebar="user-menu"]');
+      
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
+        // Don't close if clicking inside the sidebar
+        if (sidebarElement && sidebarElement.contains(target)) {
+          return;
+        }
         if (dropdownOpen) {
           toggleDropdown();
         }
@@ -64,7 +81,7 @@ const Header = () => {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [dropdownOpen]);
+  }, [dropdownOpen, toggleDropdown]);
 
   // Close dropdown on escape key
   useEffect(() => {
@@ -76,7 +93,7 @@ const Header = () => {
 
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [dropdownOpen]);
+  }, [dropdownOpen, toggleDropdown]);
 
   // Prevent body scroll when sidebar is open
   useEffect(() => {
@@ -100,16 +117,6 @@ const Header = () => {
     setUser(null);
     setDropdownOpen(false);
     router.push('/');
-  };
-
-  const toggleDropdown = () => {
-    if (!dropdownOpen) {
-      setDropdownOpen(true);
-      setBackdropVisible(true);
-    } else {
-      setBackdropVisible(false);
-      setDropdownOpen(false);
-    }
   };
 
   const toggleMobileMenu = () => {
@@ -418,13 +425,13 @@ const Header = () => {
       {dropdownOpen && user && (
         <div className="fixed inset-0 z-50">
           <div 
-            className={`fixed inset-0 bg-primarybackground/50 transition-opacity duration-300 ${
+            className={`fixed inset-0 bg-black/50 transition-opacity duration-300 ${
               backdropVisible ? 'opacity-100' : 'opacity-0'
             }`}
             onClick={toggleDropdown}
           />
           
-          <div className="fixed right-0 top-0 h-screen w-80 max-w-[85vw] bg-primarybackground border-l border-gray-700/50 shadow-2xl transform transition-transform duration-300 ease-out">
+          <div className="fixed right-0 top-0 h-screen w-80 max-w-[85vw] bg-primarybackground border-l border-gray-700/50 shadow-2xl transform transition-transform duration-300 ease-out" data-sidebar="user-menu">
             
             {/* Sidebar Header */}
             <div className="flex items-center justify-between p-4 h-16 border-b border-gray-700/50">
@@ -468,7 +475,6 @@ const Header = () => {
                   <Link
                     href="/profile"
                     className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
-                    onClick={toggleDropdown}
                   >
                     <FaUser className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />
                     My Profile
@@ -477,7 +483,6 @@ const Header = () => {
                   <Link
                     href="/settings"
                     className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
-                    onClick={toggleDropdown}
                   >
                     <FaCog className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />
                     Settings
@@ -494,7 +499,6 @@ const Header = () => {
                     <Link
                       href={`/studio/${user.studio?.id}`}
                       className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
-                      onClick={toggleDropdown}
                     >
                       <FaStore className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />
                       {user.studio?.name}
@@ -503,7 +507,6 @@ const Header = () => {
                     <Link
                       href={`/studio/${user.studio?.id}/products`}
                       className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
-                      onClick={toggleDropdown}
                     >
                       <FaStore className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
                       Manage Products
@@ -512,7 +515,6 @@ const Header = () => {
                     <Link
                       href={`/studio/${user.studio?.id}/add-product`}
                       className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
-                      onClick={toggleDropdown}
                     >
                       <FaPlus className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
                       Add Product
@@ -522,7 +524,6 @@ const Header = () => {
                       <Link
                         href={`/studio/${user.studio?.id}/settings`}
                         className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
-                        onClick={toggleDropdown}
                       >
                         <FaCog className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
                         Studio Settings
@@ -532,7 +533,6 @@ const Header = () => {
                     <Link
                       href={`/studio/${user.studio?.id}/earnings`}
                       className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
-                      onClick={toggleDropdown}
                     >
                       <FaDollarSign className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
                       Earnings
@@ -541,7 +541,6 @@ const Header = () => {
                     <Link
                       href={`/studio/${user.studio?.id}/payout`}
                       className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
-                      onClick={toggleDropdown}
                     >
                       <FaCreditCard className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
                       Payout
