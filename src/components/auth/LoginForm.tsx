@@ -1,48 +1,61 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { login } from '@/lib/api/authService';
+import { useUser } from '@/context/UserContext';
+import type { User } from '@/data/mock-users';
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const router = useRouter();
+  const { setUser } = useUser();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    console.log({ email, password }); // Pour l'instant, on log les données
-  };
+    setError('');
+
+    try {
+      const user: User = await login(username, password);
+      setUser(user); // ✅ met à jour le contexte global
+      router.push(user.studio ? `/studio/${user.studio.id}` : '/');
+    } catch {
+      setError('Identifiants invalides');
+    }
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg p-6 w-full max-w-md shadow-md space-y-4">
-      <h2 className="text-2xl font-bold text-center">Sign In</h2>
+    <div className='w-xl'>
+    <form onSubmit={handleSubmit} className="mt-24 p-6 bg-neutral-900 border border-neutral-700 rounded space-y-4">
+      <h1 className="text-xl font-bold text-white text-center">Connexion</h1>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-500"
-          required
-        />
-      </div>
+      <input
+        type="text"
+        placeholder="Nom d'utilisateur"
+        className="w-full p-2 bg-neutral-800 border border-neutral-600 rounded text-white"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-500"
-          required
-        />
-      </div>
+      <input
+        type="password"
+        placeholder="Mot de passe"
+        className="w-full p-2 bg-neutral-800 border border-neutral-600 rounded text-white"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
       >
-        Log In
+        Se connecter
       </button>
     </form>
+    </div>
   );
 }
