@@ -434,4 +434,30 @@ export const mockProducts = [
     "release_date": "2025-07-20T00:00:00",
     "files": ["seraphine-dawnshield.stl"]
   },
+  {
+    "id": 15,
+    "name": "Seraphine Warrior",
+    "price": "10.40",
+    "description": "A paladin in ornate armor holding a glowing longsword and a heavy shield emblazoned with the symbol of justice.",
+    "images": [
+      { "id": 43, "url": "https://picsum.photos/seed/seraphine-1/600", "rank": 1 },
+      { "id": 44, "url": "https://picsum.photos/seed/seraphine-2/600", "rank": 2 },
+      { "id": 45, "url": "https://picsum.photos/seed/seraphine-3/600", "rank": 3 }
+    ],
+    "category": [{ "id": 1, "name": "Fantasy" }],
+    "creator": {
+      "id": 1,
+      "name": "Magnetic Foundry",
+      "creatorlogo": "https://picsum.photos/seed/logo1/100"
+    },
+    "professionalLicenseFee": "0",
+    "tag": [
+      { "id": 1, "name": "Fantasy" },
+      { "id": 2, "name": "Character" },
+      { "id": 5, "name": "Elf" },
+      { "id": 16, "name": "Paladin" }
+    ],
+    "release_date": "2025-07-20T00:00:00",
+    "files": ["seraphine-dawnshield.stl"]
+  },
 ]

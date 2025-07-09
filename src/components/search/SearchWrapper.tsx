@@ -1,96 +1,20 @@
 "use client";
 
 import SearchBar from "./SearchBar";
-import { allTags, Tag } from "@/data/mock-tags";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-
-
-type SearchElement = { type: "tag"; value: Tag } | { type: "text"; value: string };
+import { allTags } from "@/data/mock-tags";
+import { useSearch } from "@/hooks/useSearch";
 
 export default function SearchWrapper() {
-    const [elements, setElements] = useState<SearchElement[]>([]);
-    const [input, setInput] = useState("");
-
-    const router = useRouter();
-
-    const handleInputChange = (text: string) => {
-        setInput(text);
-    };
-
-    const handleTagAdd = (tag: Tag) => {
-        setElements((prev) => [...prev, { type: "tag", value: tag }]);
-        setInput("");
-    };
-
-    const handleTagRemove = (tagId: number) => {
-        setElements((prev) => prev.filter((el) => el.type !== "tag" || el.value.id !== tagId));
-    };
-
-    const handleTextAdd = (text: string) => {
-        setElements((prev) => [...prev, { type: "text", value: text }]);
-        setInput("");
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === " ") {
-            const words = input.trim().split(/\s+/);
-            words.forEach((word) => {
-                const match = allTags.find(
-                    (tag) =>
-                        tag.name.toLowerCase() === word.toLowerCase() &&
-                        !elements.some((el) => el.type === "tag" && el.value.id === tag.id)
-                );
-
-                if (match) {
-                    handleTagAdd(match);
-                } else {
-                    handleTextAdd(word);
-                }
-            });
-            e.preventDefault();
-        } else if (e.key === "Enter") {
-            handleSearch();
-        } else if (e.key === "Backspace" && input === "" && elements.length > 0) {
-            const last = elements[elements.length - 1];
-            setElements((prev) => prev.slice(0, -1));
-            if (last.type === "text") {
-                setInput(last.value + " ");
-            }
-        }
-    };
-
-    const handleSearch = () => {
-        const selectedTags = elements
-            .filter((el): el is { type: "tag"; value: Tag } => el.type === "tag")
-            .map((el) => el.value.name.toLowerCase());
-
-        const searchTerms = elements
-            .filter((el): el is { type: "text"; value: string } => el.type === "text")
-            .map((el) => el.value.toLowerCase());
-
-        if (selectedTags.length === 0 && searchTerms.length === 0) return;
-
-        const params = new URLSearchParams();
-        if (selectedTags.length) params.set("tags", selectedTags.join(","));
-        if (searchTerms.length) params.set("terms", searchTerms.join(","));
-
-        router.push(`/search?${params.toString()}`);
-    };
-
-
-    const selectedTags = elements
-        .filter((el): el is { type: "tag"; value: Tag } => el.type === "tag")
-        .map((el) => el.value);
-
-    const suggestions =
-        input.trim() === ""
-            ? []
-            : allTags.filter(
-                (tag) =>
-                    tag.name.toLowerCase().startsWith(input.toLowerCase()) &&
-                    !selectedTags.some((t) => t.id === tag.id)
-            );
+    const {
+        elements,
+        input,
+        suggestions,
+        handleInputChange,
+        handleTagAdd,
+        handleTagRemove,
+        handleKeyDown,
+        executeSearch
+    } = useSearch();
 
     return (
         <div className="relative w-full bg-gradient-to-br from-primarybackground via-cardbackground to-primarybackground">
@@ -123,7 +47,7 @@ export default function SearchWrapper() {
                                 onTagRemove={handleTagRemove}
                                 onKeyDown={handleKeyDown}
                                 suggestions={suggestions}
-                                onSearch={handleSearch}
+                                onSearch={executeSearch}
                             />
                         </div>
                         

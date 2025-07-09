@@ -65,16 +65,16 @@ export default function StudioDashboard({ params }: Props) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-primarybackground flex items-center justify-center">
-        <div className="text-white text-lg">Loading studio...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-text-primary text-lg">Loading studio...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-primarybackground flex items-center justify-center">
-        <div className="text-red-400 text-lg">Error: {error}</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-error text-lg">Error: {error}</div>
       </div>
     );
   }
@@ -84,7 +84,7 @@ export default function StudioDashboard({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-primarybackground">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Studio Header */}
@@ -98,14 +98,14 @@ export default function StudioDashboard({ params }: Props) {
               />
             )}
             <div>
-              <h1 className="text-3xl font-bold text-white">{studio.name}</h1>
-              <p className="text-gray-400">Founded by {studio.founder}</p>
-              <p className="text-gray-400">{studio.follower_count} followers</p>
+              <h1 className="text-3xl font-bold text-text-primary">{studio.name}</h1>
+              <p className="text-text-secondary">Founded by {studio.founder}</p>
+              <p className="text-text-secondary">{studio.follower_count} followers</p>
             </div>
           </div>
           
           {studio.description && (
-            <p className="text-gray-300 max-w-2xl">{studio.description}</p>
+            <p className="text-text-secondary max-w-2xl">{studio.description}</p>
           )}
           
           {studio.banner && (
@@ -121,24 +121,24 @@ export default function StudioDashboard({ params }: Props) {
 
         {/* Quick Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h3 className="text-sm font-medium text-gray-400 mb-2">Total Products</h3>
-            <p className="text-2xl font-bold text-[#FDD811]">50</p>
+          <div className="bg-background-secondary border border-border rounded-lg p-6">
+            <h3 className="text-sm font-medium text-text-secondary mb-2">Total Products</h3>
+            <p className="text-2xl font-bold text-accent">50</p>
           </div>
           
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h3 className="text-sm font-medium text-gray-400 mb-2">Total Sales</h3>
-            <p className="text-2xl font-bold text-[#FDD811]">$4,998</p>
+          <div className="bg-background-secondary border border-border rounded-lg p-6">
+            <h3 className="text-sm font-medium text-text-secondary mb-2">Total Sales</h3>
+            <p className="text-2xl font-bold text-accent">$4,998</p>
           </div>
           
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h3 className="text-sm font-medium text-gray-400 mb-2">Products Sold (June)</h3>
-            <p className="text-2xl font-bold text-[#FDD811]">90</p>
+          <div className="bg-background-secondary border border-border rounded-lg p-6">
+            <h3 className="text-sm font-medium text-text-secondary mb-2">Products Sold (June)</h3>
+            <p className="text-2xl font-bold text-accent">90</p>
           </div>
           
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h3 className="text-sm font-medium text-gray-400 mb-2">Monthly Revenue</h3>
-            <p className="text-2xl font-bold text-[#FDD811]">$470</p>
+          <div className="bg-background-secondary border border-border rounded-lg p-6">
+            <h3 className="text-sm font-medium text-text-secondary mb-2">Monthly Revenue</h3>
+            <p className="text-2xl font-bold text-accent">$470</p>
           </div>
         </div>
 
@@ -147,20 +147,20 @@ export default function StudioDashboard({ params }: Props) {
           
           {/* Main Content */}
           <div className="lg:col-span-2">
-            <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-white mb-4">Studio Dashboard</h2>
-              <p className="text-gray-400">Welcome to {studio.name}!</p>
+            <div className="bg-background-secondary border border-border rounded-lg p-6">
+              <h2 className="text-xl font-semibold text-text-primary mb-4">Studio Dashboard</h2>
+              <p className="text-text-secondary">Welcome to {studio.name}!</p>
               
               {/* Placeholder for future content */}
               <div className="mt-6 space-y-4">
-                <div className="bg-[#131618] border border-[#2A2D30] rounded-lg p-4">
-                  <h3 className="text-lg font-medium text-white mb-2">Recent Activity</h3>
-                  <p className="text-gray-400 text-sm">No recent activity</p>
+                <div className="bg-background border border-border rounded-lg p-4">
+                  <h3 className="text-lg font-medium text-text-primary mb-2">Recent Activity</h3>
+                  <p className="text-text-secondary text-sm">No recent activity</p>
                 </div>
                 
-                <div className="bg-[#131618] border border-[#2A2D30] rounded-lg p-4">
-                  <h3 className="text-lg font-medium text-white mb-2">Products</h3>
-                  <p className="text-gray-400 text-sm">No products yet</p>
+                <div className="bg-background border border-border rounded-lg p-4">
+                  <h3 className="text-lg font-medium text-text-primary mb-2">Products</h3>
+                  <p className="text-text-secondary text-sm">No products yet</p>
                 </div>
               </div>
             </div>
@@ -168,38 +168,38 @@ export default function StudioDashboard({ params }: Props) {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Studio Info</h3>
+            <div className="bg-background-secondary border border-border rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-text-primary mb-4">Studio Info</h3>
               <div className="space-y-3 text-sm">
                 <div>
-                  <span className="text-gray-400">Status:</span>
-                  <span className="text-white ml-2 capitalize">{studio.status}</span>
+                  <span className="text-text-secondary">Status:</span>
+                  <span className="text-text-primary ml-2 capitalize">{studio.status}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400">Created:</span>
-                  <span className="text-white ml-2">
+                  <span className="text-text-secondary">Created:</span>
+                  <span className="text-text-primary ml-2">
                     {new Date(studio.created_at).toLocaleDateString()}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-400">Updated:</span>
-                  <span className="text-white ml-2">
+                  <span className="text-text-secondary">Updated:</span>
+                  <span className="text-text-primary ml-2">
                     {new Date(studio.updated_at).toLocaleDateString()}
                   </span>
                 </div>
               </div>
             </div>
             
-            <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Payout Info</h3>
+            <div className="bg-background-secondary border border-border rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-text-primary mb-4">Payout Info</h3>
               <div className="space-y-3 text-sm">
                 <div>
-                  <span className="text-gray-400">Pending Payout:</span>
-                  <span className="text-[#FDD811] ml-2 font-medium">$470</span>
+                  <span className="text-text-secondary">Pending Payout:</span>
+                  <span className="text-accent ml-2 font-medium">$470</span>
                 </div>
                 <div>
-                  <span className="text-gray-400">Next Payout:</span>
-                  <span className="text-white ml-2">July 15, 2025</span>
+                  <span className="text-text-secondary">Next Payout:</span>
+                  <span className="text-text-primary ml-2">July 15, 2025</span>
                 </div>
               </div>
             </div>

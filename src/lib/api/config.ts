@@ -30,3 +30,20 @@ export const STUDIO_ENDPOINTS = {
   FOLLOW_PREFERENCES: (id: number) => USE_REAL_API ? `${REAL_API_BASE_URL}/studio/${id}/follow-preferences/` : `${API_BASE_URL}/studio/${id}/follow-preferences/`,
   FOLLOWED: USE_REAL_API ? `${REAL_API_BASE_URL}/studio/followed/` : `${API_BASE_URL}/studio/followed/`,
 };
+
+// Search endpoints
+export const SEARCH_ENDPOINTS = {
+  PRODUCTS: USE_REAL_API ? `${REAL_API_BASE_URL}/search/products/` : `${API_BASE_URL}/search/products/`,
+  SUGGESTIONS: USE_REAL_API ? `${REAL_API_BASE_URL}/search/suggestions/` : `${API_BASE_URL}/search/suggestions/`,
+};
+
+// Product endpoints (public access for list and detail)
+export const PRODUCT_ENDPOINTS = {
+  LIST: USE_REAL_API ? `${REAL_API_BASE_URL}/product/products/` : `${API_BASE_URL}/product/products/`,
+  DETAIL: (id: number) => USE_REAL_API ? `${REAL_API_BASE_URL}/product/products/${id}/` : `${API_BASE_URL}/product/products/${id}/`,
+  CREATE: USE_REAL_API ? `${REAL_API_BASE_URL}/product/products/create/` : `${API_BASE_URL}/product/products/create/`,
+  UPDATE: (id: number) => USE_REAL_API ? `${REAL_API_BASE_URL}/product/products/${id}/update/` : `${API_BASE_URL}/product/products/${id}/update/`,
+  BY_CATEGORY: (categorySlug: string) => USE_REAL_API ? `${REAL_API_BASE_URL}/product/products/?category=${categorySlug}` : `${API_BASE_URL}/product/products/?category=${categorySlug}`,
+  BY_TAG: (tagSlug: string) => USE_REAL_API ? `${REAL_API_BASE_URL}/product/products/?tags=${tagSlug}` : `${API_BASE_URL}/product/products/?tags=${tagSlug}`,
+  BY_STUDIO: (studioId: number) => USE_REAL_API ? `${REAL_API_BASE_URL}/product/products/?studio=${studioId}` : `${API_BASE_URL}/product/products/?studio=${studioId}`,
+};

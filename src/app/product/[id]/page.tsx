@@ -86,7 +86,7 @@ export default function ProductPage(props: ProductPageProps) {
     <main className="max-w-[1440px] mx-auto text-white px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
       {/* Breadcrumb Navigation */}
       <nav className="flex flex-wrap items-center gap-2 sm:gap-4 py-4 sm:py-6" aria-label="Breadcrumb">
-        {product.tag.map((tag: { id: number; name: string }) => (
+        {product.tags && product.tags.map((tag: { id: number; name: string }) => (
           <TagPill key={tag.id} tag={tag.name} />
         ))}
       </nav>
@@ -113,8 +113,10 @@ export default function ProductPage(props: ProductPageProps) {
               <div className="relative">
                 <Image
                   className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg ring-2 ring-gray-600 object-cover"
-                  src={imageError ? '/placeholder-avatar.png' : product.creator.creatorlogo}
-                  alt={`${product.creator.name} logo`}
+                  src={imageError || !product.studio || typeof product.studio !== 'object' || !product.studio.logo 
+                    ? '/placeholder-avatar.png' 
+                    : product.studio.logo}
+                  alt={`${typeof product.studio === 'object' ? product.studio.name : 'Studio'} logo`}
                   width={48}
                   height={48}
                   onError={() => setImageError(true)}
@@ -122,7 +124,7 @@ export default function ProductPage(props: ProductPageProps) {
               </div>
               <div>
                 <p className="text-white text-sm sm:text-base font-medium">
-                  by {product.creator.name}
+                  by {typeof product.studio === 'object' ? product.studio.name : 'Studio'}
                 </p>
                 <p className="text-gray-400 text-xs sm:text-sm">
                   Creator
@@ -214,15 +216,15 @@ export default function ProductPage(props: ProductPageProps) {
             </h2>
 
             <div className="space-y-2">
-              {Array.isArray(product.files) && product.files.length > 0 ? (
-                product.files.map((file: string, i: number) => (
+              {Array.isArray(product.stl_files) && product.stl_files.length > 0 ? (
+                product.stl_files.map((file, i) => (
                   <div
-                    key={i}
+                    key={file.id}
                     className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg border border-gray-700"
                   >
                     <RiDownloadLine className="w-4 h-4 text-gray-400 flex-shrink-0" />
                     <span className="text-gray-200 text-sm font-medium truncate">
-                      {file}
+                      {file.title}
                     </span>
                   </div>
                 ))

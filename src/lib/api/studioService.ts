@@ -298,6 +298,26 @@ export async function getFollowedStudios(): Promise<Studio[]> {
   }
 }
 
+// Get All Studios (public endpoint)
+export async function getAllStudios(): Promise<Studio[]> {
+  if (USE_MOCK_DATA) {
+    return mockStudios;
+  } else {
+    try {
+      // Try with the base studio endpoint
+      const response = await fetch(`${STUDIO_ENDPOINTS.CREATE.replace('/create/', '/')}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch studios: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching studios:", error);
+      return [];
+    }
+  }
+}
+
 // Helper function to check if user can manage studio
 export function canManageStudio(studio: Studio, userId: number): boolean {
   if (USE_MOCK_DATA) {

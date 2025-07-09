@@ -28,7 +28,17 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'fbi.cults3d.com',
         pathname: '/**',
-      },      
+      },
+      {
+        protocol: 'http',
+        hostname: 'little-sea-1837.fly.dev',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'little-sea-1837.fly.dev',
+        pathname: '/**',
+      },
     ],
   },
   async redirects() {

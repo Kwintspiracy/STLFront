@@ -1,10 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useStudio } from '@/context/StudioContext';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { notFound, useRouter } from 'next/navigation';
+import { getProductsByStudio, deleteProduct } from '@/lib/api/products';
 import type { Studio } from '@/types/studio';
+import type { Product } from '@/types/product';
+import { RiEditLine, RiEyeLine, RiDeleteBinLine, RiBox3Line } from 'react-icons/ri';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -13,12 +19,22 @@ interface Props {
 export default function StudioProducts({ params }: Props) {
   const [studioId, setStudioId] = useState<number | null>(null);
   const [studio, setStudio] = useState<Studio | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
   
   const { getStudio } = useStudio();
   const { isAuthenticated } = useAuth();
+  const { showError, showSuccess } = useToast();
   const router = useRouter();
+
+  // Delete modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Resolve params
   useEffect(() => {
@@ -52,6 +68,99 @@ export default function StudioProducts({ params }: Props) {
     loadStudio();
   }, [studioId, getStudio]);
 
+  // Load products
+  useEffect(() => {
+    if (!studioId || !studio) return;
+
+    const loadProducts = async () => {
+      try {
+        setProductsLoading(true);
+        console.log('Loading products for studio:', studioId);
+        const productsData = await getProductsByStudio(studioId);
+        console.log('Products loaded:', productsData);
+        console.log('Number of products:', productsData.length);
+        
+        // Check if products look like mock data
+        if (productsData.length > 0) {
+          const firstProduct = productsData[0];
+          console.log('First product details:', {
+            id: firstProduct.id,
+            name: firstProduct.name,
+            studio: firstProduct.studio,
+            hasCreator: 'creator' in firstProduct,
+            created_at: firstProduct.created_at,
+          });
+          
+          if (firstProduct.images?.length > 0) {
+            console.log('First product image:', firstProduct.images[0]);
+          }
+        }
+        
+        setProducts(productsData);
+      } catch (err: any) {
+        console.error('Error loading products:', err);
+        // Don't show error for products, just show empty state
+        setProducts([]);
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, [studioId, studio]);
+
+  // Filter products
+  const filteredProducts = products.filter(product => {
+    // Filter by status
+    if (filter === 'published' && product.status !== 'published') return false;
+    if (filter === 'draft' && product.status !== 'draft') return false;
+    
+    // Filter by search term
+    if (searchTerm && !product.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+    
+    return true;
+  });
+
+  // Calculate stats
+  const totalProducts = products.length;
+  const publishedProducts = products.filter(p => p.status === 'published').length;
+  const draftProducts = products.filter(p => p.status === 'draft').length;
+  const totalDownloads = products.reduce((sum, p) => sum + (p.downloads || 0), 0);
+
+  // Delete handlers
+  const handleDeleteClick = (product: Product) => {
+    setProductToDelete(product);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!productToDelete || !studioId) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteProduct(productToDelete.id);
+      
+      // Remove product from list
+      setProducts(prev => prev.filter(p => p.id !== productToDelete.id));
+      
+      showSuccess(`Le produit "${productToDelete.name}" a été supprimé avec succès`);
+      setDeleteModalOpen(false);
+      setProductToDelete(null);
+    } catch (error: any) {
+      console.error('Error deleting product:', error);
+      showError(error.message || 'Erreur lors de la suppression du produit');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setProductToDelete(null);
+  };
+
   // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
@@ -65,15 +174,15 @@ export default function StudioProducts({ params }: Props) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#131618] flex items-center justify-center">
-        <div className="text-white text-lg">Loading studio...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-text-primary text-lg">Loading studio...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#131618] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-red-400 text-lg">Error: {error}</div>
       </div>
     );
@@ -84,169 +193,175 @@ export default function StudioProducts({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-[#131618]">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Products</h1>
-            <p className="text-gray-400">Manage your products for {studio.name}</p>
+            <h1 className="text-3xl font-bold text-text-primary mb-2">Products</h1>
+            <p className="text-text-secondary">Manage your products for {studio.name}</p>
           </div>
-          <button className="px-6 py-3 bg-[#FDD811] text-black rounded-lg font-medium hover:bg-[#FDD811]/90 transition-colors">
+          <Link
+            href={`/studio/${studioId}/products/add`}
+            className="inline-block px-6 py-3 bg-primary text-black rounded-lg font-medium hover:bg-primary-hover transition-colors"
+          >
             Add New Product
-          </button>
+          </Link>
         </div>
 
         {/* Products Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h3 className="text-sm font-medium text-gray-400 mb-2">Total Products</h3>
-            <p className="text-2xl font-bold text-[#FDD811]">50</p>
+          <div className="bg-background-secondary border border-border rounded-lg p-6">
+            <h3 className="text-sm font-medium text-text-secondary mb-2">Total Products</h3>
+            <p className="text-2xl font-bold text-primary">{totalProducts}</p>
           </div>
           
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h3 className="text-sm font-medium text-gray-400 mb-2">Published</h3>
-            <p className="text-2xl font-bold text-[#FDD811]">47</p>
+          <div className="bg-background-secondary border border-border rounded-lg p-6">
+            <h3 className="text-sm font-medium text-text-secondary mb-2">Published</h3>
+            <p className="text-2xl font-bold text-primary">{publishedProducts}</p>
           </div>
           
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h3 className="text-sm font-medium text-gray-400 mb-2">Draft</h3>
-            <p className="text-2xl font-bold text-[#FDD811]">3</p>
+          <div className="bg-background-secondary border border-border rounded-lg p-6">
+            <h3 className="text-sm font-medium text-text-secondary mb-2">Draft</h3>
+            <p className="text-2xl font-bold text-primary">{draftProducts}</p>
           </div>
           
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h3 className="text-sm font-medium text-gray-400 mb-2">Total Downloads</h3>
-            <p className="text-2xl font-bold text-[#FDD811]">2,847</p>
+          <div className="bg-background-secondary border border-border rounded-lg p-6">
+            <h3 className="text-sm font-medium text-text-secondary mb-2">Total Downloads</h3>
+            <p className="text-2xl font-bold text-primary">{totalDownloads}</p>
           </div>
         </div>
 
         {/* Products List */}
-        <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
+        <div className="bg-background-secondary border border-border rounded-lg p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white">Your Products</h2>
+            <h2 className="text-xl font-semibold text-text-primary">Your Products</h2>
             <div className="flex items-center space-x-4">
-              <select className="bg-[#131618] border border-[#2A2D30] text-white rounded-lg px-3 py-2 text-sm">
-                <option>All Products</option>
-                <option>Published</option>
-                <option>Draft</option>
+              <select 
+                value={filter}
+                onChange={(e) => setFilter(e.target.value as 'all' | 'published' | 'draft')}
+                className="bg-background border border-border text-text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+              >
+                <option value="all">All Products</option>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
               </select>
               <input
                 type="text"
                 placeholder="Search products..."
-                className="bg-[#131618] border border-[#2A2D30] text-white rounded-lg px-3 py-2 text-sm w-64"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-background border border-border text-text-primary rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:border-primary"
               />
             </div>
           </div>
 
-          {/* Sample Products */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-[#131618] border border-[#2A2D30] rounded-lg">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-400 text-xs">IMG</span>
-                </div>
-                <div>
-                  <h3 className="text-white font-medium">Dragon Miniature Set</h3>
-                  <p className="text-gray-400 text-sm">Fantasy • Created 2 weeks ago</p>
-                  <div className="flex items-center space-x-4 mt-1">
-                    <span className="text-xs text-green-400">Published</span>
-                    <span className="text-xs text-gray-400">156 downloads</span>
-                    <span className="text-xs text-[#FDD811]">$12.99</span>
+          {/* Products List */}
+          {productsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-text-secondary mb-4">
+                {searchTerm || filter !== 'all' 
+                  ? "Aucun produit trouvé avec ces critères"
+                  : "Vous n'avez pas encore de produits"}
+              </p>
+              {!searchTerm && filter === 'all' && (
+                <Link
+                  href={`/studio/${studioId}/products/add`}
+                  className="inline-block px-6 py-3 bg-primary text-black rounded-lg font-medium hover:bg-primary-hover transition-colors"
+                >
+                  Créer votre premier produit
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredProducts.map((product) => (
+                <div key={product.id} className="flex items-center justify-between p-4 bg-background border border-border rounded-lg hover:border-primary/20 transition-colors">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
+                      {product.images && product.images.length > 0 ? (
+                        <img 
+                          src={product.images[0].image} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            console.error('Image failed to load:', product.images[0].image);
+                            const target = e.currentTarget;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="flex items-center justify-center w-full h-full"><svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/></svg></div>';
+                            }
+                          }}
+                        />
+                      ) : (
+                        <RiBox3Line className="w-8 h-8 text-gray-400" />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-text-primary font-medium">{product.name}</h3>
+                      <p className="text-text-secondary text-sm">
+                        {product.category?.name || 'Sans catégorie'} • 
+                        Créé le {new Date(product.created_at).toLocaleDateString('fr-FR')}
+                      </p>
+                      <div className="flex items-center space-x-4 mt-1">
+                        <span className={`text-xs ${
+                          product.status === 'published' ? 'text-green-400' : 'text-yellow-400'
+                        }`}>
+                          {product.status === 'published' ? 'Publié' : 'Brouillon'}
+                        </span>
+                        <span className="text-xs text-text-secondary">{product.downloads || 0} téléchargements</span>
+                        <span className="text-xs text-primary">
+                          {parseFloat(product.price) === 0 ? 'Gratuit' : `${product.price}€`}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Link 
+                      href={`/studio/${studioId}/products/edit/${product.id}`}
+                      className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+                      title="Modifier"
+                    >
+                      <RiEditLine className="w-4 h-4" />
+                    </Link>
+                    <Link 
+                      href={`/product/${product.id}`}
+                      className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+                      title="Voir"
+                    >
+                      <RiEyeLine className="w-4 h-4" />
+                    </Link>
+                    <button 
+                      onClick={() => handleDeleteClick(product)}
+                      className="p-2 text-red-400 hover:text-red-300 transition-colors" 
+                      title="Supprimer"
+                    >
+                      <RiDeleteBinLine className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button className="px-3 py-1 text-sm text-gray-300 hover:text-white transition-colors">
-                  Edit
-                </button>
-                <button className="px-3 py-1 text-sm text-gray-300 hover:text-white transition-colors">
-                  View
-                </button>
-                <button className="px-3 py-1 text-sm text-red-400 hover:text-red-300 transition-colors">
-                  Delete
-                </button>
-              </div>
+              ))}
             </div>
-
-            <div className="flex items-center justify-between p-4 bg-[#131618] border border-[#2A2D30] rounded-lg">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-400 text-xs">IMG</span>
-                </div>
-                <div>
-                  <h3 className="text-white font-medium">Fantasy Castle</h3>
-                  <p className="text-gray-400 text-sm">Architecture • Created 1 month ago</p>
-                  <div className="flex items-center space-x-4 mt-1">
-                    <span className="text-xs text-green-400">Published</span>
-                    <span className="text-xs text-gray-400">89 downloads</span>
-                    <span className="text-xs text-[#FDD811]">$8.50</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button className="px-3 py-1 text-sm text-gray-300 hover:text-white transition-colors">
-                  Edit
-                </button>
-                <button className="px-3 py-1 text-sm text-gray-300 hover:text-white transition-colors">
-                  View
-                </button>
-                <button className="px-3 py-1 text-sm text-red-400 hover:text-red-300 transition-colors">
-                  Delete
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-[#131618] border border-[#2A2D30] rounded-lg">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-400 text-xs">IMG</span>
-                </div>
-                <div>
-                  <h3 className="text-white font-medium">Sci-Fi Vehicle Pack</h3>
-                  <p className="text-gray-400 text-sm">Vehicles • Created 3 weeks ago</p>
-                  <div className="flex items-center space-x-4 mt-1">
-                    <span className="text-xs text-yellow-400">Draft</span>
-                    <span className="text-xs text-gray-400">0 downloads</span>
-                    <span className="text-xs text-[#FDD811]">$15.99</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button className="px-3 py-1 text-sm text-gray-300 hover:text-white transition-colors">
-                  Edit
-                </button>
-                <button className="px-3 py-1 text-sm text-[#FDD811] hover:text-[#FDD811]/80 transition-colors">
-                  Publish
-                </button>
-                <button className="px-3 py-1 text-sm text-red-400 hover:text-red-300 transition-colors">
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between mt-6 pt-6 border-t border-[#2A2D30]">
-            <p className="text-sm text-gray-400">Showing 1-3 of 50 products</p>
-            <div className="flex items-center space-x-2">
-              <button className="px-3 py-1 text-sm text-gray-400 hover:text-white transition-colors">
-                Previous
-              </button>
-              <button className="px-3 py-1 text-sm bg-[#FDD811] text-black rounded">
-                1
-              </button>
-              <button className="px-3 py-1 text-sm text-gray-400 hover:text-white transition-colors">
-                2
-              </button>
-              <button className="px-3 py-1 text-sm text-gray-400 hover:text-white transition-colors">
-                3
-              </button>
-              <button className="px-3 py-1 text-sm text-gray-400 hover:text-white transition-colors">
-                Next
-              </button>
-            </div>
-          </div>
+          )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Supprimer le produit"
+        message={`Êtes-vous sûr de vouloir supprimer le produit "${productToDelete?.name}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        isLoading={isDeleting}
+        variant="danger"
+      />
     </div>
   );
 }

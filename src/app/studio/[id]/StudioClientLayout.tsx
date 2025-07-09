@@ -57,9 +57,9 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
   ];
 
   return (
-    <div className="min-h-screen bg-[#131618] text-white">
+    <div className="min-h-screen bg-background text-text-primary in-studio">
       {/* Combined Header with Navigation */}
-      <div className="bg-[#0F1213] border-b border-[#2A2D30] relative">
+      <div className="bg-background-secondary border-b border-border relative">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             {/* Studio Info - Far Left (aligned with website title) */}
@@ -79,7 +79,7 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
                 <h1 className="text-xl font-semibold">{studio.name}</h1>
                 <Link
                   href={`/public/studio/${studio.id}`}
-                  className="flex items-center space-x-1 text-sm text-[#FDD811] hover:text-[#FDD811]/80 transition-colors"
+                  className="flex items-center space-x-1 text-sm text-primary hover:text-primary-hover transition-colors"
                 >
                   <RiExternalLinkLine className="w-4 h-4" />
                   <span>View Public Profile</span>
@@ -90,7 +90,7 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
             {/* Mobile Menu Button */}
             <button
               onClick={toggleMobileMenu}
-              className="lg:hidden p-2 hover:bg-[#1A1C21] rounded-lg transition-colors"
+              className="lg:hidden p-2 hover:bg-background-hover rounded-lg transition-colors"
               aria-label="Toggle navigation menu"
             >
               {isMobileMenuOpen ? (
@@ -112,8 +112,8 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
                     href={link.href}
                     className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
                       link.isActive
-                        ? 'text-[#FDD811] border-[#FDD811]'
-                        : 'text-gray-300 border-transparent hover:text-white hover:border-gray-300'
+                        ? 'text-primary border-primary'
+                        : 'text-text-secondary border-transparent hover:text-text-primary hover:border-text-secondary'
                     }`}
                   >
                     <IconComponent className="w-4 h-4" />
@@ -135,10 +135,10 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
       )}
 
       {/* Mobile Menu */}
-      <div className={`lg:hidden fixed left-0 top-0 h-full w-64 bg-[#0F1213] border-r border-[#2A2D30] z-50 transform transition-transform duration-300 ease-in-out ${
+      <div className={`lg:hidden fixed left-0 top-0 h-full w-64 bg-background-secondary border-r border-border z-50 transform transition-transform duration-300 ease-in-out ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
-        <div className="p-4 border-b border-[#2A2D30]">
+        <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               {studio.badge ? (
@@ -156,7 +156,7 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
             </div>
             <button
               onClick={closeMobileMenu}
-              className="p-2 hover:bg-[#1A1C21] rounded-lg transition-colors"
+              className="p-2 hover:bg-background-hover rounded-lg transition-colors"
               aria-label="Close navigation menu"
             >
               <RiCloseLine className="w-5 h-5" />
@@ -169,7 +169,7 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
             <Link
               href={`/public/studio/${studio.id}`}
               onClick={closeMobileMenu}
-              className="flex items-center space-x-2 text-sm text-[#FDD811] hover:text-[#FDD811]/80 transition-colors"
+              className="flex items-center space-x-2 text-sm text-primary hover:text-primary-hover transition-colors"
             >
               <RiExternalLinkLine className="w-4 h-4" />
               <span>View Public Profile</span>
@@ -185,8 +185,8 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
                     onClick={closeMobileMenu}
                     className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                       link.isActive
-                        ? 'bg-[#1A1C21] text-[#FDD811] border border-[#FDD811]/20'
-                        : 'hover:bg-[#1A1C21] text-gray-300 hover:text-white'
+                        ? 'bg-background-hover text-primary border border-primary/20'
+                        : 'hover:bg-background-hover text-text-secondary hover:text-text-primary'
                     }`}
                   >
                     <IconComponent className="w-5 h-5" />

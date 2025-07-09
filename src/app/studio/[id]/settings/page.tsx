@@ -3,7 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useStudio } from '@/context/StudioContext';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { notFound, useRouter } from 'next/navigation';
+import ImageUploadZone from '@/components/studio/ImageUploadZone';
+import { updateStudio } from '@/lib/api/studioService';
 import type { Studio } from '@/types/studio';
 
 interface Props {
@@ -18,6 +21,7 @@ export default function StudioSettings({ params }: Props) {
   
   const { getStudio } = useStudio();
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const router = useRouter();
 
   // Form states
@@ -27,6 +31,21 @@ export default function StudioSettings({ params }: Props) {
   const [isPublic, setIsPublic] = useState(true);
   const [allowMessages, setAllowMessages] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
+  
+  // Image states
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  
+  // Track if form has changes
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Original values to compare changes
+  const [originalValues, setOriginalValues] = useState<{
+    name: string;
+    description: string;
+    founder: string;
+  } | null>(null);
 
   // Resolve params
   useEffect(() => {
@@ -51,6 +70,13 @@ export default function StudioSettings({ params }: Props) {
         setStudioName(studioData.name);
         setDescription(studioData.description || '');
         setFounder(studioData.founder.toString());
+        
+        // Store original values
+        setOriginalValues({
+          name: studioData.name,
+          description: studioData.description || '',
+          founder: studioData.founder.toString()
+        });
       } catch (err: any) {
         console.error('Error loading studio:', err);
         setError(err.message || 'Failed to load studio');
@@ -72,16 +98,78 @@ export default function StudioSettings({ params }: Props) {
     }
   }, [isAuthenticated, router]);
 
-  const handleSaveSettings = () => {
-    // TODO: Implement save settings API call
-    console.log('Saving settings:', {
-      studioName,
-      description,
-      founder,
-      isPublic,
-      allowMessages,
-      emailNotifications
-    });
+  // Check for changes whenever form values update
+  useEffect(() => {
+    if (!originalValues) return;
+    
+    const formHasChanges = 
+      studioName !== originalValues.name ||
+      description !== originalValues.description ||
+      founder !== originalValues.founder ||
+      avatarFile !== null ||
+      bannerFile !== null;
+    
+    setHasChanges(formHasChanges);
+  }, [studioName, description, founder, avatarFile, bannerFile, originalValues]);
+
+  const handleSaveSettings = async () => {
+    if (!studioId || !hasChanges || isSaving) return;
+    
+    try {
+      setIsSaving(true);
+      
+      const updateData: any = {};
+      
+      // Only include changed text fields
+      if (studioName !== originalValues?.name) {
+        updateData.name = studioName;
+      }
+      if (description !== originalValues?.description) {
+        updateData.description = description;
+      }
+      
+      // Include image files if they were changed
+      if (avatarFile) {
+        updateData.badge = avatarFile;
+      }
+      if (bannerFile) {
+        updateData.banner = bannerFile;
+      }
+      
+      const updatedStudio = await updateStudio(studioId, updateData);
+      
+      // Update the studio in context
+      setStudio(updatedStudio);
+      
+      // Update original values
+      setOriginalValues({
+        name: updatedStudio.name,
+        description: updatedStudio.description || '',
+        founder: updatedStudio.founder.toString()
+      });
+      
+      // Reset file states
+      setAvatarFile(null);
+      setBannerFile(null);
+      
+      showToast('Studio settings updated successfully', 'success');
+    } catch (error: any) {
+      console.error('Error saving settings:', error);
+      showToast(error.message || 'Failed to save settings', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (!originalValues) return;
+    
+    // Reset to original values
+    setStudioName(originalValues.name);
+    setDescription(originalValues.description);
+    setFounder(originalValues.founder);
+    setAvatarFile(null);
+    setBannerFile(null);
   };
 
   if (!isAuthenticated) {
@@ -90,15 +178,15 @@ export default function StudioSettings({ params }: Props) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#131618] flex items-center justify-center">
-        <div className="text-white text-lg">Loading studio...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-text-primary text-lg">Loading studio...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#131618] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-red-400 text-lg">Error: {error}</div>
       </div>
     );
@@ -109,54 +197,54 @@ export default function StudioSettings({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-[#131618]">
+    <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Studio Settings</h1>
-          <p className="text-gray-400">Manage settings and preferences for {studio.name}</p>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Studio Settings</h1>
+          <p className="text-text-secondary">Manage settings and preferences for {studio.name}</p>
         </div>
 
         <div className="space-y-8">
           {/* General Settings */}
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">General Settings</h2>
+          <div className="bg-background-secondary border border-border rounded-lg p-6">
+            <h2 className="text-xl font-semibold text-text-primary mb-6">General Settings</h2>
             
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Studio Name
                 </label>
                 <input
                   type="text"
                   value={studioName}
                   onChange={(e) => setStudioName(e.target.value)}
-                  className="w-full bg-[#131618] border border-[#2A2D30] text-white rounded-lg px-3 py-2 focus:outline-none focus:border-[#FDD811]"
+                  className="w-full bg-background border border-border text-text-primary rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
                   placeholder="Enter studio name"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Description
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
-                  className="w-full bg-[#131618] border border-[#2A2D30] text-white rounded-lg px-3 py-2 focus:outline-none focus:border-[#FDD811]"
+                  className="w-full bg-background border border-border text-text-primary rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
                   placeholder="Describe your studio..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Founder Name
                 </label>
                 <input
                   type="text"
                   value={founder}
                   onChange={(e) => setFounder(e.target.value)}
-                  className="w-full bg-[#131618] border border-[#2A2D30] text-white rounded-lg px-3 py-2 focus:outline-none focus:border-[#FDD811]"
+                  className="w-full bg-background border border-border text-text-primary rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
                   placeholder="Enter founder name"
                 />
               </div>
@@ -164,63 +252,37 @@ export default function StudioSettings({ params }: Props) {
           </div>
 
           {/* Profile Images */}
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">Profile Images</h2>
+          <div className="bg-background-secondary border border-border rounded-lg p-6">
+            <h2 className="text-xl font-semibold text-text-primary mb-6">Profile Images</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Studio Avatar
-                </label>
-                <div className="flex items-center space-x-4">
-                  {studio.badge ? (
-                    <img
-                      src={studio.badge}
-                      alt="Studio avatar"
-                      className="w-16 h-16 rounded-lg object-cover"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 rounded-lg bg-gray-600 flex items-center justify-center">
-                      <span className="text-lg font-bold">{studio.name.charAt(0)}</span>
-                    </div>
-                  )}
-                  <button className="px-4 py-2 bg-[#2A2D30] text-white rounded-lg hover:bg-[#3A3D40] transition-colors">
-                    Change Avatar
-                  </button>
-                </div>
-              </div>
+              <ImageUploadZone
+                currentImage={studio.badge}
+                onImageChange={setAvatarFile}
+                aspectRatio="square"
+                label="Studio Avatar"
+                maxSizeMB={2}
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Studio Banner
-                </label>
-                <div className="space-y-2">
-                  {studio.banner && (
-                    <div className="w-full h-24 rounded-lg overflow-hidden">
-                      <img
-                        src={studio.banner}
-                        alt="Studio banner"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <button className="px-4 py-2 bg-[#2A2D30] text-white rounded-lg hover:bg-[#3A3D40] transition-colors">
-                    {studio.banner ? 'Change Banner' : 'Add Banner'}
-                  </button>
-                </div>
-              </div>
+              <ImageUploadZone
+                currentImage={studio.banner}
+                onImageChange={setBannerFile}
+                aspectRatio="banner"
+                label="Studio Banner"
+                maxSizeMB={5}
+              />
             </div>
           </div>
 
           {/* Privacy Settings */}
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">Privacy Settings</h2>
+          <div className="bg-background-secondary border border-border rounded-lg p-6">
+            <h2 className="text-xl font-semibold text-text-primary mb-6">Privacy Settings</h2>
             
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-white font-medium">Public Studio</h3>
-                  <p className="text-gray-400 text-sm">Allow your studio to be visible to the public</p>
+                  <h3 className="text-text-primary font-medium">Public Studio</h3>
+                  <p className="text-text-secondary text-sm">Allow your studio to be visible to the public</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -229,14 +291,14 @@ export default function StudioSettings({ params }: Props) {
                     onChange={(e) => setIsPublic(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FDD811]"></div>
+                  <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-white font-medium">Allow Messages</h3>
-                  <p className="text-gray-400 text-sm">Let users send you messages through your studio</p>
+                  <h3 className="text-text-primary font-medium">Allow Messages</h3>
+                  <p className="text-text-secondary text-sm">Let users send you messages through your studio</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -245,21 +307,21 @@ export default function StudioSettings({ params }: Props) {
                     onChange={(e) => setAllowMessages(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FDD811]"></div>
+                  <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
               </div>
             </div>
           </div>
 
           {/* Notification Settings */}
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">Notification Settings</h2>
+          <div className="bg-background-secondary border border-border rounded-lg p-6">
+            <h2 className="text-xl font-semibold text-text-primary mb-6">Notification Settings</h2>
             
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-white font-medium">Email Notifications</h3>
-                  <p className="text-gray-400 text-sm">Receive email notifications for important updates</p>
+                  <h3 className="text-text-primary font-medium">Email Notifications</h3>
+                  <p className="text-text-secondary text-sm">Receive email notifications for important updates</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -268,21 +330,21 @@ export default function StudioSettings({ params }: Props) {
                     onChange={(e) => setEmailNotifications(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FDD811]"></div>
+                  <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
               </div>
             </div>
           </div>
 
           {/* Danger Zone */}
-          <div className="bg-[#1A1C21] border border-red-500/20 rounded-lg p-6">
+          <div className="bg-background-secondary border border-red-500/20 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-red-400 mb-6">Danger Zone</h2>
             
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
                 <div>
-                  <h3 className="text-white font-medium">Delete Studio</h3>
-                  <p className="text-gray-400 text-sm">Permanently delete this studio and all its data</p>
+                  <h3 className="text-text-primary font-medium">Delete Studio</h3>
+                  <p className="text-text-secondary text-sm">Permanently delete this studio and all its data</p>
                 </div>
                 <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                   Delete Studio
@@ -293,14 +355,25 @@ export default function StudioSettings({ params }: Props) {
 
           {/* Save Button */}
           <div className="flex justify-end space-x-4">
-            <button className="px-6 py-3 bg-[#2A2D30] text-white rounded-lg hover:bg-[#3A3D40] transition-colors">
+            <button 
+              onClick={handleCancel}
+              disabled={!hasChanges || isSaving}
+              className="px-6 py-3 bg-border text-text-primary rounded-lg hover:bg-border-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Cancel
             </button>
             <button
               onClick={handleSaveSettings}
-              className="px-6 py-3 bg-[#FDD811] text-black rounded-lg font-medium hover:bg-[#FDD811]/90 transition-colors"
+              disabled={!hasChanges || isSaving}
+              className={`
+                px-6 py-3 rounded-lg font-medium transition-all
+                ${hasChanges && !isSaving
+                  ? 'bg-primary text-black hover:bg-primary-hover cursor-pointer'
+                  : 'bg-gray-600 text-text-secondary cursor-not-allowed'
+                }
+              `}
             >
-              Save Changes
+              {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </div>

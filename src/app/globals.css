@@ -1,40 +1,185 @@
 @import "tailwindcss";
 
-
 html,
 body {
   height: 100%;
 }
 
+/* ========================================
+   THEME SYSTEM
+   To switch themes, add one of these classes to <html>:
+   - (no class) - Default dark theme
+   - theme-light - Light theme
+   ======================================== */
+
+/* Default Theme Variables (Original STL Forge Theme) */
+:root {
+  /* Primary Colors - Public Area */
+  --color-primary: #49C5C9;
+  --color-primary-hover: #5dd1d5;
+  --color-primary-foreground: #000000;
+  
+  /* Primary Colors - Studio Area */
+  --color-primary-studio: #FDD811;
+  --color-primary-studio-hover: #fde047;
+  --color-primary-studio-foreground: #000000;
+  
+  /* Backgrounds - Public Area */
+  --color-background: #0D1117;
+  --color-background-secondary: #151B23;
+  --color-background-card: #151B23;
+  --color-background-hover: #1A1C21;
+  
+  /* Backgrounds - Studio Area */
+  --color-background-studio: #131618;
+  --color-background-studio-secondary: #1A1C21;
+  --color-background-studio-card: #1A1C21;
+  --color-background-studio-hover: #1F2124;
+  
+  /* Text Colors - Studio Area */
+  --color-text-studio-primary: #F4F4F4;
+  --color-text-studio-secondary: #9ca3af;
+  --color-text-studio-muted: #6b7280;
+  
+  /* Borders - Studio Area */
+  --color-border-studio: #2A2D30;
+  --color-border-studio-hover: #3A3D40;
+  
+  /* Accent Color - Studio Area */
+  --color-accent-studio: #FDD811;
+  --color-accent-studio-hover: #fde047;
+  --color-accent-studio-foreground: #000000;
+  
+  /* Text Colors */
+  --color-text-primary: #F4F4F4;
+  --color-text-secondary: #9ca3af;
+  --color-text-muted: #6b7280;
+  
+  /* Borders */
+  --color-border: #2A2D30;
+  --color-border-hover: #3A3D40;
+  
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+}
+
+/* Studio context - override all colors for studio */
+.in-studio {
+  --color-primary: var(--color-primary-studio);
+  --color-primary-hover: var(--color-primary-studio-hover);
+  --color-primary-foreground: var(--color-primary-studio-foreground);
+  
+  --color-background: var(--color-background-studio);
+  --color-background-secondary: var(--color-background-studio-secondary);
+  --color-background-card: var(--color-background-studio-card);
+  --color-background-hover: var(--color-background-studio-hover);
+  
+  --color-text-primary: var(--color-text-studio-primary);
+  --color-text-secondary: var(--color-text-studio-secondary);
+  --color-text-muted: var(--color-text-studio-muted);
+  
+  --color-border: var(--color-border-studio);
+  --color-border-hover: var(--color-border-studio-hover);
+  
+  /* Studio accent color available as CSS variable */
+  --color-accent: var(--color-accent-studio);
+  --color-accent-hover: var(--color-accent-studio-hover);
+  --color-accent-foreground: var(--color-accent-studio-foreground);
+}
+
+
+/* Light Theme */
+.theme-light {
+  /* Primary Colors - Public Area */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #60a5fa;
+  --color-primary-foreground: #ffffff;
+  
+  /* Primary Colors - Studio Area */
+  --color-primary-studio: #FDD811;
+  --color-primary-studio-hover: #fcd34d;
+  --color-primary-studio-foreground: #000000;
+  
+  /* Backgrounds - Public Area */
+  --color-background: #ffffff;
+  --color-background-secondary: #f9fafb;
+  --color-background-card: #f3f4f6;
+  --color-background-hover: #e5e7eb;
+  
+  /* Backgrounds - Studio Area */
+  --color-background-studio: #f8f9fa;
+  --color-background-studio-secondary: #f1f3f5;
+  --color-background-studio-card: #f1f3f5;
+  --color-background-studio-hover: #e9ecef;
+  
+  /* Text Colors - Studio Area */
+  --color-text-studio-primary: #111827;
+  --color-text-studio-secondary: #4b5563;
+  --color-text-studio-muted: #6b7280;
+  
+  /* Borders - Studio Area */
+  --color-border-studio: #e5e7eb;
+  --color-border-studio-hover: #d1d5db;
+  
+  /* Accent Color - Studio Area */
+  --color-accent-studio: #FDD811;
+  --color-accent-studio-hover: #fcd34d;
+  --color-accent-studio-foreground: #000000;
+  
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #6b7280;
+  
+  --color-border: #e5e7eb;
+  --color-border-hover: #d1d5db;
+  
+  /* Adjust status colors for light theme */
+  --color-success: #059669;
+  --color-error: #dc2626;
+  --color-warning: #d97706;
+  --color-info: #2563eb;
+}
 
 @theme {
-  /* custom colors */
+  /* Map CSS variables to Tailwind utilities */
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-foreground: var(--color-primary-foreground);
+  
+  --color-accent: var(--color-accent, var(--color-primary));
+  --color-accent-hover: var(--color-accent-hover, var(--color-primary-hover));
+  --color-accent-foreground: var(--color-accent-foreground, var(--color-primary-foreground));
+  
+  --color-background: var(--color-background);
+  --color-background-secondary: var(--color-background-secondary);
+  --color-background-card: var(--color-background-card);
+  --color-background-hover: var(--color-background-hover);
+  
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  
+  --color-border: var(--color-border);
+  --color-border-hover: var(--color-border-hover);
+  
+  --color-success: var(--color-success);
+  --color-error: var(--color-error);
+  --color-warning: var(--color-warning);
+  --color-info: var(--color-info);
 
-  /* Theme A */
-  /* --color-primary: #139B8A;
-  --color-secondary: #F4F4F4;
-  --color-primarybackground: #14142B;
-  --color-secondarybackground: #262338; */
-
-      /* Theme B */
-  /* --color-primary: #49C5C9;
-  --color-secondary: #F4F4F4;
-  --color-primarybackground: #181D22;
-  --color-secondarybackground: #242C32;
-  --color-cardbackground: #0F1517; */
-
-        /* Theme C */
-  --color-primary: #49C5C9;
-  --color-secondary: #F4F4F4;
-  --color-primarybackground: #0D1117;
-  --color-secondarybackground: #151B23;
-  --color-cardbackground: #151B23;
-
+  /* Legacy color mappings for backward compatibility */
+  --color-primarybackground: var(--color-background);
+  --color-secondarybackground: var(--color-background-secondary);
+  --color-cardbackground: var(--color-background-card);
+  --color-secondary: var(--color-text-primary);
 
   /* custom font */
   --font-heading: "Open Sans", sans-serif;
   --font-base: "Open Sans", sans-serif;
-  --font-primarycolor: #0D0D0D;
+  --font-primarycolor: var(--color-text-primary);
 
   /* custom spacing */
   --spacing-7: 1.78rem;

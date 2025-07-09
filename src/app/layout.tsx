@@ -6,6 +6,7 @@ import { UserProvider } from "@/context/UserContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { StudioProvider } from "@/context/StudioContext";
+import ThemeSwitcher from "@/components/ui/ThemeSwitcher";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -21,7 +22,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${openSans.className} min-h-screen flex flex-col bg-[#131618] text-white`}>
+      <body className={`${openSans.className} min-h-screen flex flex-col bg-background text-text-primary`}>
         <ToastProvider>
           <AuthProvider>
             <StudioProvider>
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Header />
                 <main className="flex-1">{children}</main>
                 <Footer />
+                <ThemeSwitcher />
               </UserProvider>
             </StudioProvider>
           </AuthProvider>
