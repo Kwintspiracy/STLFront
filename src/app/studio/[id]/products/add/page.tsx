@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useStudio } from "@/context/StudioContext";
 import { useToast } from "@/context/ToastContext";
-import { createProduct, uploadProductImage, uploadProductSTL } from "@/lib/api/products";
+import { createProduct, uploadProductImage, uploadProductSTL, updateImageOrder } from "@/lib/api/products";
 import { getAllCategories } from "@/lib/api/categories";
-import { allTags } from "@/data/mock-tags";
+import { getAllTags } from "@/lib/api/tags";
 import { Category, Tag } from "@/types/product";
 import FileUploadZone from "@/components/studio/FileUploadZone";
 import { RiArrowLeftLine, RiArrowDownSLine, RiArrowUpSLine, RiEyeLine, RiSaveLine } from "react-icons/ri";
@@ -37,24 +37,20 @@ export default function AddProductPage({ params }: Props) {
   const [studioId, setStudioId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [tags] = useState<Tag[]>(
-    allTags.map(tag => ({
-      ...tag,
-      slug: tag.name.toLowerCase().replace(/\s+/g, '-')
-    }))
-  );
+  const [tags, setTags] = useState<Tag[]>([]);
   
   // Form state
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    price: "0.99",
-    professional_license_fee: "0.00",
+    price: "",
+    professional_license_fee: "",
     category: "",
     print_settings: "",
     dimensions: "",
-    isPublic: true,
     isFree: false,
+    isPublic: true,
+    enableProfessionalLicense: false,
   });
 
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
@@ -93,8 +89,9 @@ export default function AddProductPage({ params }: Props) {
   }, [myStudio, myStudioLoading, studioId, router, showError]);
 
   useEffect(() => {
-    // Load categories
+    // Load categories and tags
     loadCategories();
+    loadTags();
   }, []);
 
   const loadCategories = async () => {
@@ -103,6 +100,15 @@ export default function AddProductPage({ params }: Props) {
       setCategories(cats);
     } catch (error) {
       console.error("Erreur lors du chargement des catégories:", error);
+    }
+  };
+
+  const loadTags = async () => {
+    try {
+      const tagsData = await getAllTags();
+      setTags(tagsData);
+    } catch (error) {
+      console.error("Erreur lors du chargement des tags:", error);
     }
   };
 
@@ -115,12 +121,21 @@ export default function AddProductPage({ params }: Props) {
         [name]: checked
       }));
       
-      // Si gratuit, mettre les prix à 0
+      // Si gratuit, mettre les prix à 0 et désactiver la licence pro
       if (name === 'isFree' && checked) {
         setFormData(prev => ({
           ...prev,
           price: "0.00",
-          professional_license_fee: "0.00"
+          professional_license_fee: "0.00",
+          enableProfessionalLicense: false
+        }));
+      }
+      
+      // Si on désactive la licence pro, vider le champ
+      if (name === 'enableProfessionalLicense' && !checked) {
+        setFormData(prev => ({
+          ...prev,
+          professional_license_fee: ""
         }));
       }
     } else {
@@ -256,9 +271,23 @@ export default function AddProductPage({ params }: Props) {
       return;
     }
 
-    if (!formData.isFree && parseFloat(formData.price) <= 0) {
-      showError("Le prix doit être supérieur à 0 pour un produit payant");
-      return;
+    if (!formData.isFree) {
+      if (!formData.price || parseFloat(formData.price) <= 0) {
+        showError("Le prix doit être supérieur à 0 pour un produit payant");
+        return;
+      }
+
+      if (formData.enableProfessionalLicense) {
+        if (!formData.professional_license_fee || parseFloat(formData.professional_license_fee) <= 0) {
+          showError("Le montant de la licence professionnelle ne peut pas être de 0");
+          return;
+        }
+
+        if (parseFloat(formData.professional_license_fee) < parseFloat(formData.price)) {
+          showError("Le prix de la licence professionnelle ne peut pas être inférieur au prix personnel");
+          return;
+        }
+      }
     }
 
     if (uploadedImages.length === 0) {
@@ -283,48 +312,107 @@ export default function AddProductPage({ params }: Props) {
     setLoading(true);
     
     try {
-      // Prepare product data
+      // Check authentication before proceeding
+      const { getAccessToken } = await import('@/lib/utils/tokenService');
+      const token = getAccessToken();
+      
+      if (!token) {
+        showError("Session expirée. Veuillez vous reconnecter pour créer un produit.");
+        router.push("/auth/signin");
+        return;
+      }
+      
+      console.log('User is authenticated, proceeding with product creation...');
+
+      // Prepare product data for ProductCreateSerializer
       const productData: any = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         price: formData.isFree ? "0.00" : formData.price,
-        professional_license_fee: formData.isFree ? "0.00" : formData.professional_license_fee,
+        professional_license_fee: formData.isFree ? null : (formData.enableProfessionalLicense && formData.professional_license_fee ? formData.professional_license_fee : null),
         print_settings: formData.print_settings.trim(),
         dimensions: formData.dimensions.trim(),
-        status: isDraft ? "draft" : "published",
       };
 
-      // Add category if selected
+      // Add category if selected (ProductCreateSerializer expects category_id)
       if (formData.category) {
-        productData.category = parseInt(formData.category);
+        productData.category_id = parseInt(formData.category);
+      }
+
+      // Add tags if selected (ProductCreateSerializer expects tag_ids)
+      if (selectedTags.length > 0) {
+        productData.tag_ids = selectedTags;
       }
 
       // Create the product first
+      console.log('Sending product data:', productData);
+      console.log('Using token:', token ? 'Token present' : 'No token');
       const newProduct = await createProduct(productData);
+      console.log('Created product:', newProduct);
+      console.log('Product ID:', newProduct.id);
       
-      // TODO: Upload functionality is temporarily disabled due to API endpoint issues
-      // The upload endpoints return 404 errors and need to be fixed on the backend
+      if (!newProduct.id) {
+        throw new Error('Product creation failed: No ID returned');
+      }
       
-      console.warn('File upload is temporarily disabled. Files selected but not uploaded:', {
-        images: uploadedImages.length,
-        stlFiles: uploadedSTLFiles.length
-      });
+      // Upload images
+      for (const imageFile of uploadedImages) {
+        try {
+          await uploadProductImage(newProduct.id, imageFile.file, imageFile.name, uploadedImages.indexOf(imageFile) + 1);
+        } catch (error) {
+          console.error(`Failed to upload image ${imageFile.name}:`, error);
+          // Continue with other uploads even if one fails
+        }
+      }
       
-      showSuccess(
-        isDraft 
-          ? "Brouillon créé avec succès! (Note: L'upload de fichiers est temporairement désactivé)" 
-          : "Produit publié avec succès! (Note: L'upload de fichiers est temporairement désactivé)"
-      );
+      // Upload STL files
+      for (const stlFile of uploadedSTLFiles) {
+        try {
+          await uploadProductSTL(newProduct.id, stlFile.file, stlFile.name);
+        } catch (error) {
+          console.error(`Failed to upload STL file ${stlFile.name}:`, error);
+          // Continue with other uploads even if one fails
+        }
+      }
+      
+      showSuccess("Produit créé avec succès!");
       
       // Redirect to the studio products page
       router.push(`/studio/${studioId}/products`);
       
     } catch (error: any) {
       console.error("Erreur lors de la création du produit:", error);
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.detail || 
-                          error.message || 
-                          "Erreur lors de la création du produit";
+      console.error("Error response:", error.response);
+      console.error("Error response data:", error.response?.data);
+      console.error("Error response status:", error.response?.status);
+      
+      let errorMessage = "Erreur lors de la création du produit";
+      
+      if (error.response?.data) {
+        // Try to extract detailed error messages
+        const data = error.response.data;
+        if (typeof data === 'string') {
+          errorMessage = data;
+        } else if (data.detail) {
+          errorMessage = data.detail;
+        } else if (data.error) {
+          errorMessage = data.error;
+        } else if (data.non_field_errors) {
+          errorMessage = Array.isArray(data.non_field_errors) ? data.non_field_errors.join(', ') : data.non_field_errors;
+        } else {
+          // Show field-specific errors
+          const fieldErrors = Object.entries(data).map(([field, errors]) => {
+            const errorList = Array.isArray(errors) ? errors : [errors];
+            return `${field}: ${errorList.join(', ')}`;
+          }).join('; ');
+          if (fieldErrors) {
+            errorMessage = fieldErrors;
+          }
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       showError(errorMessage);
     } finally {
       setLoading(false);
@@ -449,26 +537,12 @@ export default function AddProductPage({ params }: Props) {
             <h2 className="text-xl font-semibold text-text-primary mb-6">Tarification</h2>
             
             <div className="space-y-6">
-              {/* Free toggle */}
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  id="isFree"
-                  name="isFree"
-                  checked={formData.isFree}
-                  onChange={handleInputChange}
-                  className="w-4 h-4 text-accent bg-background border-border rounded focus:ring-accent focus:ring-2"
-                />
-                <label htmlFor="isFree" className="text-sm font-medium text-text-secondary">
-                  Produit gratuit
-                </label>
-              </div>
-
               {!formData.isFree && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-6">
+                  {/* Base price */}
                   <div>
                     <label htmlFor="price" className="block text-sm font-medium text-text-secondary mb-2">
-                      Prix (€)
+                      Prix de base (€) *
                     </label>
                     <input
                       type="number"
@@ -479,29 +553,91 @@ export default function AddProductPage({ params }: Props) {
                       min="0.01"
                       step="0.01"
                       required={!formData.isFree}
-                      disabled={formData.isFree}
-                      className="w-full bg-background border border-border text-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-accent transition-colors disabled:opacity-50"
+                      placeholder="Ex: 4.99"
+                      className="w-full bg-background border border-border text-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-accent transition-colors"
                     />
+                    <p className="text-xs text-text-secondary mt-1">
+                      Prix pour usage personnel uniquement
+                    </p>
                   </div>
 
-                  <div>
-                    <label htmlFor="professional_license_fee" className="block text-sm font-medium text-text-secondary mb-2">
-                      Frais de licence professionnelle (€)
-                    </label>
-                    <input
-                      type="number"
-                      id="professional_license_fee"
-                      name="professional_license_fee"
-                      value={formData.professional_license_fee}
-                      onChange={handleInputChange}
-                      min="0"
-                      step="0.01"
-                      disabled={formData.isFree}
-                      className="w-full bg-background border border-border text-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-accent transition-colors disabled:opacity-50"
-                    />
+                  {/* Professional license toggle */}
+                  <div className="border border-border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          id="enableProfessionalLicense"
+                          name="enableProfessionalLicense"
+                          checked={formData.enableProfessionalLicense}
+                          onChange={handleInputChange}
+                          className="w-4 h-4 text-accent bg-background border-border rounded focus:ring-accent focus:ring-2"
+                        />
+                        <div>
+                          <label htmlFor="enableProfessionalLicense" className="text-sm font-medium text-text-primary cursor-pointer">
+                            Proposer une licence professionnelle
+                          </label>
+                          <p className="text-xs text-text-secondary">
+                            Permettre l'usage commercial avec un supplément
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {formData.enableProfessionalLicense && (
+                      <div>
+                        <label htmlFor="professional_license_fee" className="block text-sm font-medium text-text-secondary mb-2">
+                          Supplément licence professionnelle (€) *
+                        </label>
+                        <input
+                          type="number"
+                          id="professional_license_fee"
+                          name="professional_license_fee"
+                          value={formData.professional_license_fee}
+                          onChange={handleInputChange}
+                          min={formData.price ? parseFloat(formData.price) : 0.01}
+                          step="0.01"
+                          required={formData.enableProfessionalLicense}
+                          placeholder={formData.price ? `Minimum: ${formData.price}` : "Ex: 9.99"}
+                          className="w-full bg-background border border-border text-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-accent transition-colors"
+                        />
+                        <p className="text-xs text-text-secondary mt-1">
+                          Doit être supérieur ou égal au prix personnel. Prix pour usage commercial: {formData.professional_license_fee ? `${formData.professional_license_fee}€` : '0€'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
+
+              {/* Free product option - same styling as professional license */}
+              <div className="border border-border rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id="isFree"
+                      name="isFree"
+                      checked={formData.isFree}
+                      onChange={handleInputChange}
+                      className="w-4 h-4 text-accent bg-background border-border rounded focus:ring-accent focus:ring-2"
+                    />
+                    <div>
+                      <label htmlFor="isFree" className="text-sm font-medium text-text-primary cursor-pointer">
+                        Produit gratuit
+                      </label>
+                      <p className="text-xs text-text-secondary">
+                        Offrez ce produit gratuitement à la communauté
+                      </p>
+                    </div>
+                  </div>
+                  {formData.isFree && (
+                    <div className="bg-text-secondary text-background px-3 py-1 rounded-full text-sm font-medium">
+                      GRATUIT
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -604,34 +740,62 @@ export default function AddProductPage({ params }: Props) {
             </div>
           </div>
 
+
           {/* Visibility */}
           <div className="bg-background-secondary border border-border rounded-lg p-6">
             <h2 className="text-xl font-semibold text-text-primary mb-6">Visibilité</h2>
+            <p className="text-sm text-text-secondary mb-4">
+              Choisissez qui peut voir votre produit
+            </p>
             
-            <div className="flex items-center space-x-6">
-              <label className="flex items-center space-x-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="isPublic"
-                  value="true"
-                  checked={formData.isPublic === true}
-                  onChange={() => setFormData(prev => ({ ...prev, isPublic: true }))}
-                  className="w-4 h-4 text-accent bg-background border-border focus:ring-accent"
-                />
-                <span className="text-sm font-medium text-text-secondary">Public</span>
-              </label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, isPublic: true }))}
+                className={`p-4 rounded-lg border-2 transition-all text-left ${
+                  formData.isPublic
+                    ? 'border-accent bg-accent/10 text-accent'
+                    : 'border-border bg-background hover:border-accent/50 text-text-secondary'
+                }`}
+              >
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className={`w-4 h-4 rounded-full border-2 ${
+                    formData.isPublic ? 'border-accent bg-accent' : 'border-border'
+                  }`}>
+                    {formData.isPublic && (
+                      <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                    )}
+                  </div>
+                  <span className="font-medium">PUBLIC</span>
+                </div>
+                <p className="text-xs opacity-75">
+                  Visible par tous les utilisateurs dans les recherches et catalogues
+                </p>
+              </button>
               
-              <label className="flex items-center space-x-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="isPublic"
-                  value="false"
-                  checked={formData.isPublic === false}
-                  onChange={() => setFormData(prev => ({ ...prev, isPublic: false }))}
-                  className="w-4 h-4 text-accent bg-background border-border focus:ring-accent"
-                />
-                <span className="text-sm font-medium text-text-secondary">Privé</span>
-              </label>
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, isPublic: false }))}
+                className={`p-4 rounded-lg border-2 transition-all text-left ${
+                  !formData.isPublic
+                    ? 'border-accent bg-accent/10 text-accent'
+                    : 'border-border bg-background hover:border-accent/50 text-text-secondary'
+                }`}
+              >
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className={`w-4 h-4 rounded-full border-2 ${
+                    !formData.isPublic ? 'border-accent bg-accent' : 'border-border'
+                  }`}>
+                    {!formData.isPublic && (
+                      <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                    )}
+                  </div>
+                  <span className="font-medium">PRIVÉ</span>
+                </div>
+                <p className="text-xs opacity-75">
+                  Visible uniquement via un lien direct, non listé dans les recherches
+                </p>
+              </button>
             </div>
           </div>
 
@@ -645,16 +809,6 @@ export default function AddProductPage({ params }: Props) {
             </Link>
             
             <button
-              type="button"
-              onClick={(e) => handleSubmit(e, true)}
-              disabled={loading}
-              className="px-6 py-3 border border-border text-text-secondary rounded-lg font-medium hover:bg-background-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-            >
-              <RiEyeLine className="w-5 h-5" />
-              <span>Enregistrer comme brouillon</span>
-            </button>
-            
-            <button
               type="submit"
               disabled={loading}
               className="px-6 py-3 bg-accent text-accent-foreground rounded-lg font-medium hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
@@ -665,12 +819,12 @@ export default function AddProductPage({ params }: Props) {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  <span>Création en cours...</span>
+                  <span>Validation en cours...</span>
                 </>
               ) : (
                 <>
                   <RiSaveLine className="w-5 h-5" />
-                  <span>Publier le produit</span>
+                  <span>VALIDER CREATION</span>
                 </>
               )}
             </button>

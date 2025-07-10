@@ -53,21 +53,35 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
   // Load my studio
   const loadMyStudio = useCallback(async () => {
     if (!isAuthenticated) {
+      console.log('🔐 Not authenticated, skipping studio load');
       setMyStudio(null);
       return;
     }
 
+    console.log('🏢 Loading my studio...');
     setMyStudioLoading(true);
     try {
       const studio = await getMyStudio();
+      console.log('✅ Studio loaded successfully:', studio);
       setMyStudio(studio);
     } catch (error: any) {
-      // User might not have a studio, which is normal
-      if (!error.message.includes('not a member of any studio')) {
+      console.log('❌ Error loading studio:', error);
+      console.log('   - Status:', error.response?.status);
+      console.log('   - Message:', error.message);
+      console.log('   - Response data:', error.response?.data);
+      
+      // User might not have a studio, which is normal (404 error)
+      if (error.response?.status === 404 || 
+          error.message?.includes('not a member of any studio') ||
+          error.response?.data?.error?.includes('not a member of any studio')) {
+        // This is expected - user doesn't have a studio yet
+        console.log('📋 User has no studio (expected)');
+        setMyStudio(null);
+      } else {
         console.error('Error loading my studio:', error);
         showError('Failed to load studio information');
+        setMyStudio(null);
       }
-      setMyStudio(null);
     } finally {
       setMyStudioLoading(false);
     }
@@ -96,6 +110,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
   // Initialize data when authenticated
   useEffect(() => {
     if (isAuthenticated) {
+      // Load both my studio and followed studios automatically
       loadMyStudio();
       loadFollowedStudios();
     } else {
@@ -108,17 +123,21 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
   const createNewStudio = useCallback(async (data: { name: string; description?: string; banner?: File; badge?: File }) => {
     try {
       const response = await createStudio(data);
+      
+      // Handle both possible response formats
+      const studio = response.studio || response; // response might be the studio directly
+      
       setMyStudio({
-        studio: response.studio,
+        studio: studio,
         membership: {
           role: 'owner',
           status: 'active',
-          joined_at: response.studio.created_at
+          joined_at: studio.created_at
         }
       });
       
       showSuccess('Studio created successfully!');
-      return response.studio;
+      return studio;
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to create studio';
       showError(errorMessage);

@@ -1,12 +1,13 @@
 'use client';
 
 import { Product } from "@/types/product";
-import { RiImageLine } from "react-icons/ri";
+import { RiImageLine, RiDownloadLine } from "react-icons/ri";
 import { FaShoppingCart, FaHeart } from "react-icons/fa";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 import { BaseProductCardProps } from './types';
+import DefaultAvatar from '@/components/ui/DefaultAvatar';
 
 interface ProductCardProps extends BaseProductCardProps {
   loading?: boolean;
@@ -30,7 +31,7 @@ export default function ProductCard({
   const [imageError, setImageError] = useState(false);
 
   const sortedImages = [...product.images].sort((a, b) => a.rank - b.rank);
-  const mainImage = sortedImages[0]?.image || (sortedImages[0] as any)?.url; // Support both new and legacy format
+  const mainImage = sortedImages[0]?.url || sortedImages[0]?.image; // Support both new and legacy format
 
   const handleImageLoad = () => {
     setImageLoading(false);
@@ -206,11 +207,11 @@ export default function ProductCard({
           {/* Studio Info */}
           <div className="flex items-center gap-3 pb-1 text-sm sm:text-base text-stone-400">
             <div className="relative flex-shrink-0">
-              {/* Check if studio is an object with logo or just an ID */}
-              {(typeof product.studio === 'object' && product.studio.logo) ? (
+              {/* Check if studio has a badge */}
+              {product.creator.badge ? (
                 <Image
-                  src={product.studio.logo}
-                  alt={`${product.studio.name} logo`}
+                  src={product.creator.badge}
+                  alt={`${product.creator.name} badge`}
                   width={32}
                   height={32}
                   className="w-8 h-8 rounded-lg object-cover ring-2 ring-gray-600/50"
@@ -219,16 +220,12 @@ export default function ProductCard({
                   }}
                 />
               ) : (
-                <div className="w-8 h-8 rounded-lg bg-gray-700 flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-300">
-                    {typeof product.studio === 'object' ? product.studio.name.charAt(0).toUpperCase() : 'S'}
-                  </span>
-                </div>
+                <DefaultAvatar className="ring-2 ring-gray-600/50" size={32} />
               )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm text-gray-300 font-medium truncate">
-                {typeof product.studio === 'object' ? product.studio.name : `Studio ${product.studio}`}
+                {product.creator.name}
               </p>
               <p className="text-xs text-gray-500">
                 Studio
@@ -239,22 +236,38 @@ export default function ProductCard({
           {/* Price and Actions */}
           <div className="flex items-center justify-between pt-2">
             <div className="flex flex-col">
-              <span className="text-xl font-bold text-primary">
-                ${product.price}
-              </span>
-              {showCommercialPrice && (
+              {parseFloat(product.price) === 0 ? (
+                <span className="text-xl font-bold text-green-400">
+                  FREE
+                </span>
+              ) : (
+                <span className="text-xl font-bold text-primary">
+                  ${product.price}
+                </span>
+              )}
+              {showCommercialPrice && parseFloat(product.price) > 0 && (
                 <span className="text-xs text-gray-500">Personal Use</span>
               )}
-              {!showCommercialPrice && (
+              {!showCommercialPrice && parseFloat(product.price) > 0 && (
                 <span className="text-xs text-gray-500">USD</span>
+              )}
+              {parseFloat(product.price) === 0 && (
+                <span className="text-xs text-green-400">Download</span>
               )}
             </div>
 
             <div className="flex items-center gap-2">
-              <button className="bg-primary text-black px-3 py-1.5 rounded text-sm font-medium hover:bg-[#3f6061] hover:text-secondary transition-colors flex items-center gap-2">
-                <FaShoppingCart className="w-4 h-4" />
-                <span className="hidden sm:inline">Add</span>
-              </button>
+              {parseFloat(product.price) === 0 ? (
+                <button className="bg-green-500 text-black px-3 py-1.5 rounded text-sm font-medium hover:bg-green-600 transition-colors flex items-center gap-2">
+                  <RiDownloadLine className="w-4 h-4" />
+                  <span className="hidden sm:inline">Free</span>
+                </button>
+              ) : (
+                <button className="bg-primary text-black px-3 py-1.5 rounded text-sm font-medium hover:bg-[#3f6061] hover:text-secondary transition-colors flex items-center gap-2">
+                  <FaShoppingCart className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

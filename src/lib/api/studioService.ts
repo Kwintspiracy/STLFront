@@ -57,7 +57,7 @@ export async function createStudio(data: CreateStudioRequest): Promise<CreateStu
     if (data.banner) formData.append('banner', data.banner);
     if (data.badge) formData.append('badge', data.badge);
 
-    const response = await apiRequest.post<CreateStudioResponse>(
+    const response = await apiRequest.post<Studio>(
       STUDIO_ENDPOINTS.CREATE,
       formData,
       {
@@ -67,7 +67,11 @@ export async function createStudio(data: CreateStudioRequest): Promise<CreateStu
       }
     );
 
-    return response.data;
+    // Django API now returns the full studio data directly
+    return {
+      message: 'Studio created successfully',
+      studio: response.data
+    };
   }
 }
 
@@ -151,8 +155,48 @@ export async function getMyStudio(): Promise<MyStudioResponse> {
       }
     };
   } else {
-    const response = await apiRequest.get<MyStudioResponse>(STUDIO_ENDPOINTS.MINE);
-    return response.data;
+    // Use fetch instead of apiRequest to avoid console errors for expected 404s
+    try {
+      // Import getAccessToken here to avoid circular imports
+      const { getAccessToken } = await import('@/lib/utils/tokenService');
+      const token = getAccessToken();
+      
+      console.log('🔑 getMyStudio - Token exists:', !!token);
+      console.log('🌐 getMyStudio - Endpoint:', STUDIO_ENDPOINTS.MINE);
+      
+      const response = await fetch(STUDIO_ENDPOINTS.MINE, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
+
+      console.log('📡 getMyStudio - Response status:', response.status);
+
+      if (response.status === 404) {
+        // User doesn't have a studio - this is expected and normal
+        console.log('📋 getMyStudio - User has no studio (404)');
+        throw new Error('You are not a member of any studio');
+      }
+
+      if (!response.ok) {
+        console.log('❌ getMyStudio - HTTP error:', response.status);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ getMyStudio - Success:', data);
+      return data;
+    } catch (error: any) {
+      console.log('❌ getMyStudio - Error:', error.message);
+      // Re-throw with consistent error message for 404s
+      if (error.message === 'You are not a member of any studio') {
+        throw error;
+      }
+      // For other errors, create a generic error
+      throw new Error('Failed to load studio information');
+    }
   }
 }
 
@@ -304,13 +348,25 @@ export async function getAllStudios(): Promise<Studio[]> {
     return mockStudios;
   } else {
     try {
-      // Try with the base studio endpoint
-      const response = await fetch(`${STUDIO_ENDPOINTS.CREATE.replace('/create/', '/')}`);
+      // Use the correct LIST endpoint
+      const response = await fetch(STUDIO_ENDPOINTS.LIST);
       if (!response.ok) {
         throw new Error(`Failed to fetch studios: ${response.status}`);
       }
       const data = await response.json();
-      return data;
+      
+      // Django REST framework returns paginated results with 'results' array
+      if (data && Array.isArray(data.results)) {
+        return data.results;
+      }
+      
+      // Fallback: if data is already an array
+      if (Array.isArray(data)) {
+        return data;
+      }
+      
+      console.warn("Unexpected API response format:", data);
+      return [];
     } catch (error) {
       console.error("Error fetching studios:", error);
       return [];

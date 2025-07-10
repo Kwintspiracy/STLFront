@@ -2,6 +2,7 @@ import { Product, LegacyProduct, convertLegacyToProduct } from "@/types/product"
 import { mockProducts } from "@/data/mock-products";
 import { USE_MOCK_DATA, PRODUCT_ENDPOINTS, REAL_API_BASE_URL } from "@/lib/api/config";
 import { apiRequest } from "./httpClient";
+import { getAccessToken } from "@/lib/utils/tokenService";
 
 /**
  * Récupère tous les produits (endpoint public)
@@ -19,7 +20,8 @@ export async function getAllProducts(): Promise<Product[]> {
       throw new Error(`Failed to fetch products: ${res.status} ${res.statusText}`);
     }
     const data = await res.json();
-    return data;
+    // L'API Django retourne une réponse paginée avec results
+    return data.results || data;
   } catch (error) {
     console.error("Error fetching products:", error);
     // Return empty array instead of mock data
@@ -66,7 +68,8 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
       throw new Error(`Failed to fetch products by category: ${res.status} ${res.statusText}`);
     }
     const data = await res.json();
-    return data;
+    // L'API Django retourne une réponse paginée avec results
+    return data.results || data;
   } catch (error) {
     console.error("Error fetching products by category:", error);
     // Return empty array instead of mock data
@@ -92,7 +95,8 @@ export async function getProductsByTag(tagSlug: string): Promise<Product[]> {
       throw new Error(`Failed to fetch products by tag: ${res.status} ${res.statusText}`);
     }
     const data = await res.json();
-    return data;
+    // L'API Django retourne une réponse paginée avec results
+    return data.results || data;
   } catch (error) {
     console.error("Error fetching products by tag:", error);
     // Return empty array instead of mock data
@@ -110,22 +114,29 @@ export async function getProductsByStudio(studioId: number): Promise<Product[]> 
       .map(product => convertLegacyToProduct(product as any));
   }
 
+  console.log(`🏢 Fetching products for studio ${studioId}...`);
+
   try {
-    // Use apiRequest for authenticated endpoint
-    const response = await apiRequest.get<Product[]>(PRODUCT_ENDPOINTS.BY_STUDIO(studioId));
-    return response.data;
+    // Always try with authentication first to get draft products
+    const response = await apiRequest.get<any>(PRODUCT_ENDPOINTS.BY_STUDIO(studioId));
+    console.log(`✅ Authenticated request successful: ${response.data.results?.length || response.data.length || 0} products`);
+    // L'API Django retourne une réponse paginée avec results
+    return response.data.results || response.data;
   } catch (error: any) {
-    console.error("Error fetching products by studio:", error);
+    console.log(`❌ Authenticated request failed:`, error.response?.status, error.message);
     
-    // If it's a 401, try without auth (public endpoint)
+    // If it's a 401, try without auth (public endpoint) - will only show published products
     if (error.response?.status === 401) {
       try {
+        console.log(`🔓 Trying public endpoint...`);
         const res = await fetch(PRODUCT_ENDPOINTS.BY_STUDIO(studioId));
         if (!res.ok) {
           throw new Error(`Failed to fetch products: ${res.status}`);
         }
         const data = await res.json();
-        return data;
+        console.log(`✅ Public request successful: ${data.results?.length || data.length || 0} products (published only)`);
+        // L'API Django retourne une réponse paginée avec results
+        return data.results || data;
       } catch (publicError) {
         console.error("Error fetching products (public):", publicError);
       }
@@ -141,6 +152,11 @@ export async function getProductsByStudio(studioId: number): Promise<Product[]> 
  */
 export async function createProduct(productData: Partial<Product>): Promise<Product> {
   const response = await apiRequest.post<Product>(PRODUCT_ENDPOINTS.CREATE, productData);
+  
+  console.log('Raw response:', response);
+  console.log('Response data:', response.data);
+  console.log('Product ID from response:', response.data?.id);
+  
   return response.data;
 }
 
@@ -182,37 +198,16 @@ export async function uploadProductImage(productId: number, file: File, title: s
   formData.append('title', title);
   formData.append('rank', rank.toString());
 
-  // Try different endpoint patterns
-  try {
-    const response = await apiRequest.post(
-      `/product/products/${productId}/images/`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-    return response.data;
-  } catch (error: any) {
-    if (error.response?.status === 404) {
-      // Try alternative endpoint
-      const response = await apiRequest.post(
-        `/product/images/`,
-        {
-          ...formData,
-          product: productId
-        },
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-      return response.data;
+  const response = await apiRequest.post(
+    PRODUCT_ENDPOINTS.UPLOAD_IMAGE(productId),
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     }
-    throw error;
-  }
+  );
+  return response.data;
 }
 
 /**
@@ -223,51 +218,110 @@ export async function uploadProductSTL(productId: number, file: File, title: str
   formData.append('file', file);
   formData.append('title', title);
 
-  // Try different endpoint patterns
-  try {
-    const response = await apiRequest.post(
-      `/product/products/${productId}/stl-files/`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-    return response.data;
-  } catch (error: any) {
-    if (error.response?.status === 404) {
-      // Try alternative endpoint
-      const response = await apiRequest.post(
-        `/product/stl-files/`,
-        {
-          ...formData,
-          product: productId
-        },
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-      return response.data;
+  const response = await apiRequest.post(
+    PRODUCT_ENDPOINTS.UPLOAD_STL(productId),
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     }
-    throw error;
-  }
+  );
+  return response.data;
 }
 
 /**
  * Supprime une image d'un produit
  */
 export async function deleteProductImage(productId: number, imageId: number): Promise<void> {
-  await apiRequest.delete(`${REAL_API_BASE_URL}/product/products/${productId}/images/${imageId}/`);
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const res = await fetch(`${PRODUCT_ENDPOINTS.DETAIL(productId)}/images/${imageId}/`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `Failed to delete image: ${res.status} ${res.statusText}`);
+  }
 }
 
 /**
  * Supprime un fichier STL d'un produit
  */
 export async function deleteProductSTL(productId: number, stlId: number): Promise<void> {
-  await apiRequest.delete(`${REAL_API_BASE_URL}/product/products/${productId}/stl-files/${stlId}/`);
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const res = await fetch(`${PRODUCT_ENDPOINTS.DETAIL(productId)}/stl-files/${stlId}/`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `Failed to delete STL file: ${res.status} ${res.statusText}`);
+  }
+}
+
+/**
+ * Set an image as the main image (rank=1)
+ */
+export async function setMainProductImage(productId: number, imageId: number): Promise<void> {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  // Remove trailing slash from DETAIL endpoint to avoid double slashes
+  const baseUrl = PRODUCT_ENDPOINTS.DETAIL(productId).replace(/\/$/, '');
+  const res = await fetch(`${baseUrl}/images/${imageId}/set-main/`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `Failed to set main image: ${res.status} ${res.statusText}`);
+  }
+}
+
+/**
+ * Update the order of images for a product
+ */
+export async function updateImageOrder(productId: number, imageOrders: { id: number; rank: number }[]): Promise<void> {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const baseUrl = PRODUCT_ENDPOINTS.DETAIL(productId).replace(/\/$/, '');
+  const res = await fetch(`${baseUrl}/images/reorder/`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ images: imageOrders }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `Failed to update image order: ${res.status} ${res.statusText}`);
+  }
 }
 
 // Helper functions pour la compatibilité avec l'ancien code
@@ -277,10 +331,10 @@ export async function deleteProductSTL(productId: number, stlId: number): Promis
  */
 export async function getFeaturedProducts(): Promise<Product[]> {
   const products = await getAllProducts();
-  // Pour l'instant, on prend les 4 premiers produits publiés
+  // Pour l'instant, on prend les 5 premiers produits publiés
   return products
     .filter(p => p.status === 'published')
-    .slice(0, 4);
+    .slice(0, 20);
 }
 
 /**
@@ -288,10 +342,10 @@ export async function getFeaturedProducts(): Promise<Product[]> {
  */
 export async function getTrendingProducts(): Promise<Product[]> {
   const products = await getAllProducts();
-  // Pour l'instant, on prend les produits 5 à 9
+  // Pour l'instant, on prend les produits 5 à 10
   return products
     .filter(p => p.status === 'published')
-    .slice(4, 9);
+    .slice(0, 10);
 }
 
 /**
@@ -311,8 +365,13 @@ export async function getLatestProducts(): Promise<Product[]> {
  */
 export async function getCommercialProducts(): Promise<Product[]> {
   const products = await getAllProducts();
-  // Filtrer les produits avec une licence commerciale > 0
+  // Filtrer les produits avec une licence commerciale disponible (non null) et > 0
   return products
-    .filter(p => p.status === 'published' && parseFloat(p.professional_license_fee) > 0)
+    .filter(p => 
+      p.status === 'published' && 
+      p.professional_license_fee !== null && 
+      p.professional_license_fee !== undefined &&
+      parseFloat(p.professional_license_fee) > 0
+    )
     .slice(0, 4);
 }

@@ -1,4 +1,4 @@
-import { getAllProducts } from "@/lib/api/products";
+import { getAllProducts, getFeaturedProducts, getTrendingProducts, getCommercialProducts, getLatestProducts } from "@/lib/api/products";
 import SearchWrapper from "@/components/search/SearchWrapper";
 import ProductSection from "@/components/sections/ProductSection";
 import CategoryGrid from "@/components/sections/CategoryGrid";
@@ -8,13 +8,11 @@ import LatestSection from "@/components/sections/LatestSection";
 import { FaCrown, FaFire } from "react-icons/fa";
 
 export default async function Home() {
-  const products = await getAllProducts();
-  
-  // Simulate different product categories for demo
-  const featuredProducts = products.slice(0, 20);
-  const trendingProducts = products.slice(0, 20);
-  const commercialProducts = products.slice(0, 20);
-  const newProducts = products.slice(0, 20);
+  // Use proper filtering functions instead of just slicing
+  const featuredProducts = await getFeaturedProducts();
+  const trendingProducts = await getTrendingProducts();
+  const commercialProducts = await getCommercialProducts();
+  const newProducts = await getLatestProducts();
   
   return (
     <div className="mx-auto">

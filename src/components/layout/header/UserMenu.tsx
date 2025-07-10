@@ -12,7 +12,8 @@ import {
   FaPlus,
   FaDollarSign,
   FaCreditCard,
-  FaTimes
+  FaTimes,
+  FaBoxes
 } from 'react-icons/fa';
 
 interface User {
@@ -29,6 +30,7 @@ interface Studio {
   studio: {
     id: number;
     name: string;
+    color?: string;
   };
   membership: {
     role: 'owner' | 'admin' | 'member';
@@ -138,7 +140,7 @@ export default function UserMenu({
       <div className={`relative ${className}`} ref={dropdownRef}>
         <button 
           onClick={toggleDropdown} 
-          className="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-800/50 transition-colors group"
+          className="flex items-center gap-2 p-1 rounded-lg hover:bg-[var(--color-primary-studio-hover)]/5 transition-colors group"
           aria-label="User menu"
           aria-expanded={dropdownOpen}
         >
@@ -196,7 +198,7 @@ export default function UserMenu({
               </div>
               <button
                 onClick={toggleDropdown}
-                className="p-1 rounded-lg hover:bg-gray-800/50 transition-colors"
+                className="p-1 rounded-lg hover:bg-[var(--color-primary-studio-hover)]/5 transition-colors"
                 aria-label="Close menu"
               >
                 <FaTimes className="w-5 h-5 text-gray-400" />
@@ -214,7 +216,7 @@ export default function UserMenu({
                   
                   <Link
                     href="/profile"
-                    className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                    className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-[var(--color-primary-studio-hover)]/5 hover:text-white rounded-lg mx-1 transition-colors group"
                     onClick={() => setDropdownOpen(false)}
                   >
                     <FaUser className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />
@@ -223,7 +225,7 @@ export default function UserMenu({
 
                   <Link
                     href="/settings"
-                    className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                    className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-[var(--color-primary-studio-hover)]/5 hover:text-white rounded-lg mx-1 transition-colors group"
                     onClick={() => setDropdownOpen(false)}
                   >
                     <FaCog className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />
@@ -241,25 +243,30 @@ export default function UserMenu({
                     <>
                       <Link
                         href={`/studio/${myStudio?.studio.id}`}
-                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-[var(--color-primary-studio-hover)]/5 hover:text-white rounded-lg mx-1 transition-colors group"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        <FaStore className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />
+                        <FaStore 
+                          className="w-4 h-4 mr-3 group-hover:scale-110 transition-transform" 
+                          style={{ color: myStudio?.studio.color || '#FDD811'
+                            
+                           }}
+                        />
                         {myStudio?.studio.name}
                       </Link>
 
                       <Link
                         href={`/studio/${myStudio?.studio.id}/products`}
-                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-[var(--color-primary-studio-hover)]/5 hover:text-white rounded-lg mx-1 transition-colors group"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        <FaStore className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
+                        <FaBoxes className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
                         Manage Products
                       </Link>
 
                       <Link
                         href={`/studio/${myStudio?.studio.id}/products/add`}
-                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-[var(--color-primary-studio-hover)]/5 hover:text-white rounded-lg mx-1 transition-colors group"
                         onClick={() => setDropdownOpen(false)}
                       >
                         <FaPlus className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
@@ -269,7 +276,7 @@ export default function UserMenu({
                       {isStudioAdmin && (
                         <Link
                           href={`/studio/${myStudio?.studio.id}/settings`}
-                          className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                          className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-[var(--color-primary-studio-hover)]/5 hover:text-white rounded-lg mx-1 transition-colors group"
                           onClick={() => setDropdownOpen(false)}
                         >
                           <FaCog className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
@@ -279,7 +286,7 @@ export default function UserMenu({
 
                       <Link
                         href={`/studio/${myStudio?.studio.id}/earnings`}
-                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-[var(--color-primary-studio-hover)]/5 hover:text-white rounded-lg mx-1 transition-colors group"
                         onClick={() => setDropdownOpen(false)}
                       >
                         <FaDollarSign className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
@@ -288,7 +295,7 @@ export default function UserMenu({
 
                       <Link
                         href={`/studio/${myStudio?.studio.id}/payout`}
-                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                        className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-[var(--color-primary-studio-hover)]/5 hover:text-white rounded-lg mx-1 transition-colors group"
                         onClick={() => setDropdownOpen(false)}
                       >
                         <FaCreditCard className="w-4 h-4 mr-3 text-gray-400 group-hover:scale-110 transition-transform" />
@@ -298,7 +305,7 @@ export default function UserMenu({
                   ) : (
                     <Link
                       href="/studio/create"
-                      className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white rounded-lg mx-1 transition-colors group"
+                      className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-[var(--color-primary-studio-hover)]/5 hover:text-white rounded-lg mx-1 transition-colors group"
                       onClick={() => setDropdownOpen(false)}
                     >
                       <FaPlus className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />

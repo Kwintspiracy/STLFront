@@ -10,6 +10,7 @@ import ProductImageGallery from "@/components/product/ProductImageGallery";
 import { useState, useEffect } from "react";
 import { Product } from "@/types/product";
 import Image from "next/image";
+import DefaultAvatar from "@/components/ui/DefaultAvatar";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
@@ -49,8 +50,23 @@ export default function ProductPage(props: ProductPageProps) {
 
   const getCurrentPrice = () => {
     if (!product) return '0';
-    const basePrice = parseFloat(product.price);
-    return selectedLicense === 'commercial' ? (basePrice * 2).toFixed(2) : product.price;
+    
+    if (selectedLicense === 'commercial' && product.professional_license_fee) {
+      return product.professional_license_fee; // Use actual professional license price
+    }
+    
+    return product.price; // Use personal price
+  };
+
+  const hasCommercialLicense = () => {
+    return product && 
+           product.professional_license_fee !== null && 
+           product.professional_license_fee !== undefined &&
+           parseFloat(product.professional_license_fee) > 0;
+  };
+
+  const isFreeProduct = () => {
+    return product && parseFloat(product.price) === 0;
   };
 
   if (loading) {
@@ -86,7 +102,7 @@ export default function ProductPage(props: ProductPageProps) {
     <main className="max-w-[1440px] mx-auto text-white px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
       {/* Breadcrumb Navigation */}
       <nav className="flex flex-wrap items-center gap-2 sm:gap-4 py-4 sm:py-6" aria-label="Breadcrumb">
-        {product.tags && product.tags.map((tag: { id: number; name: string }) => (
+        {product.tag && product.tag.map((tag: { id: number; name: string }) => (
           <TagPill key={tag.id} tag={tag.name} />
         ))}
       </nav>
@@ -111,20 +127,22 @@ export default function ProductPage(props: ProductPageProps) {
             {/* Creator Info */}
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="relative">
-                <Image
-                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg ring-2 ring-gray-600 object-cover"
-                  src={imageError || !product.studio || typeof product.studio !== 'object' || !product.studio.logo 
-                    ? '/placeholder-avatar.png' 
-                    : product.studio.logo}
-                  alt={`${typeof product.studio === 'object' ? product.studio.name : 'Studio'} logo`}
-                  width={48}
-                  height={48}
-                  onError={() => setImageError(true)}
-                />
+                {imageError || !product.creator || !product.creator.badge ? (
+                  <DefaultAvatar className="ring-2 ring-gray-600" size={48} />
+                ) : (
+                  <Image
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg ring-2 ring-gray-600 object-cover"
+                    src={product.creator.badge}
+                    alt={`${product.creator.name} badge`}
+                    width={48}
+                    height={48}
+                    onError={() => setImageError(true)}
+                  />
+                )}
               </div>
               <div>
                 <p className="text-white text-sm sm:text-base font-medium">
-                  by {typeof product.studio === 'object' ? product.studio.name : 'Studio'}
+                  by {product.creator ? product.creator.name : 'Studio'}
                 </p>
                 <p className="text-gray-400 text-xs sm:text-sm">
                   Creator
@@ -139,69 +157,111 @@ export default function ProductPage(props: ProductPageProps) {
           {/* Pricing Section */}
           <div className="bg-gray-800/50 rounded-lg p-4 sm:p-6 space-y-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-bold text-white">
-                ${getCurrentPrice()}
-              </span>
-              <span className="text-gray-400 text-sm">USD</span>
-            </div>
-            <p className="text-primary text-sm font-medium">
-              ${calculateCreatorEarnings(getCurrentPrice())} goes to the creator
-            </p>
-          </div>
-
-          {/* License Selection */}
-          <div className="space-y-4">
-            <h3 className="text-white text-base sm:text-lg font-semibold">
-              Select License Type
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                onClick={() => setSelectedLicense('personal')}
-                className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${selectedLicense === 'personal'
-                  ? 'border-primary bg-primary/10 text-white shadow-lg'
-                  : 'border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
-                  }`}
-                aria-pressed={selectedLicense === 'personal'}
-              >
-                <div className="font-medium">Personal</div>
-                <div className="text-xs text-gray-400 mt-1">For personal use only</div>
-              </button>
-
-              <button
-                onClick={() => setSelectedLicense('commercial')}
-                className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${selectedLicense === 'commercial'
-                  ? 'border-primary bg-primary/10 text-white shadow-lg'
-                  : 'border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
-                  }`}
-                aria-pressed={selectedLicense === 'commercial'}
-              >
-                <div className="font-medium">Commercial</div>
-                <div className="text-xs text-gray-400 mt-1">For business use</div>
-              </button>
-            </div>
-
-            {/* License Description */}
-            <div className="bg-gray-900/50 rounded-lg p-4 text-sm text-gray-300 leading-relaxed">
-              {selectedLicense === 'personal' ? (
-                <>
-                  <strong className="text-white">Personal License:</strong> Print and use for personal projects only.
-                  Files and printed models cannot be distributed, shared, or sold.
-                </>
+              {isFreeProduct() ? (
+                <span className="text-2xl sm:text-3xl font-bold text-green-400">
+                  FREE
+                </span>
               ) : (
                 <>
-                  <strong className="text-white">Commercial License:</strong> Use for commercial projects,
-                  including selling printed models. Includes rights for business use and resale.
+                  <span className="text-2xl sm:text-3xl font-bold text-white">
+                    ${getCurrentPrice()}
+                  </span>
+                  <span className="text-gray-400 text-sm">USD</span>
                 </>
               )}
             </div>
+            {!isFreeProduct() && (
+              <p className="text-primary text-sm font-medium">
+                ${calculateCreatorEarnings(getCurrentPrice())} goes to the creator
+              </p>
+            )}
+            {isFreeProduct() && (
+              <p className="text-green-400 text-sm font-medium">
+                This product is available for free download
+              </p>
+            )}
           </div>
+
+          {/* License Selection - Only show if commercial license is available */}
+          {hasCommercialLicense() ? (
+            <div className="space-y-4">
+              <h3 className="text-white text-base sm:text-lg font-semibold">
+                Select License Type
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={() => setSelectedLicense('personal')}
+                  className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${selectedLicense === 'personal'
+                    ? 'border-primary bg-primary/10 text-white shadow-lg'
+                    : 'border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
+                    }`}
+                  aria-pressed={selectedLicense === 'personal'}
+                >
+                  <div className="font-medium">Personal</div>
+                  <div className="text-xs text-gray-400 mt-1">For personal use only</div>
+                </button>
+
+                <button
+                  onClick={() => setSelectedLicense('commercial')}
+                  className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${selectedLicense === 'commercial'
+                    ? 'border-primary bg-primary/10 text-white shadow-lg'
+                    : 'border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
+                    }`}
+                  aria-pressed={selectedLicense === 'commercial'}
+                >
+                  <div className="font-medium">Commercial</div>
+                  <div className="text-xs text-gray-400 mt-1">For business use</div>
+                </button>
+              </div>
+
+              {/* License Description */}
+              <div className="bg-gray-900/50 rounded-lg p-4 text-sm text-gray-300 leading-relaxed">
+                {selectedLicense === 'personal' ? (
+                  <>
+                    <strong className="text-white">Personal License:</strong> Print and use for personal projects only.
+                    Files and printed models cannot be distributed, shared, or sold.
+                  </>
+                ) : (
+                  <>
+                    <strong className="text-white">Commercial License:</strong> Use for commercial projects,
+                    including selling printed models. Includes rights for business use and resale.
+                  </>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Single license info when no commercial license available */
+            <div className="space-y-4">
+              <h3 className="text-white text-base sm:text-lg font-semibold">
+                License Information
+              </h3>
+              <div className="bg-gray-900/50 rounded-lg p-4 text-sm text-gray-300 leading-relaxed">
+                <strong className="text-white">Personal License:</strong> Print and use for personal projects only.
+                Files and printed models cannot be distributed, shared, or sold.
+                {!isFreeProduct() && (
+                  <div className="mt-2 text-gray-400">
+                    Commercial licensing is not available for this product.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Add to Cart Button */}
           <div className="sticky bottom-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 p-4 -mx-4 lg:relative lg:bg-transparent lg:border-0 lg:p-0 lg:mx-0">
             <CardCartButton href="/cart/" className="w-full">
-              <RiShoppingCart2Fill className="w-5 h-5" />
-              <span className="font-semibold">Add to Cart - ${getCurrentPrice()}</span>
+              {isFreeProduct() ? (
+                <>
+                  <RiDownloadLine className="w-6 h-6" />
+                  <span className="font-semibold text-lg">TÉLÉCHARGER</span>
+                </>
+              ) : (
+                <>
+                  <RiShoppingCart2Fill className="w-6 h-6" />
+                  <span className="font-semibold text-lg">Add to Cart - ${getCurrentPrice()}</span>
+                </>
+              )}
             </CardCartButton>
           </div>
 

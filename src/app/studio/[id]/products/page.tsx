@@ -284,11 +284,11 @@ export default function StudioProducts({ params }: Props) {
                     <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
                       {product.images && product.images.length > 0 ? (
                         <img 
-                          src={product.images[0].image} 
+                          src={product.images[0].url || product.images[0].image} 
                           alt={product.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            console.error('Image failed to load:', product.images[0].image);
+                            console.error('Image failed to load:', product.images[0].url || product.images[0].image);
                             const target = e.currentTarget;
                             target.style.display = 'none';
                             const parent = target.parentElement;

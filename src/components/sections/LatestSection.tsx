@@ -45,7 +45,7 @@ function LatestProductCard({ product }: { product: Product }) {
   const [imageError, setImageError] = useState(false);
 
   const sortedImages = [...product.images].sort((a, b) => a.rank - b.rank);
-  const mainImage = sortedImages[0]?.image || (sortedImages[0] as any)?.url; // Support both new and legacy format
+  const mainImage = sortedImages[0]?.url || sortedImages[0]?.image; // Support both new and legacy format
 
   const handleImageLoad = () => {
     setImageLoading(false);
@@ -108,7 +108,7 @@ function LatestProductCard({ product }: { product: Product }) {
           </h3>
         </Link>
         
-        <p className="text-xs text-gray-400 mt-1">by {typeof product.studio === 'object' ? product.studio.name : `Studio ${product.studio}`}</p>
+        <p className="text-xs text-gray-400 mt-1">by {product.creator.name}</p>
         
         <div className="flex items-center justify-between mt-2">
           <span className="text-sm font-bold text-primary">${product.price}</span>

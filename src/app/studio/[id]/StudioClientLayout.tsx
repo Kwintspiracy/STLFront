@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Studio } from '@/types/studio';
-import { RiMenuLine, RiCloseLine, RiTBoxLine, RiBarChartLine, RiMoneyDollarCircleLine, RiSettingsLine, RiMailLine, RiExternalLinkLine } from 'react-icons/ri';
+import { RiMenuLine, RiCloseLine, RiTBoxLine, RiBarChartLine, RiMoneyDollarCircleLine, RiSettingsLine, RiMailLine, RiExternalLinkLine, RiDashboardLine, RiShoppingBagLine } from 'react-icons/ri';
 
 interface StudioClientLayoutProps {
   studio: Studio;
@@ -25,9 +25,15 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
 
   const navigationLinks = [
     {
+      href: `/studio/${studio.id}`,
+      label: 'Dashboard',
+      icon: RiDashboardLine,
+      isActive: pathname === `/studio/${studio.id}`,
+    },
+    {
       href: `/studio/${studio.id}/products`,
       label: 'Products',
-      icon: RiTBoxLine,
+      icon: RiShoppingBagLine,
       isActive: pathname === `/studio/${studio.id}/products`,
     },
     {

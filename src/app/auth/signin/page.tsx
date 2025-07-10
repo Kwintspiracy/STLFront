@@ -18,9 +18,9 @@ export default function SignInPage() {
   // Show loading while checking auth status
   if (isLoading) {
     return (
-      <main className="w-full h-full flex justify-center items-center bg-[#0F1213]">
-        <div className="text-white">Loading...</div>
-      </main>
+      <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
+      </div>
     );
   }
 
@@ -30,8 +30,10 @@ export default function SignInPage() {
   }
 
   return (
-    <main className="w-full h-full flex justify-center bg-[#0F1213]">
-      <LoginForm />
-    </main>
+    <div className="min-h-screen bg-[var(--color-background)] px-4 py-12">
+      <div className="w-full max-w-md mx-auto pt-16">
+        <LoginForm />
+      </div>
+    </div>
   );
 }

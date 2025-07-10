@@ -17,7 +17,7 @@ export interface Studio {
   id: number;
   name: string;
   slug?: string;
-  logo?: string;
+  badge?: string;
   description?: string;
   created_at?: string;
   updated_at?: string;
@@ -25,13 +25,14 @@ export interface Studio {
 
 export interface ProductImage {
   id: number;
-  image: string; // URL complète de l'image
+  url: string; // URL complète de l'image (l'API retourne 'url' et non 'image')
+  image?: string; // Garde pour compatibilité avec l'ancien code
   rank: number;
   title: string;
   description?: string;
-  width: number;
-  height: number;
-  created_at: string;
+  width?: number;
+  height?: number;
+  created_at?: string;
 }
 
 export interface ProductSTL {
@@ -51,8 +52,10 @@ export interface Product {
   description?: string;
   price: string;
   professional_license_fee: string;
-  studio: number | Studio; // Peut être juste l'ID ou l'objet complet selon l'endpoint
+  creator: Studio; // L'API retourne toujours l'objet creator complet
+  studio?: number | Studio; // Garde pour compatibilité avec l'ancien code
   status: 'draft' | 'published' | 'withdrawn';
+  is_public?: boolean; // Visibilité du produit (public/privé)
   publication_date?: string;
   print_settings?: string;
   dimensions?: string;
@@ -61,7 +64,8 @@ export interface Product {
   zip_size_bytes: number;
   created_at: string;
   updated_at: string;
-  tags: Tag[];
+  tags?: Tag[]; // Pour compatibilité
+  tag: Tag[]; // L'API retourne 'tag'
   category?: Category;
   images: ProductImage[];
   stl_files: ProductSTL[];
@@ -93,17 +97,20 @@ export interface LegacyProduct {
 
 // Fonction helper pour convertir du format legacy vers le nouveau format
 export function convertLegacyToProduct(legacy: LegacyProduct): Product {
+  const studioData = {
+    id: legacy.creator.id,
+    name: legacy.creator.name,
+    badge: legacy.creator.creatorlogo,
+  };
+  
   return {
     id: legacy.id,
     name: legacy.name,
     description: legacy.description,
     price: legacy.price,
     professional_license_fee: legacy.professionalLicenseFee,
-    studio: {
-      id: legacy.creator.id,
-      name: legacy.creator.name,
-      logo: legacy.creator.creatorlogo,
-    },
+    creator: studioData,
+    studio: studioData, // Pour compatibilité
     status: 'published',
     publication_date: legacy.release_date,
     print_settings: '',
@@ -114,10 +121,12 @@ export function convertLegacyToProduct(legacy: LegacyProduct): Product {
     created_at: legacy.release_date,
     updated_at: legacy.release_date,
     tags: legacy.tag,
+    tag: legacy.tag, // L'API retourne 'tag'
     category: legacy.category[0], // Prendre la première catégorie
     images: legacy.images.map(img => ({
       id: img.id,
-      image: img.url,
+      url: img.url,
+      image: img.url, // Pour compatibilité
       rank: img.rank,
       title: `Image ${img.rank}`,
       description: '',

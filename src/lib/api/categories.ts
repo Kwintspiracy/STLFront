@@ -13,5 +13,18 @@ export async function getAllCategories(): Promise<Category[]> {
     throw new Error("Failed to fetch categories");
   }
 
-  return res.json();
+  const data = await res.json();
+  
+  // Django REST framework returns paginated results with 'results' array
+  if (data && Array.isArray(data.results)) {
+    return data.results;
+  }
+  
+  // Fallback: if data is already an array
+  if (Array.isArray(data)) {
+    return data;
+  }
+  
+  console.warn("Unexpected API response format:", data);
+  return [];
 }
