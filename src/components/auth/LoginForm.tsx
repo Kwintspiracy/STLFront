@@ -10,6 +10,7 @@ import type { User } from '@/data/mock-users';
 import Link from 'next/link';
 import { FaEye, FaEyeSlash, FaUser, FaLock } from 'react-icons/fa';
 import GoogleSignInButton from './GoogleSignInButton';
+import DiscordSignInButton from './DiscordSignInButton';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -161,8 +162,11 @@ export default function LoginForm() {
           </div>
         </div>
 
-        {/* Google Sign In Button */}
-        <GoogleSignInButton disabled={isLoading} />
+        {/* Social Sign In Buttons */}
+        <div className="space-y-3">
+          <GoogleSignInButton disabled={isLoading} />
+          <DiscordSignInButton disabled={isLoading} />
+        </div>
       </div>
 
       {/* Register Link */}

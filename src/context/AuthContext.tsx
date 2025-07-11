@@ -17,6 +17,7 @@ import axios from 'axios';
 interface AuthContextType extends AuthState {
   login: (credentials: LoginRequest) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
+  loginWithDiscord: () => Promise<void>;
   logout: () => void;
   refreshAuth: () => void;
 }
@@ -165,6 +166,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [showError]);
 
+  const loginWithDiscord = useCallback(async () => {
+    if (USE_MOCK_DATA) {
+      showError('Mock data mode is enabled. Please disable it to use real API.');
+      return;
+    }
+
+    setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      // Discord OAuth URL
+      const discordClientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID;
+      if (!discordClientId) {
+        throw new Error('Discord Client ID not configured');
+      }
+
+      const redirectUri = `${window.location.origin}/auth/discord/callback`;
+      const scope = 'identify email';
+      
+      const discordAuthUrl = `https://discord.com/api/oauth2/authorize?` +
+        `client_id=${discordClientId}&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+        `response_type=code&` +
+        `scope=${encodeURIComponent(scope)}&` +
+        `prompt=consent`;
+
+      // Redirect to Discord OAuth
+      window.location.href = discordAuthUrl;
+      
+    } catch (error: any) {
+      const errorMessage = error.message || 'Discord authentication failed';
+      
+      setAuthState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: errorMessage,
+      }));
+
+      showError(errorMessage);
+      throw error;
+    }
+  }, [showError]);
+
   const refreshAuth = useCallback(() => {
     initializeAuth();
   }, [initializeAuth]);
@@ -173,6 +216,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     ...authState,
     login,
     loginWithGoogle,
+    loginWithDiscord,
     logout,
     refreshAuth,
   };

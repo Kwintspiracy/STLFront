@@ -9,6 +9,7 @@ import axios from 'axios';
 import Link from 'next/link';
 import { FaEye, FaEyeSlash, FaUser, FaLock, FaEnvelope, FaCheckCircle } from 'react-icons/fa';
 import GoogleSignInButton from './GoogleSignInButton';
+import DiscordSignInButton from './DiscordSignInButton';
 
 export default function RegisterForm() {
   const [email, setEmail] = useState('');
@@ -302,8 +303,11 @@ export default function RegisterForm() {
           </div>
         </div>
 
-        {/* Google Sign In Button */}
-        <GoogleSignInButton disabled={isLoading} />
+        {/* Social Sign In Buttons */}
+        <div className="space-y-3">
+          <GoogleSignInButton disabled={isLoading} />
+          <DiscordSignInButton disabled={isLoading} />
+        </div>
       </div>
 
       {/* Login Link */}
