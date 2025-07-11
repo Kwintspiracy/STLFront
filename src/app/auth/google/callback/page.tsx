@@ -1,0 +1,133 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
+import { AUTH_ENDPOINTS } from '@/lib/api/config';
+import { setTokenCookies } from '@/lib/utils/tokenService';
+import axios from 'axios';
+
+export default function GoogleCallbackPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { refreshAuth } = useAuth();
+  const { showError, showSuccess } = useToast();
+  const [isProcessing, setIsProcessing] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleGoogleCallback = async () => {
+      try {
+        // Get the authorization code from URL parameters
+        const code = searchParams.get('code');
+        const error = searchParams.get('error');
+
+        if (error) {
+          throw new Error(`Google authentication error: ${error}`);
+        }
+
+        if (!code) {
+          throw new Error('No authorization code received from Google');
+        }
+
+        console.log('🔄 Processing Google authentication callback...');
+
+        // Send the code to our backend
+        const response = await axios.post(AUTH_ENDPOINTS.GOOGLE_LOGIN, {
+          code: code,
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const { access, refresh, user } = response.data;
+
+        // Store tokens in cookies
+        setTokenCookies({ access, refresh });
+
+        // Refresh auth context
+        refreshAuth();
+
+        console.log('✅ Google authentication successful');
+        showSuccess(`Bienvenue ${user.first_name || user.email} !`);
+
+        // Redirect to home page
+        router.replace('/');
+
+      } catch (error: any) {
+        console.error('❌ Google authentication failed:', error);
+        
+        const errorMessage = error.response?.data?.detail || 
+                            error.response?.data?.message || 
+                            error.message || 
+                            'Échec de l\'authentification Google';
+        
+        setError(errorMessage);
+        showError(errorMessage);
+        
+        // Redirect to login page after a delay
+        setTimeout(() => {
+          router.replace('/auth/signin');
+        }, 3000);
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+
+    handleGoogleCallback();
+  }, [searchParams, router, refreshAuth, showError, showSuccess]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center px-4">
+        <div className="max-w-md w-full text-center">
+          <div className="bg-[var(--color-background-card)] border border-[var(--color-border)] rounded-xl p-8 shadow-2xl">
+            <div className="mb-6">
+              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">
+                Erreur d'authentification
+              </h1>
+              <p className="text-[var(--color-text-secondary)] mb-4">
+                {error}
+              </p>
+              <p className="text-sm text-[var(--color-text-muted)]">
+                Redirection vers la page de connexion...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center px-4">
+      <div className="max-w-md w-full text-center">
+        <div className="bg-[var(--color-background-card)] border border-[var(--color-border)] rounded-xl p-8 shadow-2xl">
+          <div className="mb-6">
+            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">
+              Authentification en cours
+            </h1>
+            <p className="text-[var(--color-text-secondary)] mb-6">
+              Finalisation de votre connexion avec Google...
+            </p>
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

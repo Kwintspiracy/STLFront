@@ -8,6 +8,7 @@ import type { RegisterRequest, RegisterResponse } from '@/types/auth';
 import axios from 'axios';
 import Link from 'next/link';
 import { FaEye, FaEyeSlash, FaUser, FaLock, FaEnvelope, FaCheckCircle } from 'react-icons/fa';
+import GoogleSignInButton from './GoogleSignInButton';
 
 export default function RegisterForm() {
   const [email, setEmail] = useState('');
@@ -288,6 +289,21 @@ export default function RegisterForm() {
             </Link>
           </p>
         </form>
+
+        {/* Divider */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-[var(--color-border)]"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-[var(--color-background-card)] text-[var(--color-text-muted)]">
+              Ou créer un compte avec
+            </span>
+          </div>
+        </div>
+
+        {/* Google Sign In Button */}
+        <GoogleSignInButton disabled={isLoading} />
       </div>
 
       {/* Login Link */}

@@ -9,6 +9,7 @@ import { USE_MOCK_DATA } from '@/lib/api/config';
 import type { User } from '@/data/mock-users';
 import Link from 'next/link';
 import { FaEye, FaEyeSlash, FaUser, FaLock } from 'react-icons/fa';
+import GoogleSignInButton from './GoogleSignInButton';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -147,6 +148,21 @@ export default function LoginForm() {
             </Link>
           </div>
         </form>
+
+        {/* Divider */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-[var(--color-border)]"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-[var(--color-background-card)] text-[var(--color-text-muted)]">
+              Ou continuer avec
+            </span>
+          </div>
+        </div>
+
+        {/* Google Sign In Button */}
+        <GoogleSignInButton disabled={isLoading} />
       </div>
 
       {/* Register Link */}

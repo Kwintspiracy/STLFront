@@ -10,11 +10,13 @@ import {
   getAccessToken,
   decodeJWTPayload 
 } from '@/lib/utils/tokenService';
+import { initializeGoogleAuth, signInWithGoogleRedirect } from '@/lib/google-auth';
 import { useToast } from './ToastContext';
 import axios from 'axios';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginRequest) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
   refreshAuth: () => void;
 }
@@ -134,6 +136,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     showSuccess('Successfully logged out!');
   }, [showSuccess]);
 
+  const loginWithGoogle = useCallback(async () => {
+    if (USE_MOCK_DATA) {
+      showError('Mock data mode is enabled. Please disable it to use real API.');
+      return;
+    }
+
+    setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      // Initialize Google Auth if not already done
+      await initializeGoogleAuth();
+      
+      // Redirect to Google OAuth
+      signInWithGoogleRedirect();
+      
+    } catch (error: any) {
+      const errorMessage = error.message || 'Google authentication failed';
+      
+      setAuthState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: errorMessage,
+      }));
+
+      showError(errorMessage);
+      throw error;
+    }
+  }, [showError]);
+
   const refreshAuth = useCallback(() => {
     initializeAuth();
   }, [initializeAuth]);
@@ -141,6 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value: AuthContextType = {
     ...authState,
     login,
+    loginWithGoogle,
     logout,
     refreshAuth,
   };

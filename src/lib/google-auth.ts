@@ -1,0 +1,130 @@
+// Google Authentication utilities for Next.js frontend
+
+export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
+
+declare global {
+  interface Window {
+    google: any;
+    googleAuthInitialized: boolean;
+  }
+}
+
+/**
+ * Initialize Google Sign-In API
+ */
+export const initializeGoogleAuth = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    // Check if already initialized
+    if (window.googleAuthInitialized) {
+      resolve();
+      return;
+    }
+
+    // Check if script already exists
+    const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (existingScript) {
+      existingScript.addEventListener('load', () => {
+        window.googleAuthInitialized = true;
+        resolve();
+      });
+      return;
+    }
+
+    // Create and load the script
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    
+    script.onload = () => {
+      window.googleAuthInitialized = true;
+      resolve();
+    };
+    
+    script.onerror = () => {
+      reject(new Error('Failed to load Google Sign-In script'));
+    };
+    
+    document.head.appendChild(script);
+  });
+};
+
+/**
+ * Get Google OAuth2 authorization URL
+ */
+export const getGoogleAuthUrl = (): string => {
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: `${window.location.origin}/auth/google/callback`,
+    scope: 'openid email profile',
+    response_type: 'code',
+    access_type: 'online',
+    prompt: 'consent',
+  });
+
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+};
+
+/**
+ * Handle Google Sign-In with popup
+ */
+export const signInWithGooglePopup = (): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    if (!window.google) {
+      reject(new Error('Google Sign-In not initialized'));
+      return;
+    }
+
+    // Configure Google Sign-In
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: (response: any) => {
+        if (response.credential) {
+          resolve(response.credential);
+        } else {
+          reject(new Error('No credential received from Google'));
+        }
+      },
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+
+    // Trigger the sign-in flow
+    window.google.accounts.id.prompt((notification: any) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        // Fallback to popup if prompt is not displayed
+        window.google.accounts.oauth2.initTokenClient({
+          client_id: GOOGLE_CLIENT_ID,
+          scope: 'openid email profile',
+          callback: (response: any) => {
+            if (response.access_token) {
+              resolve(response.access_token);
+            } else {
+              reject(new Error('No access token received'));
+            }
+          },
+        }).requestAccessToken();
+      }
+    });
+  });
+};
+
+/**
+ * Handle Google Sign-In with redirect
+ */
+export const signInWithGoogleRedirect = (): void => {
+  const authUrl = getGoogleAuthUrl();
+  window.location.href = authUrl;
+};
+
+/**
+ * Parse Google OAuth callback URL
+ */
+export const parseGoogleCallback = (url: string): { code?: string; error?: string } => {
+  const urlParams = new URLSearchParams(new URL(url).search);
+  
+  return {
+    code: urlParams.get('code') || undefined,
+    error: urlParams.get('error') || undefined,
+  };
+};

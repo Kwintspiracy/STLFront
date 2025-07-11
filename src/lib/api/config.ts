@@ -17,6 +17,7 @@ export const AUTH_ENDPOINTS = {
   PASSWORD_RESET_CONFIRM: USE_REAL_API ? `${REAL_API_BASE_URL}/auth/password/reset/confirm/` : `${API_BASE_URL}/auth/password/reset/confirm/`,
   PASSWORD_CHANGE: USE_REAL_API ? `${REAL_API_BASE_URL}/auth/password/change/` : `${API_BASE_URL}/auth/password/change/`,
   USER_PROFILE: USE_REAL_API ? `${REAL_API_BASE_URL}/auth/user/` : `${API_BASE_URL}/auth/user/`,
+  GOOGLE_LOGIN: USE_REAL_API ? `${REAL_API_BASE_URL}/auth/google/` : `${API_BASE_URL}/auth/google/`,
 };
 
 // Studio endpoints
