@@ -20,6 +20,8 @@ import { getAllCategories } from "@/lib/api/categories";
 import { getAllTags } from "@/lib/api/tags";
 import { Category, Tag, Product } from "@/types/product";
 import FileUploadZone from "@/components/studio/FileUploadZone";
+import TagInput from "@/components/forms/TagInput";
+import { processTagsForSubmission } from "@/lib/utils/tagUtils";
 import { RiArrowLeftLine, RiArrowDownSLine, RiArrowUpSLine, RiSaveLine } from "react-icons/ri";
 
 interface Props {
@@ -66,7 +68,7 @@ export default function EditProductPage({ params }: Props) {
     status: "draft" as "draft" | "published" | "withdrawn",
   });
 
-  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
   
   // File upload state
@@ -174,7 +176,7 @@ export default function EditProductPage({ params }: Props) {
       });
 
       // Set selected tags
-      setSelectedTags(productData.tags ? productData.tags.map(tag => tag.id) : []);
+      setSelectedTags(productData.tags || []);
 
       // Convert existing images to UploadedFile format
       const existingImages = productData.images.map((img, index) => ({
@@ -242,12 +244,8 @@ export default function EditProductPage({ params }: Props) {
     }
   };
 
-  const handleTagToggle = (tagId: number) => {
-    setSelectedTags(prev => 
-      prev.includes(tagId)
-        ? prev.filter(id => id !== tagId)
-        : [...prev, tagId]
-    );
+  const handleTagsChange = (tags: Tag[]) => {
+    setSelectedTags(tags);
   };
 
   // Real file upload handlers
@@ -497,6 +495,18 @@ export default function EditProductPage({ params }: Props) {
       return;
     }
 
+    // Validation catégorie obligatoire
+    if (!formData.category) {
+      showError("Veuillez sélectionner une catégorie");
+      return;
+    }
+
+    // Validation minimum 3 tags
+    if (selectedTags.length < 3) {
+      showError("Veuillez ajouter au moins 3 tags");
+      return;
+    }
+
     if (!formData.isFree) {
       if (!formData.price || parseFloat(formData.price) <= 0) {
         showError("Le prix doit être supérieur à 0 pour un produit payant");
@@ -555,9 +565,19 @@ export default function EditProductPage({ params }: Props) {
         productData.category_id = parseInt(formData.category);
       }
 
-      // Add selected tags (ProductSerializer expects tag_ids)
+      // Process tags (create new ones if needed) and get final tag IDs
+      let finalTagIds: number[] = [];
       if (selectedTags.length > 0) {
-        productData.tag_ids = selectedTags;
+        console.log('Processing tags before product update...');
+        const tagResult = await processTagsForSubmission(selectedTags);
+        
+        if (tagResult.errors.length > 0) {
+          throw new Error(`Erreur lors de la création des tags: ${tagResult.errors.join(', ')}`);
+        }
+        
+        finalTagIds = tagResult.tagIds;
+        productData.tag_ids = finalTagIds;
+        console.log('Final tag IDs:', finalTagIds);
       }
 
       console.log('🔄 Updating product with data:', productData);
@@ -924,45 +944,37 @@ export default function EditProductPage({ params }: Props) {
             
             <div className="space-y-6">
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-3">
                   Catégorie
                 </label>
-                <select
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#131618] border border-[#2A2D30] text-white rounded-lg px-4 py-3 focus:outline-none focus:border-[#FDD811] transition-colors"
-                >
-                  <option value="">Sélectionner une catégorie</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {['Fantasy', 'Sci-Fi', 'History', 'Modern'].map((categoryName) => (
+                    <button
+                      key={categoryName}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, category: categoryName }))}
+                      className={`p-3 rounded-lg border-2 transition-all text-center font-medium ${
+                        formData.category === categoryName
+                          ? 'border-[#FDD811] bg-[#FDD811]/10 text-[#FDD811]'
+                          : 'border-[#2A2D30] bg-[#131618] hover:border-[#FDD811]/50 text-gray-300 hover:text-white'
+                      }`}
+                    >
+                      {categoryName}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-3">
                   Tags
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {tags.map(tag => (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      onClick={() => handleTagToggle(tag.id)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        selectedTags.includes(tag.id)
-                          ? 'bg-[#FDD811] text-black'
-                          : 'bg-[#131618] text-gray-300 border border-[#2A2D30] hover:border-[#FDD811]/50'
-                      }`}
-                    >
-                      {tag.name}
-                    </button>
-                  ))}
-                </div>
+                <TagInput
+                  selectedTags={selectedTags}
+                  onTagsChange={handleTagsChange}
+                  maxTags={5}
+                  placeholder="Tapez pour rechercher ou créer des tags..."
+                />
               </div>
             </div>
           </div>

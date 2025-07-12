@@ -11,6 +11,8 @@ import { getAllCategories } from "@/lib/api/categories";
 import { getAllTags } from "@/lib/api/tags";
 import { Category, Tag } from "@/types/product";
 import FileUploadZone from "@/components/studio/FileUploadZone";
+import TagInput from "@/components/forms/TagInput";
+import { processTagsForSubmission } from "@/lib/utils/tagUtils";
 import { RiArrowLeftLine, RiArrowDownSLine, RiArrowUpSLine, RiEyeLine, RiSaveLine } from "react-icons/ri";
 
 interface Props {
@@ -53,12 +55,16 @@ export default function AddProductPage({ params }: Props) {
     enableProfessionalLicense: false,
   });
 
-  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
   
   // File upload state
   const [uploadedImages, setUploadedImages] = useState<UploadedFile[]>([]);
   const [uploadedSTLFiles, setUploadedSTLFiles] = useState<UploadedFile[]>([]);
+
+  // Validation state
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+  const [showValidationHighlight, setShowValidationHighlight] = useState(false);
 
   // Resolve params
   useEffect(() => {
@@ -146,12 +152,8 @@ export default function AddProductPage({ params }: Props) {
     }
   };
 
-  const handleTagToggle = (tagId: number) => {
-    setSelectedTags(prev => 
-      prev.includes(tagId)
-        ? prev.filter(id => id !== tagId)
-        : [...prev, tagId]
-    );
+  const handleTagsChange = (tags: Tag[]) => {
+    setSelectedTags(tags);
   };
 
   // File upload handlers
@@ -262,50 +264,95 @@ export default function AddProductPage({ params }: Props) {
     ));
   };
 
-  const handleSubmit = async (e: React.FormEvent, isDraft: boolean = false) => {
-    e.preventDefault();
+  // Validation function to check all required fields
+  const validateForm = () => {
+    const errors: {[key: string]: string} = {};
     
-    // Validation
+    // Check required fields
     if (!formData.name.trim()) {
-      showError("Le nom du produit est obligatoire");
-      return;
+      errors.name = "Le nom du produit est obligatoire";
     }
-
+    
+    if (!formData.category) {
+      errors.category = "Veuillez sélectionner une catégorie";
+    }
+    
+    if (selectedTags.length < 3) {
+      errors.tags = "Veuillez ajouter au moins 3 tags";
+    }
+    
+    if (uploadedImages.length === 0) {
+      errors.images = "Veuillez ajouter au moins une image";
+    }
+    
+    if (uploadedSTLFiles.length === 0) {
+      errors.stl = "Veuillez ajouter au moins un fichier STL";
+    }
+    
     if (!formData.isFree) {
       if (!formData.price || parseFloat(formData.price) <= 0) {
-        showError("Le prix doit être supérieur à 0 pour un produit payant");
-        return;
+        errors.price = "Le prix doit être supérieur à 0 pour un produit payant";
       }
-
+      
       if (formData.enableProfessionalLicense) {
         if (!formData.professional_license_fee || parseFloat(formData.professional_license_fee) <= 0) {
-          showError("Le montant de la licence professionnelle ne peut pas être de 0");
-          return;
+          errors.professional_license_fee = "Le montant de la licence professionnelle ne peut pas être de 0";
         }
-
+        
         if (parseFloat(formData.professional_license_fee) < parseFloat(formData.price)) {
-          showError("Le prix de la licence professionnelle ne peut pas être inférieur au prix personnel");
-          return;
+          errors.professional_license_fee = "Le prix de la licence professionnelle ne peut pas être inférieur au prix personnel";
         }
       }
     }
-
-    if (uploadedImages.length === 0) {
-      showError("Veuillez ajouter au moins une image");
-      return;
-    }
-
-    if (uploadedSTLFiles.length === 0) {
-      showError("Veuillez ajouter au moins un fichier STL");
-      return;
-    }
-
-    // Check if all files are uploaded
+    
+    // Check if files are still uploading
     const uploadingImages = uploadedImages.some(img => img.isUploading);
     const uploadingSTLs = uploadedSTLFiles.some(file => file.isUploading);
     
     if (uploadingImages || uploadingSTLs) {
-      showError("Veuillez attendre la fin du téléchargement des fichiers");
+      errors.upload = "Veuillez attendre la fin du téléchargement des fichiers";
+    }
+    
+    return errors;
+  };
+
+  // Scroll to first error section
+  const scrollToError = (errorKey: string) => {
+    const sectionMap: {[key: string]: string} = {
+      name: 'basic-info',
+      category: 'categorization',
+      tags: 'categorization',
+      images: 'images',
+      stl: 'stl-files',
+      price: 'pricing',
+      professional_license_fee: 'pricing',
+      upload: 'images'
+    };
+    
+    const sectionId = sectionMap[errorKey];
+    if (sectionId) {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent, isDraft: boolean = false) => {
+    e.preventDefault();
+    
+    // Run validation
+    const errors = validateForm();
+    setValidationErrors(errors);
+    setShowValidationHighlight(true);
+    
+    // If there are errors, show the first one and scroll to it
+    if (Object.keys(errors).length > 0) {
+      const firstErrorKey = Object.keys(errors)[0];
+      const firstErrorMessage = errors[firstErrorKey];
+      
+      showError(firstErrorMessage);
+      scrollToError(firstErrorKey);
       return;
     }
 
@@ -339,9 +386,19 @@ export default function AddProductPage({ params }: Props) {
         productData.category_id = parseInt(formData.category);
       }
 
-      // Add tags if selected (ProductCreateSerializer expects tag_ids)
+      // Process tags (create new ones if needed) and get final tag IDs
+      let finalTagIds: number[] = [];
       if (selectedTags.length > 0) {
-        productData.tag_ids = selectedTags;
+        console.log('Processing tags before product creation...');
+        const tagResult = await processTagsForSubmission(selectedTags);
+        
+        if (tagResult.errors.length > 0) {
+          throw new Error(`Erreur lors de la création des tags: ${tagResult.errors.join(', ')}`);
+        }
+        
+        finalTagIds = tagResult.tagIds;
+        productData.tag_ids = finalTagIds;
+        console.log('Final tag IDs:', finalTagIds);
       }
 
       // Create the product first
@@ -458,8 +515,13 @@ export default function AddProductPage({ params }: Props) {
         {/* Form */}
         <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-8">
           {/* Basic Information */}
-          <div className="bg-background-secondary border border-border rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-text-primary mb-6">Informations de base</h2>
+          <div id="basic-info" className={`bg-background-secondary border rounded-lg p-6 ${
+            showValidationHighlight && validationErrors.name ? 'border-red-500 bg-red-500/5' : 'border-border'
+          }`}>
+            <h2 className="text-xl font-semibold text-text-primary mb-6">
+              Informations de base
+              <span className="text-red-500 ml-1">*</span>
+            </h2>
             
             <div className="space-y-6">
               <div>
@@ -497,8 +559,13 @@ export default function AddProductPage({ params }: Props) {
           </div>
 
           {/* Images */}
-          <div className="bg-background-secondary border border-border rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-text-primary mb-6">Images du produit *</h2>
+          <div id="images" className={`bg-background-secondary border rounded-lg p-6 ${
+            showValidationHighlight && validationErrors.images ? 'border-red-500 bg-red-500/5' : 'border-border'
+          }`}>
+            <h2 className="text-xl font-semibold text-text-primary mb-6">
+              Images du produit
+              <span className="text-red-500 ml-1">*</span>
+            </h2>
             
             <FileUploadZone
               accept="image/*"
@@ -516,8 +583,13 @@ export default function AddProductPage({ params }: Props) {
           </div>
 
           {/* STL Files */}
-          <div className="bg-background-secondary border border-border rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-text-primary mb-6">Fichiers STL *</h2>
+          <div id="stl-files" className={`bg-background-secondary border rounded-lg p-6 ${
+            showValidationHighlight && validationErrors.stl ? 'border-red-500 bg-red-500/5' : 'border-border'
+          }`}>
+            <h2 className="text-xl font-semibold text-text-primary mb-6">
+              Fichiers STL
+              <span className="text-red-500 ml-1">*</span>
+            </h2>
             
             <FileUploadZone
               accept=".stl"
@@ -692,50 +764,47 @@ export default function AddProductPage({ params }: Props) {
           </div>
 
           {/* Categorization */}
-          <div className="bg-background-secondary border border-border rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-text-primary mb-6">Catégorisation</h2>
+          <div id="categorization" className={`bg-background-secondary border rounded-lg p-6 ${
+            showValidationHighlight && (validationErrors.category || validationErrors.tags) ? 'border-red-500 bg-red-500/5' : 'border-border'
+          }`}>
+            <h2 className="text-xl font-semibold text-text-primary mb-6">
+              Catégorisation
+              <span className="text-red-500 ml-1">*</span>
+            </h2>
             
             <div className="space-y-6">
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-text-secondary mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-3">
                   Catégorie
                 </label>
-                <select
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full bg-background border border-border text-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-accent transition-colors"
-                >
-                  <option value="">Sélectionner une catégorie</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {['Fantasy', 'Sci-Fi', 'History', 'Modern'].map((categoryName) => (
+                    <button
+                      key={categoryName}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, category: categoryName }))}
+                      className={`p-3 rounded-lg border-2 transition-all text-center font-medium ${
+                        formData.category === categoryName
+                          ? 'border-accent bg-accent/10 text-accent'
+                          : 'border-border bg-background hover:border-accent/50 text-text-secondary hover:text-text-primary'
+                      }`}
+                    >
+                      {categoryName}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-3">
                   Tags
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {tags.map(tag => (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      onClick={() => handleTagToggle(tag.id)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        selectedTags.includes(tag.id)
-                          ? 'bg-accent text-accent-foreground'
-                          : 'bg-background text-text-secondary border border-border hover:border-accent/50'
-                      }`}
-                    >
-                      {tag.name}
-                    </button>
-                  ))}
-                </div>
+                <TagInput
+                  selectedTags={selectedTags}
+                  onTagsChange={handleTagsChange}
+                  maxTags={5}
+                  placeholder="Tapez pour rechercher ou créer des tags..."
+                />
               </div>
             </div>
           </div>
