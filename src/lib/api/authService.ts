@@ -2,9 +2,9 @@
 import { findUserByCredentials } from "@/lib/api/userRepository";
 import { saveSession } from "@/lib/utils/sessionService";
 import { USE_MOCK_DATA, AUTH_ENDPOINTS } from "./config";
-import { setTokenCookies, clearTokenCookies } from "@/lib/utils/tokenService";
+import { setTokenCookies, clearTokenCookies, getAccessToken } from "@/lib/utils/tokenService";
 import { mockUsers, type User } from "@/data/mock-users";
-import type { AuthResponse, LoginRequest } from "@/types/auth";
+import type { AuthResponse, LoginRequest, ApiUser } from "@/types/auth";
 import axios from "axios";
 
 export async function login(email: string, password: string) {
@@ -27,10 +27,10 @@ export async function login(email: string, password: string) {
         }
       );
 
-      const { access_token, refresh_token, user } = response.data;
+      const { access, refresh, user } = response.data;
 
       // Store tokens in cookies
-      setTokenCookies({ access: access_token, refresh: refresh_token });
+      setTokenCookies({ access, refresh });
 
       // Also save user session for compatibility with existing code
       const compatibleUser = {
@@ -52,6 +52,50 @@ export async function login(email: string, password: string) {
       const errorMessage = error.response?.data?.detail || 
                           error.response?.data?.message || 
                           'Login failed. Please check your credentials.';
+      throw new Error(errorMessage);
+    }
+  }
+}
+
+export async function getCurrentUser(): Promise<ApiUser> {
+  if (USE_MOCK_DATA) {
+    // Mock implementation - return a user with studio info
+    const mockUser = mockUsers[0]; // Use first mock user
+    return {
+      pk: mockUser.id,
+      email: mockUser.email || '',
+      first_name: mockUser.firstName || '',
+      last_name: mockUser.lastName || '',
+      username: mockUser.username || mockUser.email || '',
+      role: 'owner',
+      studio: {
+        id: 1,
+        name: 'Mock Studio'
+      }
+    };
+  } else {
+    // Real API implementation
+    const token = getAccessToken();
+    if (!token) {
+      throw new Error('No access token available');
+    }
+
+    try {
+      const response = await axios.get<ApiUser>(
+        AUTH_ENDPOINTS.USER_PROFILE,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.message || 
+                          'Failed to get user information';
       throw new Error(errorMessage);
     }
   }

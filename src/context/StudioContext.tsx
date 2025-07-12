@@ -4,7 +4,6 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import type { Studio, MyStudioResponse } from '@/types/studio';
 import { USE_MOCK_DATA } from '@/lib/api/config';
 import { 
-  getMyStudio,
   getStudioDetails,
   createStudio,
   updateStudio,
@@ -12,6 +11,7 @@ import {
   unfollowStudio,
   getFollowedStudios
 } from '@/lib/api/studioService';
+import { getCurrentUser } from '@/lib/api/authService';
 import { getAccessToken, decodeJWTPayload } from '@/lib/utils/tokenService';
 import { useToast } from './ToastContext';
 import { useAuth } from './AuthContext';
@@ -50,7 +50,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
   const { showError, showSuccess } = useToast();
   const { isAuthenticated } = useAuth();
 
-  // Load my studio
+  // Load my studio using user endpoint (no more 404 errors!)
   const loadMyStudio = useCallback(async () => {
     if (!isAuthenticated) {
       console.log('🔐 Not authenticated, skipping studio load');
@@ -58,30 +58,49 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    console.log('🏢 Loading my studio...');
+    console.log('🏢 Loading user data with studio info...');
     setMyStudioLoading(true);
     try {
-      const studio = await getMyStudio();
-      console.log('✅ Studio loaded successfully:', studio);
-      setMyStudio(studio);
-    } catch (error: any) {
-      console.log('❌ Error loading studio:', error);
-      console.log('   - Status:', error.response?.status);
-      console.log('   - Message:', error.message);
-      console.log('   - Response data:', error.response?.data);
+      const user = await getCurrentUser();
+      console.log('✅ User data loaded successfully:', user);
       
-      // User might not have a studio, which is normal (404 error)
-      if (error.response?.status === 404 || 
-          error.message?.includes('not a member of any studio') ||
-          error.response?.data?.error?.includes('not a member of any studio')) {
-        // This is expected - user doesn't have a studio yet
-        console.log('📋 User has no studio (expected)');
-        setMyStudio(null);
+      if (user.studio && user.role) {
+        // User has a studio - create MyStudioResponse format
+        const studioResponse: MyStudioResponse = {
+          studio: {
+            id: user.studio.id,
+            name: user.studio.name,
+            description: '', // We don't have this from user endpoint, will be loaded when needed
+            banner: undefined,
+            badge: undefined,
+            founder: user.pk,
+            created_at: new Date().toISOString(), // Default value
+            updated_at: new Date().toISOString(), // Default value
+            status: 'active',
+            member_count: 1, // Default value
+            follower_count: 0 // Default value
+          },
+          membership: {
+            role: user.role,
+            status: 'active',
+            joined_at: new Date().toISOString() // Default value
+          }
+        };
+        
+        console.log('✅ User has studio:', studioResponse);
+        setMyStudio(studioResponse);
       } else {
-        console.error('Error loading my studio:', error);
-        showError('Failed to load studio information');
+        // User doesn't have a studio - this is normal and expected
+        console.log('📋 User has no studio (normal)');
         setMyStudio(null);
       }
+    } catch (error: any) {
+      console.log('❌ Error loading user data:', error);
+      console.log('   - Message:', error.message);
+      
+      console.error('Error loading user information:', error);
+      showError('Failed to load user information');
+      setMyStudio(null);
     } finally {
       setMyStudioLoading(false);
     }

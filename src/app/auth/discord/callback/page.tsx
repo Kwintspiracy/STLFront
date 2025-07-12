@@ -35,7 +35,10 @@ export default function DiscordCallbackPage() {
         // Send the code to our backend
         const response = await axios.post(
           AUTH_ENDPOINTS.DISCORD,
-          { code },
+          { 
+            code: code,
+            redirect_uri: `${window.location.origin}/auth/discord/callback`
+          },
           {
             headers: {
               'Content-Type': 'application/json',
