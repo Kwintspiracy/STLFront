@@ -778,18 +778,18 @@ export default function AddProductPage({ params }: Props) {
                   Catégorie
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {['Fantasy', 'Sci-Fi', 'History', 'Modern'].map((categoryName) => (
+                  {categories.map((category) => (
                     <button
-                      key={categoryName}
+                      key={category.id}
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, category: categoryName }))}
+                      onClick={() => setFormData(prev => ({ ...prev, category: category.id.toString() }))}
                       className={`p-3 rounded-lg border-2 transition-all text-center font-medium ${
-                        formData.category === categoryName
+                        formData.category === category.id.toString()
                           ? 'border-accent bg-accent/10 text-accent'
                           : 'border-border bg-background hover:border-accent/50 text-text-secondary hover:text-text-primary'
                       }`}
                     >
-                      {categoryName}
+                      {category.name}
                     </button>
                   ))}
                 </div>

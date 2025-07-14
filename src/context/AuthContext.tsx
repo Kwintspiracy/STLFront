@@ -19,7 +19,7 @@ interface AuthContextType extends AuthState {
   loginWithGoogle: () => Promise<void>;
   loginWithDiscord: () => Promise<void>;
   logout: () => void;
-  refreshAuth: () => void;
+  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,8 +34,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const { showError, showSuccess } = useToast();
 
+  // Fetch user data from API
+  const fetchUserData = useCallback(async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('No access token');
+      }
+
+      const response = await axios.get<ApiUser>(
+        AUTH_ENDPOINTS.USER_PROFILE,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      throw error;
+    }
+  }, []);
+
   // Initialize auth state on mount
-  const initializeAuth = useCallback(() => {
+  const initializeAuth = useCallback(async () => {
     if (USE_MOCK_DATA) {
       // Skip JWT auth for mock data
       setAuthState(prev => ({ ...prev, isLoading: false }));
@@ -47,20 +72,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const payload = decodeJWTPayload(token);
         if (payload && payload.user_id) {
-          // We have a valid token, but we need to get user data
-          // For now, we'll set authenticated to true and get user data from the token
-          setAuthState({
-            isAuthenticated: true,
-            isLoading: false,
-            user: {
-              pk: payload.user_id,
-              username: payload.username || '',
-              email: payload.email || '',
-              first_name: payload.first_name || '',
-              last_name: payload.last_name || '',
-            },
-            error: null,
-          });
+          // We have a valid token, fetch complete user data from API
+          try {
+            const userData = await fetchUserData();
+            setAuthState({
+              isAuthenticated: true,
+              isLoading: false,
+              user: userData,
+              error: null,
+            });
+          } catch (error) {
+            // If fetching user data fails, clear tokens and set unauthenticated
+            console.error('Failed to fetch user data:', error);
+            clearTokenCookies();
+            setAuthState({
+              isAuthenticated: false,
+              isLoading: false,
+              user: null,
+              error: null,
+            });
+          }
         } else {
           setAuthState(prev => ({ ...prev, isLoading: false }));
         }
@@ -72,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       setAuthState(prev => ({ ...prev, isLoading: false }));
     }
-  }, []);
+  }, [fetchUserData]);
 
   useEffect(() => {
     initializeAuth();
@@ -208,8 +239,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [showError]);
 
-  const refreshAuth = useCallback(() => {
-    initializeAuth();
+  const refreshAuth = useCallback(async () => {
+    await initializeAuth();
   }, [initializeAuth]);
 
   const value: AuthContextType = {

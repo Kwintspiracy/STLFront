@@ -7,6 +7,8 @@ export interface Studio {
   banner?: string;
   badge?: string;
   founder: number;
+  founder_name?: string;
+  founder_username?: string;
   created_at: string;
   updated_at: string;
   status: 'active' | 'inactive' | 'suspended';

@@ -165,18 +165,18 @@ export default function EditProductPage({ params }: Props) {
         name: productData.name,
         description: productData.description || "",
         price: productData.price,
-        professional_license_fee: productData.professional_license_fee,
-        category: productData.category?.id?.toString() || "",
+        professional_license_fee: productData.professional_license_fee || "",
+        category: productData.category && Array.isArray(productData.category) && productData.category.length > 0 ? productData.category[0].id.toString() : "",
         print_settings: productData.print_settings || "",
         dimensions: productData.dimensions || "",
         isPublic: productData.is_public !== undefined ? productData.is_public : true,
         isFree: parseFloat(productData.price) === 0,
-        enableProfessionalLicense: parseFloat(productData.professional_license_fee) > 0,
+        enableProfessionalLicense: !!(productData.professional_license_fee && parseFloat(productData.professional_license_fee) > 0),
         status: productData.status === "withdrawn" ? "draft" : productData.status,
       });
 
       // Set selected tags
-      setSelectedTags(productData.tags || []);
+      setSelectedTags(productData.tag || []);
 
       // Convert existing images to UploadedFile format
       const existingImages = productData.images.map((img, index) => ({
@@ -948,18 +948,18 @@ export default function EditProductPage({ params }: Props) {
                   Catégorie
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {['Fantasy', 'Sci-Fi', 'History', 'Modern'].map((categoryName) => (
+                  {categories.map((category) => (
                     <button
-                      key={categoryName}
+                      key={category.id}
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, category: categoryName }))}
+                      onClick={() => setFormData(prev => ({ ...prev, category: category.id.toString() }))}
                       className={`p-3 rounded-lg border-2 transition-all text-center font-medium ${
-                        formData.category === categoryName
+                        formData.category === category.id.toString()
                           ? 'border-[#FDD811] bg-[#FDD811]/10 text-[#FDD811]'
                           : 'border-[#2A2D30] bg-[#131618] hover:border-[#FDD811]/50 text-gray-300 hover:text-white'
                       }`}
                     >
-                      {categoryName}
+                      {category.name}
                     </button>
                   ))}
                 </div>

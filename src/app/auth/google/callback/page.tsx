@@ -47,11 +47,11 @@ export default function GoogleCallbackPage() {
         // Store tokens in cookies
         setTokenCookies({ access, refresh });
 
-        // Refresh auth context
-        refreshAuth();
+        // Refresh auth context and wait for completion
+        await refreshAuth();
 
         console.log('✅ Google authentication successful');
-        showSuccess(`Bienvenue ${user.first_name || user.email} !`);
+        showSuccess(`Bienvenue ${user.first_name || user.username || user.email} !`);
 
         // Redirect to home page
         router.replace('/');
