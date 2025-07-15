@@ -10,7 +10,14 @@ export interface Category {
   id: number;
   name: string;
   slug: string;
-  parent?: number;
+  description?: string;
+  icon?: string;
+  color?: string;
+  is_active?: boolean;
+  sort_order?: number;
+  created_at?: string;
+  updated_at?: string;
+  parent?: number; // Garde pour compatibilité
 }
 
 export interface Studio {

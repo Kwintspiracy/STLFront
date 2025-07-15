@@ -6,6 +6,7 @@ import { UserProvider } from "@/context/UserContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { StudioProvider } from "@/context/StudioContext";
+import { CartProvider } from "@/context/CartContext";
 import ThemeSwitcher from "@/components/ui/ThemeSwitcher";
 
 const openSans = Open_Sans({
@@ -27,10 +28,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthProvider>
             <StudioProvider>
               <UserProvider>
-                <Header />
-                <main className="flex-1">{children}</main>
-                <Footer />
-                <ThemeSwitcher />
+                <CartProvider>
+                  <Header />
+                  <main className="flex-1">{children}</main>
+                  <Footer />
+                  <ThemeSwitcher />
+                </CartProvider>
               </UserProvider>
             </StudioProvider>
           </AuthProvider>

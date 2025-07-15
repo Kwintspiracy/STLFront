@@ -62,7 +62,6 @@ const Header = () => {
             {/* Quick Actions */}
             <QuickActions 
               isAuthenticated={isAuthenticated}
-              cartItemCount={3}
               notificationCount={0}
             />
 

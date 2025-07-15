@@ -1,11 +1,16 @@
 "use client";
 
-import { mockCart, CartProduct } from "@/data/mock-cart";
 import { useState } from "react";
 import { FaTrash, FaShoppingBag, FaArrowLeft } from "react-icons/fa";
 import Link from "next/link";
+import { useCart } from "@/context/CartContext";
+import Image from "next/image";
 
-const licenseOptions = ["Personal Use", "Commercial Use", "Extended"];
+const licenseOptions = [
+  { value: "personal", label: "Personal Use" },
+  { value: "commercial", label: "Commercial Use" },
+  { value: "extended", label: "Extended License" }
+];
 
 // Mock coupon codes for demonstration
 const validCoupons = {
@@ -15,30 +20,34 @@ const validCoupons = {
 };
 
 export default function CartPage() {
-    const [cartItems, setCartItems] = useState<CartProduct[]>(mockCart);
-    const [licenses, setLicenses] = useState<Record<number, string>>(
-        Object.fromEntries(mockCart.map((item) => [item.id, "Personal Use"]))
-    );
+    const { state, removeFromCart, updateLicense } = useCart();
     const [couponCode, setCouponCode] = useState("");
     const [appliedCoupon, setAppliedCoupon] = useState<{code: string, discount: number, type: string} | null>(null);
     const [couponError, setCouponError] = useState("");
 
-    const handleLicenseChange = (id: number, value: string) => {
-        setLicenses((prev) => ({ ...prev, [id]: value }));
+    const handleLicenseChange = (id: number, value: 'personal' | 'commercial' | 'extended') => {
+        updateLicense(id, value);
     };
 
     const handleRemoveItem = (id: number) => {
-        setCartItems((prev) => prev.filter(item => item.id !== id));
-        setLicenses((prev) => {
-            const newLicenses = { ...prev };
-            delete newLicenses[id];
-            return newLicenses;
-        });
+        removeFromCart(id);
     };
 
-    const subtotal = cartItems.reduce((sum, product) => {
-        return sum + parseFloat(product.price);
-    }, 0);
+    const getItemPrice = (item: any) => {
+        const basePrice = parseFloat(item.product.price);
+        let price = basePrice;
+        
+        if (item.license === 'commercial' && item.product.professional_license_fee) {
+            price += parseFloat(item.product.professional_license_fee);
+        } else if (item.license === 'extended') {
+            const commercialFee = item.product.professional_license_fee ? parseFloat(item.product.professional_license_fee) : 0;
+            price += commercialFee * 2;
+        }
+        
+        return price;
+    };
+
+    const subtotal = state.totalPrice;
 
     const calculateDiscount = () => {
         if (!appliedCoupon) return 0;
@@ -102,12 +111,12 @@ export default function CartPage() {
                         Shopping Cart
                     </h1>
                     <span className="text-gray-400 text-sm">
-                        ({cartItems.length} {cartItems.length === 1 ? 'item' : 'items'})
+                        ({state.items.length} {state.items.length === 1 ? 'item' : 'items'})
                     </span>
                 </div>
             </div>
 
-            {cartItems.length === 0 ? (
+            {state.items.length === 0 ? (
                 /* Empty Cart State */
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="bg-cardbackground border border-gray-800 rounded-lg p-12 text-center">
@@ -129,71 +138,93 @@ export default function CartPage() {
                         
                         {/* Left Column - Cart Items */}
                         <div className="lg:col-span-2 space-y-4">
-                            {cartItems.map((product) => (
-                                <div
-                                    key={product.id}
-                                    className="bg-cardbackground border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors"
-                                >
-                                    <div className="flex gap-4">
-                                        {/* Product Image */}
-                                        <div className="flex-shrink-0">
-                                            <img
-                                                src={product.image}
-                                                alt={product.name}
-                                                className="w-20 h-20 object-cover rounded-lg border border-gray-700"
-                                            />
-                                        </div>
-
-                                        {/* Product Info */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <h3 className="font-medium text-white text-base hover:text-primary transition-colors cursor-pointer">
-                                                        {product.name}
-                                                    </h3>
-                                                    <p className="text-sm text-gray-400 mt-1">
-                                                        by <span className="text-gray-300">{product.creator.name}</span>
-                                                    </p>
-                                                </div>
-                                                
-                                                {/* Price */}
-                                                <div className="text-right">
-                                                    <div className="text-lg font-bold text-primary">
-                                                        ${product.price}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500">USD</div>
+                            {state.items.map((item) => {
+                                const mainImage = item.product.images?.[0]?.url || item.product.images?.[0]?.image;
+                                const itemPrice = getItemPrice(item);
+                                
+                                return (
+                                    <div
+                                        key={item.id}
+                                        className="bg-cardbackground border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors"
+                                    >
+                                        <div className="flex gap-4">
+                                            {/* Product Image */}
+                                            <div className="flex-shrink-0">
+                                                <div className="w-20 h-20 bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
+                                                    {mainImage ? (
+                                                        <Image
+                                                            src={mainImage}
+                                                            alt={item.product.name}
+                                                            width={80}
+                                                            height={80}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-gray-500">
+                                                            <FaShoppingBag className="w-6 h-6" />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
 
-                                            {/* License Selection and Actions */}
-                                            <div className="flex items-center justify-between mt-4">
-                                                <div className="flex items-center gap-3">
-                                                    <label className="text-xs text-gray-400 font-medium">License:</label>
-                                                    <select
-                                                        className="px-3 py-1.5 bg-primarybackground border border-gray-600 rounded text-white text-sm focus:outline-none focus:border-primary transition-colors"
-                                                        value={licenses[product.id]}
-                                                        onChange={(e) => handleLicenseChange(product.id, e.target.value)}
-                                                    >
-                                                        {licenseOptions.map((option) => (
-                                                            <option key={option} value={option}>{option}</option>
-                                                        ))}
-                                                    </select>
+                                            {/* Product Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <Link href={`/product/${item.product.id}`}>
+                                                            <h3 className="font-medium text-white text-base hover:text-primary transition-colors cursor-pointer">
+                                                                {item.product.name}
+                                                            </h3>
+                                                        </Link>
+                                                        <p className="text-sm text-gray-400 mt-1">
+                                                            by <span className="text-gray-300">{item.product.creator.name}</span>
+                                                        </p>
+                                                    </div>
+                                                    
+                                                    {/* Price */}
+                                                    <div className="text-right">
+                                                        <div className="text-lg font-bold text-primary">
+                                                            ${itemPrice.toFixed(2)}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500">
+                                                            {item.license} license
+                                                        </div>
+                                                    </div>
                                                 </div>
 
-                                                {/* Remove Button */}
-                                                <button
-                                                    onClick={() => handleRemoveItem(product.id)}
-                                                    className="flex items-center gap-2 px-3 py-1.5 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded transition-colors text-sm"
-                                                    aria-label="Remove item"
-                                                >
-                                                    <FaTrash className="w-3 h-3" />
-                                                    Remove
-                                                </button>
+                                                {/* License and Actions */}
+                                                <div className="flex items-center justify-between mt-4">
+                                                    {/* License Selection */}
+                                                    <div className="flex items-center gap-2">
+                                                        <label className="text-xs text-gray-400 font-medium">License:</label>
+                                                        <select
+                                                            className="px-2 py-1 bg-primarybackground border border-gray-600 rounded text-white text-xs focus:outline-none focus:border-primary transition-colors"
+                                                            value={item.license}
+                                                            onChange={(e) => handleLicenseChange(item.id, e.target.value as 'personal' | 'commercial' | 'extended')}
+                                                        >
+                                                            {licenseOptions.map((option) => (
+                                                                <option key={option.value} value={option.value}>
+                                                                    {option.label}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+
+                                                    {/* Remove Button */}
+                                                    <button
+                                                        onClick={() => handleRemoveItem(item.id)}
+                                                        className="flex items-center gap-2 px-3 py-1.5 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded transition-colors text-sm"
+                                                        aria-label="Remove item"
+                                                    >
+                                                        <FaTrash className="w-3 h-3" />
+                                                        Remove
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         {/* Right Column - Order Summary */}

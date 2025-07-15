@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { BaseProductCardProps } from './types';
 import DefaultAvatar from '@/components/ui/DefaultAvatar';
+import { useCart } from '@/context/CartContext';
 
 interface ProductCardProps extends BaseProductCardProps {
   loading?: boolean;
@@ -29,6 +30,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const { addToCart } = useCart();
 
   const sortedImages = [...product.images].sort((a, b) => a.rank - b.rank);
   const mainImage = sortedImages[0]?.url || sortedImages[0]?.image; // Support both new and legacy format
@@ -40,6 +42,12 @@ export default function ProductCard({
   const handleImageError = () => {
     setImageLoading(false);
     setImageError(true);
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart(product, 'personal');
   };
 
   // Get variant-specific styles and content
@@ -263,7 +271,10 @@ export default function ProductCard({
                   <span className="hidden sm:inline">Free</span>
                 </button>
               ) : (
-                <button className="bg-primary text-black px-3 py-1.5 rounded text-sm font-medium hover:bg-[#3f6061] hover:text-secondary transition-colors flex items-center gap-2">
+                <button 
+                  onClick={handleAddToCart}
+                  className="bg-primary text-black px-3 py-1.5 rounded text-sm font-medium hover:bg-[#3f6061] hover:text-secondary transition-colors flex items-center gap-2"
+                >
                   <FaShoppingCart className="w-4 h-4" />
                   <span className="hidden sm:inline">Add</span>
                 </button>
