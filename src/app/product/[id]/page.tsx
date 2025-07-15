@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import { Product } from "@/types/product";
 import Image from "next/image";
 import DefaultAvatar from "@/components/ui/DefaultAvatar";
+import StudioBlock from "@/components/studio/StudioBlock";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
@@ -124,31 +125,10 @@ export default function ProductPage(props: ProductPageProps) {
               {product.name}
             </h1>
 
-            {/* Creator Info */}
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="relative">
-                {imageError || !product.creator || !product.creator.badge ? (
-                  <DefaultAvatar className="ring-2 ring-gray-600" size={48} />
-                ) : (
-                  <Image
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg ring-2 ring-gray-600 object-cover"
-                    src={product.creator.badge}
-                    alt={`${product.creator.name} badge`}
-                    width={48}
-                    height={48}
-                    onError={() => setImageError(true)}
-                  />
-                )}
-              </div>
-              <div>
-                <p className="text-white text-sm sm:text-base font-medium">
-                  by {product.creator ? product.creator.name : 'Studio'}
-                </p>
-                <p className="text-gray-400 text-xs sm:text-sm">
-                  Creator
-                </p>
-              </div>
-            </div>
+            {/* Studio Block */}
+            {product.creator && (
+              <StudioBlock studio={product.creator} />
+            )}
           </div>
 
           {/* Divider */}

@@ -13,7 +13,8 @@ import {
   FaDollarSign,
   FaCreditCard,
   FaTimes,
-  FaBoxes
+  FaBoxes,
+  FaHeart
 } from 'react-icons/fa';
 
 interface User {
@@ -221,6 +222,15 @@ export default function UserMenu({
                   >
                     <FaUser className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />
                     My Profile
+                  </Link>
+
+                  <Link
+                    href="/wishlist"
+                    className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-[var(--color-primary-studio-hover)]/5 hover:text-white rounded-lg mx-1 transition-colors group"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <FaHeart className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />
+                    Wishlist
                   </Link>
 
                   <Link
