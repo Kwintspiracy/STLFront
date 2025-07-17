@@ -178,8 +178,11 @@ export default function RegisterForm() {
               />
               <button
                 type="button"
+                tabIndex={-1}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 onClick={() => setShowPassword1(!showPassword1)}
+                aria-label={showPassword1 ? "Masquer le mot de passe" : "Révéler le mot de passe"}
+                aria-pressed={showPassword1}
               >
                 {showPassword1 ? (
                   <FaEyeSlash className="h-5 w-5 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors" />

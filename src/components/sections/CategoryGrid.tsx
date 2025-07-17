@@ -59,7 +59,7 @@ export default function CategoryGrid({ className = "" }: CategoryGridProps) {
 
   if (loading) {
     return (
-      <div className={`bg-cardbackground border-y border-gray-800 ${className}`}>
+      <div className={`bg-cardbackground ${className}`} style={{ borderTopWidth: 'var(--border-width)', borderBottomWidth: 'var(--border-width)', borderColor: '#374151' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-2xl font-bold text-white mb-8 text-center">Browse by Categories</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
@@ -78,7 +78,7 @@ export default function CategoryGrid({ className = "" }: CategoryGridProps) {
 
   if (error) {
     return (
-      <div className={`bg-cardbackground border-y border-gray-800 ${className}`}>
+      <div className={`bg-cardbackground ${className}`} style={{ borderTopWidth: 'var(--border-width)', borderBottomWidth: 'var(--border-width)', borderColor: '#374151' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-2xl font-bold text-white mb-8 text-center">Browse by Categories</h2>
           <div className="text-center text-red-400">{error}</div>
@@ -89,7 +89,7 @@ export default function CategoryGrid({ className = "" }: CategoryGridProps) {
 
   if (categories.length === 0) {
     return (
-      <div className={`bg-cardbackground border-y border-gray-800 ${className}`}>
+      <div className={`bg-cardbackground ${className}`} style={{ borderTopWidth: 'var(--border-width)', borderBottomWidth: 'var(--border-width)', borderColor: '#374151' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-2xl font-bold text-white mb-8 text-center">Browse by Categories</h2>
           <div className="text-center text-gray-400">Aucune catégorie disponible</div>
@@ -99,7 +99,7 @@ export default function CategoryGrid({ className = "" }: CategoryGridProps) {
   }
 
   return (
-    <div className={`bg-cardbackground border-y border-gray-800 ${className}`}>
+    <div className={`bg-cardbackground ${className}`} style={{ borderTopWidth: 'var(--border-width)', borderBottomWidth: 'var(--border-width)', borderColor: '#374151' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h2 className="text-2xl font-bold text-white mb-8 text-center">Browse by Categories</h2>
         

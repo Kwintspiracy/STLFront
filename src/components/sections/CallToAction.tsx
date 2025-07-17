@@ -24,7 +24,7 @@ export default function CallToAction({
   className = ""
 }: CallToActionProps) {
   return (
-    <div className={`bg-gradient-to-r from-primary/10 to-primary/5 border-y border-primary/20 ${className}`}>
+    <div className={`bg-gradient-to-r from-primary/10 to-primary/5 ${className}`} style={{ borderTopWidth: 'var(--border-width)', borderBottomWidth: 'var(--border-width)', borderColor: 'rgba(73, 197, 201, 0.2)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <h2 className="text-3xl font-bold text-white mb-4">{title}</h2>
         <p className="text-gray-300 mb-8 max-w-2xl mx-auto">

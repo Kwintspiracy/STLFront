@@ -17,7 +17,7 @@ export default function SearchWrapper() {
     } = useSearch();
 
     return (
-        <div className="relative w-full bg-gradient-to-br from-primarybackground via-cardbackground to-primarybackground">
+        <div className="relative w-full" style={{ background: `linear-gradient(to bottom right, var(--search-gradient-from), var(--search-gradient-via), var(--search-gradient-to))` }}>
             {/* Modern gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
             
@@ -25,11 +25,11 @@ export default function SearchWrapper() {
             <div className="relative z-20 max-w-7xl mx-auto flex flex-col items-center px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
                 {/* Hero Content */}
                 <div className="text-center mb-12">
-                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
-                        Find your perfect
-                        <span className="block text-primary mt-2">Miniature</span>
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-text-primary mb-6">
+                        <span className="block sm:inline">Find your perfect </span>
+                        <span className="text-primary">Miniature</span>
                     </h1>
-                    <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                    <p className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed">
                         Discover thousands of high-quality 3D models from talented creators worldwide. 
                         Perfect for tabletop gaming, painting, and collecting.
                     </p>
@@ -37,7 +37,7 @@ export default function SearchWrapper() {
 
                 {/* Search Section */}
                 <div className="w-full max-w-4xl">
-                    <div className="bg-cardbackground/50 backdrop-blur-sm border border-gray-800/50 rounded-2xl p-6 sm:p-8">
+                    <div className="bg-background-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 sm:p-8">
                         <div className="flex justify-center">
                             <SearchBar
                                 elements={elements}
@@ -55,7 +55,7 @@ export default function SearchWrapper() {
                         <div className="mt-6 flex justify-center">
                             <div className="w-full max-w-3xl">
                                 <div className="flex flex-wrap items-center gap-2 pl-0">
-                                    <span className="text-sm text-gray-400 mr-2">Popular:</span>
+                                    <span className="text-sm text-text-muted mr-2">Popular:</span>
                                     {["Fantasy", "Sci-Fi", "Medieval", "Dragons", "Heroes"].map((tag) => (
                                         <button
                                             key={tag}
@@ -65,7 +65,7 @@ export default function SearchWrapper() {
                                                     handleTagAdd(tagObj);
                                                 }
                                             }}
-                                            className="px-3 py-1 bg-primarybackground border border-gray-700 rounded-full text-sm text-gray-300 hover:border-primary hover:text-primary transition-colors"
+                                            className="px-3 py-1 bg-background border border-border rounded-full text-sm text-text-secondary hover:border-primary hover:text-primary transition-colors"
                                         >
                                             {tag}
                                         </button>

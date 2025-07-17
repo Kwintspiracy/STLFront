@@ -129,7 +129,7 @@ export default function UserMenu({
     return (
       <Link
         href="/auth/signin"
-        className={`px-4 py-2 bg-primary text-black rounded-lg font-medium hover:bg-[#3f6061] hover:text-secondary transition-colors text-sm ${className}`}
+        className={`hidden lg:flex px-4 py-2 bg-primary text-black rounded-lg font-medium hover:bg-[#3f6061] hover:text-secondary transition-colors text-sm ${className}`}
       >
         Sign In
       </Link>
@@ -138,7 +138,7 @@ export default function UserMenu({
 
   return (
     <>
-      <div className={`relative ${className}`} ref={dropdownRef}>
+      <div className={`hidden lg:block relative ${className}`} ref={dropdownRef}>
         <button 
           onClick={toggleDropdown} 
           className="flex items-center gap-2 p-1 rounded-lg hover:bg-[var(--color-primary-studio-hover)]/5 transition-colors group"

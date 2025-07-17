@@ -115,7 +115,7 @@ export default function ProductSection({
                     {icon}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">{title}</h2>
+                    <h2 className="text-2xl font-bold text-text-section-title">{title}</h2>
                     {description && (
                       <p className="text-gray-400 mt-1">{description}</p>
                     )}
@@ -163,7 +163,7 @@ export default function ProductSection({
                 {icon}
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">{title}</h2>
+                <h2 className="text-2xl font-bold text-text-section-title">{title}</h2>
                 {description && (
                   <p className="text-gray-400 mt-1">{description}</p>
                 )}

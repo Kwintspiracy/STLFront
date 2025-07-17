@@ -26,19 +26,19 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-primarybackground/95 backdrop-blur-md border-b border-gray-700/50 shadow-lg">
+    <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur-md border-b border-border/50 shadow-lg">
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between" style={{ height: 'var(--header-height)' }}>
           
           {/* Left: Logo + Navigation */}
           <div className="flex items-center gap-8">
             {/* Logo */}
             <Link 
               href="/" 
-              className="flex items-center gap-2 text-xl font-bold text-white hover:text-primary transition-colors duration-200"
+              className="flex items-center gap-2 text-xl font-bold text-text-primary hover:text-primary transition-colors duration-200"
             >
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-black font-bold text-sm">3D</span>
+                <span className="text-primary-foreground font-bold text-sm">3D</span>
               </div>
               <span className="hidden sm:block">STLForge</span>
             </Link>
@@ -53,32 +53,53 @@ const Header = () => {
           )}
 
           {/* Right: Actions + User */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-6">
             {/* Search Button for mobile when search should be visible */}
             {showSearch && (
               <SearchSection isVisible={false} />
             )}
 
-            {/* Quick Actions */}
-            <QuickActions 
-              isAuthenticated={isAuthenticated}
-              notificationCount={0}
-            />
-
-            {/* Mobile Menu Button */}
-            <MobileMenu />
-
-            {/* User Profile */}
-            {!mounted ? (
-              <div className="w-8 h-8 bg-gray-800 rounded-full animate-pulse" />
-            ) : (
-              <UserMenu
-                user={user}
+            {/* Quick Actions - Hidden on mobile */}
+            <div className="hidden lg:flex">
+              <QuickActions 
                 isAuthenticated={isAuthenticated}
-                myStudio={myStudio}
-                onLogout={handleLogout}
+                notificationCount={0}
               />
-            )}
+            </div>
+
+            {/* Cart icon visible on mobile */}
+            <div className="lg:hidden">
+              <QuickActions 
+                isAuthenticated={isAuthenticated}
+                notificationCount={0}
+                mobileOnly={true}
+              />
+            </div>
+
+            {/* Vertical Separator - Desktop only */}
+            <div className="hidden lg:block w-px h-6 bg-border"></div>
+
+            {/* User Profile - Hidden on mobile */}
+            <div className="hidden lg:block">
+              {!mounted ? (
+                <div className="w-8 h-8 bg-background-card rounded-full animate-pulse" />
+              ) : (
+                <UserMenu
+                  user={user}
+                  isAuthenticated={isAuthenticated}
+                  myStudio={myStudio}
+                  onLogout={handleLogout}
+                />
+              )}
+            </div>
+
+            {/* Mobile Menu Button - Always at the right on mobile */}
+            <MobileMenu 
+              user={user}
+              isAuthenticated={isAuthenticated}
+              myStudio={myStudio}
+              onLogout={handleLogout}
+            />
           </div>
         </div>
       </div>
