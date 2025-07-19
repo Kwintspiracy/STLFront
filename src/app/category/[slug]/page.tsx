@@ -4,13 +4,13 @@ import { getProductsByCategory } from '@/lib/api/products';
 import ProductsList from '@/components/product/ProductsList';
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
-  const { slug } = params;
+  const { slug } = await params;
 
   try {
     // Récupérer toutes les catégories pour trouver celle qui correspond au slug
@@ -75,7 +75,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
 // Générer les métadonnées pour le SEO
 export async function generateMetadata({ params }: CategoryPageProps) {
-  const { slug } = params;
+  const { slug } = await params;
   
   try {
     const categories = await getAllCategories();
