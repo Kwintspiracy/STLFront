@@ -2,9 +2,35 @@
 
 export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
 
+interface GoogleAccounts {
+  id: {
+    initialize: (config: {
+      client_id: string;
+      callback: (response: { credential?: string }) => void;
+      auto_select: boolean;
+      cancel_on_tap_outside: boolean;
+    }) => void;
+    prompt: (callback: (notification: {
+      isNotDisplayed: () => boolean;
+      isSkippedMoment: () => boolean;
+    }) => void) => void;
+  };
+  oauth2: {
+    initTokenClient: (config: {
+      client_id: string;
+      scope: string;
+      callback: (response: { access_token?: string }) => void;
+    }) => {
+      requestAccessToken: () => void;
+    };
+  };
+}
+
 declare global {
   interface Window {
-    google: any;
+    google: {
+      accounts: GoogleAccounts;
+    };
     googleAuthInitialized: boolean;
   }
 }
@@ -78,7 +104,7 @@ export const signInWithGooglePopup = (): Promise<string> => {
     // Configure Google Sign-In
     window.google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
-      callback: (response: any) => {
+      callback: (response: { credential?: string }) => {
         if (response.credential) {
           resolve(response.credential);
         } else {
@@ -90,13 +116,16 @@ export const signInWithGooglePopup = (): Promise<string> => {
     });
 
     // Trigger the sign-in flow
-    window.google.accounts.id.prompt((notification: any) => {
+    window.google.accounts.id.prompt((notification: {
+      isNotDisplayed: () => boolean;
+      isSkippedMoment: () => boolean;
+    }) => {
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
         // Fallback to popup if prompt is not displayed
         window.google.accounts.oauth2.initTokenClient({
           client_id: GOOGLE_CLIENT_ID,
           scope: 'openid email profile',
-          callback: (response: any) => {
+          callback: (response: { access_token?: string }) => {
             if (response.access_token) {
               resolve(response.access_token);
             } else {

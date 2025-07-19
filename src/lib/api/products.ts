@@ -1,6 +1,6 @@
 import { Product, LegacyProduct, convertLegacyToProduct } from "@/types/product";
 import { mockProducts } from "@/data/mock-products";
-import { USE_MOCK_DATA, PRODUCT_ENDPOINTS, REAL_API_BASE_URL } from "@/lib/api/config";
+import { USE_MOCK_DATA, PRODUCT_ENDPOINTS } from "@/lib/api/config";
 import { apiRequest } from "./httpClient";
 import { getAccessToken } from "@/lib/utils/tokenService";
 
@@ -10,7 +10,7 @@ import { getAccessToken } from "@/lib/utils/tokenService";
 export async function getAllProducts(): Promise<Product[]> {
   if (USE_MOCK_DATA) {
     // Convertir les mocks du format legacy vers le nouveau format
-    return mockProducts.map(product => convertLegacyToProduct(product as any));
+    return mockProducts.map(product => convertLegacyToProduct(product as LegacyProduct));
   }
 
   try {
@@ -35,18 +35,23 @@ export async function getAllProducts(): Promise<Product[]> {
 export async function getProductById(id: number): Promise<Product | undefined> {
   if (USE_MOCK_DATA) {
     const product = mockProducts.find((p) => p.id === id);
-    return product ? convertLegacyToProduct(product as any) : undefined;
+    return product ? convertLegacyToProduct(product as LegacyProduct) : undefined;
   }
 
   try {
     const response = await apiRequest.get<Product>(PRODUCT_ENDPOINTS.DETAIL(id));
     return response.data;
-  } catch (error: any) {
-    if (error.response?.status === 404) {
-      return undefined;
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { status?: number } };
+      if (axiosError.response?.status === 404) {
+        return undefined;
+      }
+      console.error("Error fetching product:", error);
+      throw new Error(`Failed to fetch product: ${axiosError.response?.status || 'Unknown error'}`);
     }
     console.error("Error fetching product:", error);
-    throw new Error(`Failed to fetch product: ${error.response?.status || error.message}`);
+    throw new Error(`Failed to fetch product: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -59,7 +64,7 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
       .filter((p) =>
         p.category.some((cat) => cat.name.toLowerCase() === categorySlug.toLowerCase())
       )
-      .map(product => convertLegacyToProduct(product as any));
+      .map(product => convertLegacyToProduct(product as LegacyProduct));
   }
 
   try {
@@ -86,7 +91,7 @@ export async function getProductsByTag(tagSlug: string): Promise<Product[]> {
       .filter((p) =>
         p.tag.some((tag) => tag.name.toLowerCase() === tagSlug.toLowerCase())
       )
-      .map(product => convertLegacyToProduct(product as any));
+      .map(product => convertLegacyToProduct(product as LegacyProduct));
   }
 
   try {
@@ -111,22 +116,23 @@ export async function getProductsByStudio(studioId: number): Promise<Product[]> 
   if (USE_MOCK_DATA) {
     return mockProducts
       .filter((p) => p.creator.id === studioId)
-      .map(product => convertLegacyToProduct(product as any));
+      .map(product => convertLegacyToProduct(product as LegacyProduct));
   }
 
   console.log(`🏢 Fetching products for studio ${studioId}...`);
 
   try {
     // Always try with authentication first to get draft products
-    const response = await apiRequest.get<any>(PRODUCT_ENDPOINTS.BY_STUDIO(studioId));
-    console.log(`✅ Authenticated request successful: ${response.data.results?.length || response.data.length || 0} products`);
+    const response = await apiRequest.get<{ results?: Product[] } | Product[]>(PRODUCT_ENDPOINTS.BY_STUDIO(studioId));
+    console.log(`✅ Authenticated request successful: ${Array.isArray(response.data) ? response.data.length : response.data.results?.length || 0} products`);
     // L'API Django retourne une réponse paginée avec results
-    return response.data.results || response.data;
-  } catch (error: any) {
-    console.log(`❌ Authenticated request failed:`, error.response?.status, error.message);
+    return Array.isArray(response.data) ? response.data : (response.data.results || []);
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { status?: number }; message?: string };
+    console.log(`❌ Authenticated request failed:`, axiosError.response?.status, axiosError.message);
     
     // If it's a 401, try without auth (public endpoint) - will only show published products
-    if (error.response?.status === 401) {
+    if (axiosError.response?.status === 401) {
       try {
         console.log(`🔓 Trying public endpoint...`);
         const res = await fetch(PRODUCT_ENDPOINTS.BY_STUDIO(studioId));
@@ -183,7 +189,7 @@ export async function deleteProduct(id: number): Promise<void> {
       });
       console.log('Product marked as deleted (draft status with [SUPPRIMÉ] prefix)');
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in deleteProduct:', error);
     throw new Error('Impossible de supprimer le produit. L\'API ne supporte pas la suppression directe.');
   }
@@ -192,7 +198,7 @@ export async function deleteProduct(id: number): Promise<void> {
 /**
  * Upload une image pour un produit
  */
-export async function uploadProductImage(productId: number, file: File, title: string, rank: number = 1): Promise<any> {
+export async function uploadProductImage(productId: number, file: File, title: string, rank: number = 1): Promise<{ id: number; title: string; image: string; rank: number }> {
   const formData = new FormData();
   formData.append('image', file);
   formData.append('title', title);
@@ -213,7 +219,7 @@ export async function uploadProductImage(productId: number, file: File, title: s
 /**
  * Upload un fichier STL pour un produit
  */
-export async function uploadProductSTL(productId: number, file: File, title: string): Promise<any> {
+export async function uploadProductSTL(productId: number, file: File, title: string): Promise<{ id: number; title: string; file: string; size: number }> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('title', title);

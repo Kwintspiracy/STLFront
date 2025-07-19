@@ -1,6 +1,6 @@
 import { USE_MOCK_DATA, SEARCH_ENDPOINTS } from './config';
 import { mockProducts } from '@/data/mock-products';
-import { Product, convertLegacyToProduct } from '@/types/product';
+import { Product, LegacyProduct, convertLegacyToProduct } from '@/types/product';
 import { Tag } from '@/data/mock-tags';
 
 // Search element types
@@ -139,7 +139,7 @@ function searchMockProducts(
       const paginatedResults = filteredProducts.slice(startIndex, endIndex);
 
       // Convert legacy products to new format
-      const convertedResults = paginatedResults.map(product => convertLegacyToProduct(product as any));
+      const convertedResults = paginatedResults.map(product => convertLegacyToProduct(product as LegacyProduct));
       
       resolve({
         results: convertedResults,

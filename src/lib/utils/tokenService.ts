@@ -78,8 +78,17 @@ export function hasValidTokens(): boolean {
   return !!(accessToken || refreshToken);
 }
 
+// JWT payload interface
+interface JWTPayload {
+  exp?: number;
+  iat?: number;
+  user_id?: number;
+  email?: string;
+  [key: string]: unknown;
+}
+
 // Decode JWT payload (client-side only, for non-sensitive data)
-export function decodeJWTPayload(token: string): any {
+export function decodeJWTPayload(token: string): JWTPayload | null {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -89,7 +98,7 @@ export function decodeJWTPayload(token: string): any {
         .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     );
-    return JSON.parse(jsonPayload);
+    return JSON.parse(jsonPayload) as JWTPayload;
   } catch (error) {
     console.error('Error decoding JWT:', error);
     return null;

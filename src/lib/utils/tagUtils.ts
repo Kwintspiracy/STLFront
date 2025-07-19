@@ -6,6 +6,10 @@ export interface ProcessedTags {
   errors: string[];
 }
 
+interface TemporaryTag extends Tag {
+  isTemporary?: boolean;
+}
+
 /**
  * Traite les tags sélectionnés en créant les nouveaux tags et retournant les IDs finaux
  * @param selectedTags - Liste des tags sélectionnés (incluant les temporaires)
@@ -18,7 +22,7 @@ export async function processTagsForSubmission(selectedTags: Tag[]): Promise<Pro
   for (const tag of selectedTags) {
     try {
       // Si c'est un tag temporaire (nouveau), le créer
-      if (tag.id < 0 || (tag as any).isTemporary) {
+      if (tag.id < 0 || (tag as TemporaryTag).isTemporary) {
         console.log(`Creating new tag: ${tag.name}`);
         const result = await createTag(tag.name);
         tagIds.push(result.tag.id);
@@ -42,7 +46,7 @@ export async function processTagsForSubmission(selectedTags: Tag[]): Promise<Pro
  * @returns true si le tag est temporaire
  */
 export function isTemporaryTag(tag: Tag): boolean {
-  return tag.id < 0 || (tag as any).isTemporary === true;
+  return tag.id < 0 || (tag as TemporaryTag).isTemporary === true;
 }
 
 /**

@@ -61,13 +61,30 @@ export default function DiscordCallbackPage() {
         // Redirect to home page
         router.push('/');
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('❌ Discord authentication failed:', error);
         
-        const errorMessage = error.response?.data?.detail || 
-                            error.response?.data?.non_field_errors?.[0] ||
-                            error.message || 
-                            'Discord authentication failed';
+        let errorMessage = 'Discord authentication failed';
+        
+        // Vérification de type sécurisée
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as {
+            response?: {
+              data?: {
+                detail?: string;
+                non_field_errors?: string[];
+              };
+            };
+            message?: string;
+          };
+          
+          errorMessage = axiosError.response?.data?.detail || 
+                         axiosError.response?.data?.non_field_errors?.[0] ||
+                         axiosError.message || 
+                         'Discord authentication failed';
+        }
         
         setError(errorMessage);
         showError(errorMessage);
@@ -132,7 +149,7 @@ export default function DiscordCallbackPage() {
           </svg>
         </div>
         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">
-          Connexion Discord réussie !
+          {"Connexion Discord réussie !"}
         </h2>
         <p className="text-[var(--color-text-secondary)]">
           Redirection en cours...

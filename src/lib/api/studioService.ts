@@ -1,7 +1,6 @@
 // src/lib/api/studioService.ts
 import { USE_MOCK_DATA, STUDIO_ENDPOINTS } from './config';
 import { apiRequest } from './httpClient';
-import { useToast } from '@/context/ToastContext';
 import type {
   Studio,
   CreateStudioRequest,
@@ -12,12 +11,10 @@ import type {
   FollowStudioResponse,
   UnfollowStudioResponse,
   FollowPreferencesRequest,
-  FollowPreferencesResponse,
-  StudioErrorResponse
+  FollowPreferencesResponse
 } from '@/types/studio';
 import {
   mockStudios,
-  mockStudioMembers,
   mockStudioFollowers,
   getStudioById,
   getUserStudioMembership,
@@ -188,10 +185,11 @@ export async function getMyStudio(): Promise<MyStudioResponse> {
       const data = await response.json();
       console.log('✅ getMyStudio - Success:', data);
       return data;
-    } catch (error: any) {
-      console.log('❌ getMyStudio - Error:', error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.log('❌ getMyStudio - Error:', errorMessage);
       // Re-throw with consistent error message for 404s
-      if (error.message === 'You are not a member of any studio') {
+      if (errorMessage === 'You are not a member of any studio') {
         throw error;
       }
       // For other errors, create a generic error
