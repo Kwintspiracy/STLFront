@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Studio } from '@/types/studio';
-import { RiMenuLine, RiCloseLine, RiTBoxLine, RiBarChartLine, RiMoneyDollarCircleLine, RiSettingsLine, RiMailLine, RiExternalLinkLine, RiDashboardLine, RiShoppingBagLine } from 'react-icons/ri';
+import { RiMenuLine, RiCloseLine, RiBarChartLine, RiMoneyDollarCircleLine, RiSettingsLine, RiMailLine, RiExternalLinkLine, RiDashboardLine, RiShoppingBagLine } from 'react-icons/ri';
 
 interface StudioClientLayoutProps {
   studio: Studio;

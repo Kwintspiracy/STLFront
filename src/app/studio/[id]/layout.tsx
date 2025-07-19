@@ -19,7 +19,6 @@ export default function StudioLayout({ children, params }: Props) {
   const [error, setError] = useState<string | null>(null);
   
   const { getStudio } = useStudio();
-  const { isAuthenticated } = useAuth();
 
   // Resolve params
   useEffect(() => {
@@ -39,10 +38,11 @@ export default function StudioLayout({ children, params }: Props) {
         setError(null);
         const studioData = await getStudio(studioId);
         setStudio(studioData);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error loading studio in layout:', err);
-        setError(err.message || 'Failed to load studio');
-        if (err.message?.includes('404') || err.message?.includes('not found')) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load studio';
+        setError(errorMessage);
+        if (errorMessage.includes('404') || errorMessage.includes('not found')) {
           notFound();
         }
       } finally {

@@ -104,7 +104,7 @@ export default function GoogleCallbackPage() {
                 </svg>
               </div>
               <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">
-                Erreur d'authentification
+                Erreur d&apos;authentification
               </h1>
               <p className="text-[var(--color-text-secondary)] mb-4">
                 {error}

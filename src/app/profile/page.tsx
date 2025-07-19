@@ -126,8 +126,8 @@ export default function ProfilePage() {
           console.error('Error loading followed studios');
         }
 
-      } catch (error) {
-        console.error('Error loading profile:', error);
+    } catch (err) {
+      console.error('Error loading profile:', err);
       } finally {
         setLoading(false);
       }

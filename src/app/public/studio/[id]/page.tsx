@@ -36,10 +36,11 @@ export default function PublicStudioProfile({ params }: Props) {
         setError(null);
         const studioData = await getStudio(studioId);
         setStudio(studioData);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error loading studio:', err);
-        setError(err.message || 'Failed to load studio');
-        if (err.message?.includes('404') || err.message?.includes('not found')) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load studio';
+        setError(errorMessage);
+        if (errorMessage.includes('404') || errorMessage.includes('not found')) {
           notFound();
         }
       } finally {

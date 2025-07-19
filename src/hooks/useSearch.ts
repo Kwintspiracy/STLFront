@@ -91,11 +91,26 @@ export function useSearch() {
     }
   }, []);
 
+  // Suggestions
+  const updateSuggestions = useCallback((inputText: string) => {
+    if (inputText.trim() === '') {
+      setSuggestions([]);
+      return;
+    }
+
+    const filteredSuggestions = allTags.filter(tag =>
+      tag.name.toLowerCase().startsWith(inputText.toLowerCase()) &&
+      !elements.some(el => el.type === 'tag' && el.value.id === tag.id)
+    ).slice(0, 5);
+
+    setSuggestions(filteredSuggestions);
+  }, [elements]);
+
   // Input management
   const handleInputChange = useCallback((text: string) => {
     setInput(text);
     updateSuggestions(text);
-  }, [elements]);
+  }, [updateSuggestions]);
 
   // Element management
   const addElement = useCallback((element: SearchElement) => {
@@ -143,21 +158,6 @@ export function useSearch() {
     setFilters(initialFilters);
     setCurrentPage(1);
   }, []);
-
-  // Suggestions
-  const updateSuggestions = useCallback((inputText: string) => {
-    if (inputText.trim() === '') {
-      setSuggestions([]);
-      return;
-    }
-
-    const filteredSuggestions = allTags.filter(tag =>
-      tag.name.toLowerCase().startsWith(inputText.toLowerCase()) &&
-      !elements.some(el => el.type === 'tag' && el.value.id === tag.id)
-    ).slice(0, 5);
-
-    setSuggestions(filteredSuggestions);
-  }, [elements]);
 
   // Search execution
   const executeSearch = useCallback(async () => {

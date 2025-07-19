@@ -127,7 +127,7 @@ export default function DiscordCallbackPage() {
             </svg>
           </div>
           <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">
-            Erreur d'authentification Discord
+            Erreur d&apos;authentification Discord
           </h2>
           <p className="text-[var(--color-text-secondary)] mb-4">
             {error}

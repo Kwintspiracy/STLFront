@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { FaBars, FaTimes, FaChevronRight, FaSignInAlt, FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { ApiUser } from '@/types/auth';
 import { MyStudioResponse } from '@/types/studio';

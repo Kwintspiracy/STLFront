@@ -242,7 +242,7 @@ export default function StudioDashboard({ params }: Props) {
                     <span className="text-green-400 text-sm">✓</span>
                   </div>
                   <div className="flex-1">
-                    <p className="text-text-primary text-sm">New product {"\"Dragon Miniature\""} published</p>
+                    <p className="text-text-primary text-sm">New product &quot;Dragon Miniature&quot; published</p>
                     <p className="text-text-secondary text-xs">2 hours ago</p>
                   </div>
                 </div>
