@@ -3,43 +3,83 @@
 import type { NextConfig } from 'next';
 
 /**
- * ✅ Configuration principale Next.js 15
+ * ✅ Configuration principale Next.js 15 avec variables d'environnement
  */
+
+// Configuration dynamique basée sur l'environnement
+const isProduction = process.env.NODE_ENV === 'production';
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// Variables d'environnement avec fallbacks
+const apiHostname = process.env.NEXT_PUBLIC_API_HOSTNAME || '127.0.0.1';
+const mediaPath = process.env.NEXT_PUBLIC_MEDIA_PATH || '/media';
+
+// Génération des remotePatterns dynamiques
+const generateRemotePatterns = (): Array<{
+  protocol: 'http' | 'https';
+  hostname: string;
+  port?: string;
+  pathname: string;
+}> => {
+  const patterns: Array<{
+    protocol: 'http' | 'https';
+    hostname: string;
+    port?: string;
+    pathname: string;
+  }> = [
+    // Images externes (toujours autorisées)
+    {
+      protocol: 'https',
+      hostname: 'images.unsplash.com',
+      pathname: '/**',
+    },
+    {
+      protocol: 'https',
+      hostname: 'picsum.photos',
+      pathname: '/**',
+    },
+    {
+      protocol: 'https',
+      hostname: 'fbi.cults3d.com',
+      pathname: '/**',
+    },
+  ];
+
+  // Configuration API selon l'environnement
+  if (isDevelopment) {
+    // En développement : autoriser localhost HTTP
+    patterns.push({
+      protocol: 'http',
+      hostname: '127.0.0.1',
+      port: '8000',
+      pathname: `${mediaPath}/**`,
+    });
+  }
+
+  if (isProduction || apiHostname !== '127.0.0.1') {
+    // En production ou avec hostname personnalisé : HTTPS
+    patterns.push({
+      protocol: 'https',
+      hostname: apiHostname,
+      pathname: `${mediaPath}/**`,
+    });
+    
+    // Aussi autoriser HTTP pour la compatibilité (si nécessaire)
+    if (!isProduction) {
+      patterns.push({
+        protocol: 'http',
+        hostname: apiHostname,
+        pathname: `${mediaPath}/**`,
+      });
+    }
+  }
+
+  return patterns;
+};
+
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [
-      {
-        protocol: 'http',
-        hostname: '127.0.0.1',
-        port: '8000',
-        pathname: '/media/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'fbi.cults3d.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'http',
-        hostname: 'little-sea-1837.fly.dev',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'little-sea-1837.fly.dev',
-        pathname: '/**',
-      },
-    ],
+    remotePatterns: generateRemotePatterns(),
   },
   async redirects() {
     return [
@@ -51,12 +91,16 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://127.0.0.1:8000/api/:path*',
-      },
-    ];
+    // Rewrites seulement en développement local
+    if (isDevelopment && apiHostname === '127.0.0.1') {
+      return [
+        {
+          source: '/api/:path*',
+          destination: 'http://127.0.0.1:8000/api/:path*',
+        },
+      ];
+    }
+    return [];
   },
   async headers() {
     return [

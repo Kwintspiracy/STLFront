@@ -30,6 +30,8 @@ Allez dans **Settings** > **Environment Variables** et ajoutez :
 |----------|--------|-------------|
 | `NEXT_PUBLIC_API_BASE_URL` | `https://votre-api.onrender.com/api/v1` | URL de votre API sur Render |
 | `NEXT_PUBLIC_REAL_API_BASE_URL` | `https://votre-api.onrender.com` | URL de base de l'API |
+| `NEXT_PUBLIC_API_HOSTNAME` | `votre-api.onrender.com` | **NOUVEAU** - Hostname pour Next.js config |
+| `NEXT_PUBLIC_MEDIA_PATH` | `/media` | **NOUVEAU** - Chemin des médias (configurable) |
 | `NEXT_PUBLIC_USE_REAL_API` | `true` | Force l'utilisation de l'API de production |
 | `NEXT_PUBLIC_USE_MOCK_DATA` | `false` | Désactive les données mockées |
 
