@@ -1,4 +1,4 @@
-import { getAllProducts, getFeaturedProducts, getTrendingProducts, getCommercialProducts, getLatestProducts } from "@/lib/api/products";
+import { getFeaturedProducts, getTrendingProducts, getCommercialProducts, getLatestProducts } from "@/lib/api/products";
 import SearchWrapper from "@/components/search/SearchWrapper";
 import ProductSection from "@/components/sections/ProductSection";
 import CategoryGrid from "@/components/sections/CategoryGrid";

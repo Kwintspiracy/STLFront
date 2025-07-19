@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import { getAllCategories } from '@/lib/api/categories';
 import { getProductsByCategory } from '@/lib/api/products';
 import ProductsList from '@/components/product/ProductsList';
-import { Category } from '@/types/product';
 
 interface CategoryPageProps {
   params: {
@@ -61,7 +60,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 Aucun modèle disponible
               </h2>
               <p className="text-gray-400">
-                Il n'y a actuellement aucun modèle dans cette catégorie.
+                {"Il n'y a actuellement aucun modèle dans cette catégorie."}
               </p>
             </div>
           )}
@@ -92,7 +91,7 @@ export async function generateMetadata({ params }: CategoryPageProps) {
       title: `${category.name} - STL Forge`,
       description: category.description || `Découvrez tous les modèles 3D de la catégorie ${category.name} sur STL Forge`,
     };
-  } catch (error) {
+  } catch {
     return {
       title: 'Catégorie - STL Forge',
     };

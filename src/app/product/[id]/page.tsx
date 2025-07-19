@@ -9,8 +9,6 @@ import TagPill from "@/components/card/TagPill";
 import ProductImageGallery from "@/components/product/ProductImageGallery";
 import { useState, useEffect } from "react";
 import { Product } from "@/types/product";
-import Image from "next/image";
-import DefaultAvatar from "@/components/ui/DefaultAvatar";
 import StudioBlock from "@/components/studio/StudioBlock";
 
 interface ProductPageProps {
@@ -21,8 +19,6 @@ export default function ProductPage(props: ProductPageProps) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedLicense, setSelectedLicense] = useState<'personal' | 'commercial'>('personal');
-  const [imageError, setImageError] = useState(false);
-
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -257,7 +253,7 @@ export default function ProductPage(props: ProductPageProps) {
 
             <div className="space-y-2">
               {Array.isArray(product.stl_files) && product.stl_files.length > 0 ? (
-                product.stl_files.map((file, i) => (
+                product.stl_files.map((file) => (
                   <div
                     key={file.id}
                     className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg border border-gray-700"

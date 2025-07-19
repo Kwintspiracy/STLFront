@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
@@ -52,7 +51,6 @@ interface MyStudioInfo {
 }
 
 export default function ProfilePage() {
-  const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [myStudio, setMyStudio] = useState<MyStudioInfo | null>(null);
   const [userStats, setUserStats] = useState<UserStats>({
@@ -124,8 +122,8 @@ export default function ProfilePage() {
             ...prev,
             followed_studios: studios.length
           }));
-        } catch (error) {
-          console.error('Error loading followed studios:', error);
+        } catch {
+          console.error('Error loading followed studios');
         }
 
       } catch (error) {

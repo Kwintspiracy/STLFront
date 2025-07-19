@@ -13,7 +13,6 @@ export default function GoogleCallbackPage() {
   const searchParams = useSearchParams();
   const { refreshAuth } = useAuth();
   const { showError, showSuccess } = useToast();
-  const [isProcessing, setIsProcessing] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -56,13 +55,29 @@ export default function GoogleCallbackPage() {
         // Redirect to home page
         router.replace('/');
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('❌ Google authentication failed:', error);
         
-        const errorMessage = error.response?.data?.detail || 
-                            error.response?.data?.message || 
-                            error.message || 
-                            'Échec de l\'authentification Google';
+        let errorMessage = "Échec de l'authentification Google";
+        
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as {
+            response?: {
+              data?: {
+                detail?: string;
+                message?: string;
+              };
+            };
+            message?: string;
+          };
+          
+          errorMessage = axiosError.response?.data?.detail || 
+                        axiosError.response?.data?.message || 
+                        axiosError.message || 
+                        "Échec de l'authentification Google";
+        }
         
         setError(errorMessage);
         showError(errorMessage);
@@ -71,8 +86,6 @@ export default function GoogleCallbackPage() {
         setTimeout(() => {
           router.replace('/auth/signin');
         }, 3000);
-      } finally {
-        setIsProcessing(false);
       }
     };
 

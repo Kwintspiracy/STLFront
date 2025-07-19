@@ -33,7 +33,13 @@ export default function CartPage() {
         removeFromCart(id);
     };
 
-    const getItemPrice = (item: any) => {
+    const getItemPrice = (item: {
+        product: {
+            price: string;
+            professional_license_fee?: string;
+        };
+        license: 'personal' | 'commercial' | 'extended';
+    }) => {
         const basePrice = parseFloat(item.product.price);
         let price = basePrice;
         

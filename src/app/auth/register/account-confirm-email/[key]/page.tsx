@@ -17,16 +17,6 @@ export default function EmailConfirmPage() {
 
   const key = params.key as string;
 
-  useEffect(() => {
-    if (!key) {
-      setStatus('error');
-      setMessage('Invalid confirmation link.');
-      return;
-    }
-
-    confirmEmail();
-  }, [key]);
-
   const confirmEmail = async () => {
     try {
       if (USE_MOCK_DATA) {
@@ -49,19 +39,39 @@ export default function EmailConfirmPage() {
       setMessage(response.data.detail || 'Email confirmed successfully!');
       showSuccess('Email confirmed successfully!');
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       setStatus('error');
       
-      if (error.response?.data?.detail) {
-        setMessage(error.response.data.detail);
-        showError(error.response.data.detail);
-      } else {
-        const errorMessage = 'Email confirmation failed. The link may be invalid or expired.';
-        setMessage(errorMessage);
-        showError(errorMessage);
+      let errorMessage = 'Email confirmation failed. The link may be invalid or expired.';
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as {
+          response?: {
+            data?: {
+              detail?: string;
+            };
+          };
+        };
+        
+        if (axiosError.response?.data?.detail) {
+          errorMessage = axiosError.response.data.detail;
+        }
       }
+      
+      setMessage(errorMessage);
+      showError(errorMessage);
     }
   };
+
+  useEffect(() => {
+    if (!key) {
+      setStatus('error');
+      setMessage('Invalid confirmation link.');
+      return;
+    }
+
+    confirmEmail();
+  }, [key, confirmEmail]);
 
   const handleLoginRedirect = () => {
     router.push('/auth/signin');

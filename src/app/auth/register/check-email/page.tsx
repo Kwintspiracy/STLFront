@@ -11,12 +11,12 @@ export default function CheckEmailPage() {
           
           <p className="text-neutral-300 text-sm leading-relaxed">
             Nous avons envoyé un lien de vérification à votre adresse email. 
-            Cliquez sur le lien dans l'email pour activer votre compte.
+            Cliquez sur le lien dans {"l'email"} pour activer votre compte.
           </p>
           
           <div className="pt-4 space-y-2">
             <p className="text-neutral-400 text-xs">
-              Vous n'avez pas reçu l'email ? Vérifiez votre dossier spam.
+              {"Vous n'avez pas reçu l'email ? Vérifiez votre dossier spam."}
             </p>
             
             <div className="flex flex-col space-y-2">
