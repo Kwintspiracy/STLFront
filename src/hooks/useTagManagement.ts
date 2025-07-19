@@ -3,7 +3,6 @@ import { Tag } from '@/types/product';
 import { 
   searchTags, 
   validateTag, 
-  createTag, 
   validateTagLimit,
   TagValidationResult,
   TagSearchResult 

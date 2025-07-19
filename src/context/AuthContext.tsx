@@ -6,7 +6,6 @@ import { AUTH_ENDPOINTS, USE_MOCK_DATA } from '@/lib/api/config';
 import { 
   setTokenCookies, 
   clearTokenCookies, 
-  hasValidTokens,
   getAccessToken,
   decodeJWTPayload 
 } from '@/lib/utils/tokenService';
@@ -141,10 +140,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       showSuccess('Successfully logged in!');
 
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
-                          'Login failed. Please check your credentials.';
+    } catch (error: unknown) {
+      const errorMessage = error && typeof error === 'object' && 'response' in error
+        ? (error as { response?: { data?: { detail?: string; message?: string } } }).response?.data?.detail ||
+          (error as { response?: { data?: { detail?: string; message?: string } } }).response?.data?.message ||
+          'Login failed. Please check your credentials.'
+        : 'Login failed. Please check your credentials.';
       
       setAuthState(prev => ({
         ...prev,
@@ -183,8 +184,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Redirect to Google OAuth
       signInWithGoogleRedirect();
       
-    } catch (error: any) {
-      const errorMessage = error.message || 'Google authentication failed';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Google authentication failed';
       
       setAuthState(prev => ({
         ...prev,
@@ -225,8 +226,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Redirect to Discord OAuth
       window.location.href = discordAuthUrl;
       
-    } catch (error: any) {
-      const errorMessage = error.message || 'Discord authentication failed';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Discord authentication failed';
       
       setAuthState(prev => ({
         ...prev,

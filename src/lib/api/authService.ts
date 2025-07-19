@@ -1,9 +1,8 @@
 // services/authService.ts
-import { findUserByCredentials } from "@/lib/api/userRepository";
 import { saveSession } from "@/lib/utils/sessionService";
 import { USE_MOCK_DATA, AUTH_ENDPOINTS } from "./config";
 import { setTokenCookies, clearTokenCookies, getAccessToken } from "@/lib/utils/tokenService";
-import { mockUsers, type User } from "@/data/mock-users";
+import { mockUsers } from "@/data/mock-users";
 import type { AuthResponse, LoginRequest, ApiUser } from "@/types/auth";
 import axios from "axios";
 
@@ -48,10 +47,12 @@ export async function login(email: string, password: string) {
       saveSession(compatibleUser);
       return compatibleUser;
 
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
-                          'Login failed. Please check your credentials.';
+    } catch (error: unknown) {
+      const errorMessage = error && typeof error === 'object' && 'response' in error
+        ? (error as { response?: { data?: { detail?: string; message?: string } } }).response?.data?.detail ||
+          (error as { response?: { data?: { detail?: string; message?: string } } }).response?.data?.message ||
+          'Login failed. Please check your credentials.'
+        : 'Login failed. Please check your credentials.';
       throw new Error(errorMessage);
     }
   }
@@ -92,10 +93,12 @@ export async function getCurrentUser(): Promise<ApiUser> {
       );
 
       return response.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
-                          'Failed to get user information';
+    } catch (error: unknown) {
+      const errorMessage = error && typeof error === 'object' && 'response' in error
+        ? (error as { response?: { data?: { detail?: string; message?: string } } }).response?.data?.detail ||
+          (error as { response?: { data?: { detail?: string; message?: string } } }).response?.data?.message ||
+          'Failed to get user information'
+        : 'Failed to get user information';
       throw new Error(errorMessage);
     }
   }
@@ -171,22 +174,27 @@ export async function updateUsername(newUsername: string): Promise<ApiUser> {
       
       saveSession(compatibleUser);
       return updatedUser;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle specific username uniqueness errors
-      if (error.response?.status === 400) {
-        const errorData = error.response.data;
-        if (errorData.username && errorData.username.includes('already exists')) {
-          throw new Error('Username is already taken. Please choose a different username.');
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: { username?: string[] | string; detail?: string; message?: string } } };
+        if (axiosError.response?.status === 400) {
+          const errorData = axiosError.response.data;
+          if (errorData?.username && typeof errorData.username === 'string' && errorData.username.includes('already exists')) {
+            throw new Error('Username is already taken. Please choose a different username.');
+          }
+          if (errorData?.username && Array.isArray(errorData.username)) {
+            throw new Error(errorData.username[0] || 'Invalid username format.');
+          }
         }
-        if (errorData.username) {
-          throw new Error(errorData.username[0] || 'Invalid username format.');
-        }
+        
+        const errorMessage = axiosError.response?.data?.detail || 
+                            axiosError.response?.data?.message || 
+                            'Failed to update username';
+        throw new Error(errorMessage);
       }
       
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
-                          'Failed to update username';
-      throw new Error(errorMessage);
+      throw new Error('Failed to update username');
     }
   }
 }

@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tag, allTags } from '@/data/mock-tags';
 import { Product } from '@/types/product';
-import { searchProducts, getSearchSuggestions } from '@/lib/api/searchService';
+import { searchProducts } from '@/lib/api/searchService';
 import type { SearchElement, SearchFilters } from '@/lib/api/searchService';
 
 // Re-export types for convenience
@@ -95,7 +95,7 @@ export function useSearch() {
   const handleInputChange = useCallback((text: string) => {
     setInput(text);
     updateSuggestions(text);
-  }, []);
+  }, [elements]);
 
   // Element management
   const addElement = useCallback((element: SearchElement) => {

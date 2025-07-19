@@ -1,6 +1,6 @@
 // src/lib/api/httpClient.ts
 
-import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
+import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig, type AxiosError } from 'axios';
 import { AUTH_ENDPOINTS } from './config';
 import { 
   getAccessToken, 
@@ -10,6 +10,11 @@ import {
   isTokenExpired 
 } from '@/lib/utils/tokenService';
 import type { RefreshTokenResponse } from '@/types/auth';
+
+// Extend the config type to include _retry property
+interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
 
 // Create axios instance
 const httpClient: AxiosInstance = axios.create({
@@ -21,7 +26,7 @@ const httpClient: AxiosInstance = axios.create({
 
 // Request interceptor to add auth token
 httpClient.interceptors.request.use(
-  (config: any) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = getAccessToken();
     
     if (token && !isTokenExpired(token)) {
@@ -31,7 +36,7 @@ httpClient.interceptors.request.use(
     
     return config;
   },
-  (error: any) => {
+  (error: AxiosError) => {
     return Promise.reject(error);
   }
 );
@@ -41,11 +46,11 @@ httpClient.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
   },
-  async (error: any) => {
-    const originalRequest = error.config;
+  async (error: AxiosError) => {
+    const originalRequest = error.config as ExtendedAxiosRequestConfig;
     
     // If error is 401 and we haven't already tried to refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       
       const refreshToken = getRefreshToken();
@@ -70,8 +75,10 @@ httpClient.interceptors.response.use(
           });
           
           // Retry the original request with new token
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          return httpClient(originalRequest);
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          }
+          return httpClient.request(originalRequest);
           
         } catch (refreshError) {
           // Refresh failed, clear tokens and redirect to login
@@ -102,18 +109,18 @@ export default httpClient;
 
 // Helper function for making authenticated requests
 export const apiRequest = {
-  get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
+  get: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     httpClient.get(url, config),
     
-  post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
+  post: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     httpClient.post(url, data, config),
     
-  put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
+  put: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     httpClient.put(url, data, config),
     
-  patch: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
+  patch: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     httpClient.patch(url, data, config),
     
-  delete: <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
+  delete: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     httpClient.delete(url, config),
 };

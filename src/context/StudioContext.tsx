@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { Studio, MyStudioResponse } from '@/types/studio';
-import { USE_MOCK_DATA } from '@/lib/api/config';
 import { 
   getStudioDetails,
   createStudio,
@@ -12,7 +11,6 @@ import {
   getFollowedStudios
 } from '@/lib/api/studioService';
 import { getCurrentUser } from '@/lib/api/authService';
-import { getAccessToken, decodeJWTPayload } from '@/lib/utils/tokenService';
 import { useToast } from './ToastContext';
 import { useAuth } from './AuthContext';
 
@@ -94,9 +92,9 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
         console.log('📋 User has no studio (normal)');
         setMyStudio(null);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log('❌ Error loading user data:', error);
-      console.log('   - Message:', error.message);
+      console.log('   - Message:', error instanceof Error ? error.message : 'Unknown error');
       
       console.error('Error loading user information:', error);
       showError('Failed to load user information');
@@ -117,7 +115,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
     try {
       const studios = await getFollowedStudios();
       setFollowedStudios(studios);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading followed studios:', error);
       showError('Failed to load followed studios');
       setFollowedStudios([]);
@@ -157,8 +155,8 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
       
       showSuccess('Studio created successfully!');
       return studio;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to create studio';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create studio';
       showError(errorMessage);
       throw error;
     }
@@ -175,8 +173,8 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
       setMyStudio(prev => prev ? { ...prev, studio: updatedStudio } : null);
       showSuccess('Studio updated successfully!');
       return updatedStudio;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to update studio';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update studio';
       showError(errorMessage);
       throw error;
     }
@@ -188,8 +186,8 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
       await followStudio(id, { notify_activity_by_email: emailNotifications });
       await loadFollowedStudios(); // Refresh the list
       showSuccess('Studio followed successfully!');
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to follow studio';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to follow studio';
       showError(errorMessage);
       throw error;
     }
@@ -201,8 +199,8 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
       await unfollowStudio(id);
       await loadFollowedStudios(); // Refresh the list
       showSuccess('Studio unfollowed successfully!');
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to unfollow studio';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to unfollow studio';
       showError(errorMessage);
       throw error;
     }
@@ -212,8 +210,8 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
   const getStudio = useCallback(async (id: number): Promise<Studio> => {
     try {
       return await getStudioDetails(id);
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to load studio details';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load studio details';
       showError(errorMessage);
       throw error;
     }

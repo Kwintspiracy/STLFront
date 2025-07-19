@@ -13,7 +13,6 @@ import {
   FaExclamationTriangle
 } from 'react-icons/fa';
 import { getCurrentUser, updateUsername } from '@/lib/api/authService';
-import { useRouter } from 'next/navigation';
 
 interface UserSettings {
   // Profile settings
@@ -119,7 +118,7 @@ export default function SettingsPage() {
     loadSettings();
   }, []);
 
-  const handleSettingChange = (key: keyof UserSettings, value: any) => {
+  const handleSettingChange = (key: keyof UserSettings, value: boolean | string) => {
     setSettings(prev => ({
       ...prev,
       [key]: value
@@ -234,9 +233,9 @@ export default function SettingsPage() {
         window.location.reload();
       }, 1500);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error changing username:', error);
-      setUsernameError(error.message || 'Error changing username. Username may already be taken.');
+      setUsernameError(error instanceof Error ? error.message : 'Error changing username. Username may already be taken.');
     } finally {
       setChangingUsername(false);
     }
