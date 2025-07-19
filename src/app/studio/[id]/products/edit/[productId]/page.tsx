@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -765,7 +765,7 @@ export default function EditProductPage({ params }: Props) {
                 {formData.status === 'draft' && (
                   <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                     <p className="text-sm text-yellow-400">
-                      Ce produit est actuellement en brouillon. Sélectionnez &quot;Publié&quot; ou &quot;Privé&quot; pour le rendre visible.
+                      Ce produit est actuellement en brouillon. Sélectionnez Publié ou Privé  pour le rendre visible.
                     </p>
                   </div>
                 )}
