@@ -109,7 +109,7 @@ export default function ProfilePage() {
         try {
           const studioInfo = await getMyStudio();
           setMyStudio(studioInfo);
-        } catch (error) {
+        } catch {
           // User doesn't have a studio - this is normal
           console.log('User has no studio');
         }

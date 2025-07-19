@@ -372,9 +372,10 @@ export default function EditProductPage({ params }: Props) {
         console.log(`🗑️ Deleting image ${imageId} from API`);
         await deleteProductImage(productId, imageId);
         console.log(`✅ Image ${imageId} deleted successfully`);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(`❌ Error deleting image ${imageId}:`, error);
-        showError(`Erreur lors de la suppression de l'image: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression';
+        showError(`Erreur lors de la suppression de l'image: ${errorMessage}`);
         return; // Don't remove from UI if API call failed
       }
     }
@@ -400,9 +401,10 @@ export default function EditProductPage({ params }: Props) {
         console.log(`🗑️ Deleting STL ${stlId} from API`);
         await deleteProductSTL(productId, stlId);
         console.log(`✅ STL ${stlId} deleted successfully`);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(`❌ Error deleting STL ${stlId}:`, error);
-        showError(`Erreur lors de la suppression du fichier STL: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression';
+        showError(`Erreur lors de la suppression du fichier STL: ${errorMessage}`);
         return; // Don't remove from UI if API call failed
       }
     }
