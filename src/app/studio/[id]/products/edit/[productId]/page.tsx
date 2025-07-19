@@ -286,7 +286,7 @@ export default function EditProductPage({ params }: Props) {
           } : item
         ));
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(`❌ Error uploading image ${img.name}:`, error);
         
         // Update with error
@@ -295,11 +295,12 @@ export default function EditProductPage({ params }: Props) {
             ...item, 
             progress: 0, 
             isUploading: false,
-            error: error.message || 'Upload failed'
+            error: error instanceof Error ? error.message : 'Upload failed'
           } : item
         ));
 
-        showError(`Erreur lors de l'upload de ${img.name}: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+        showError(`Erreur lors de l'upload de ${img.name}: ${errorMessage}`);
       }
     }
   };
@@ -341,7 +342,7 @@ export default function EditProductPage({ params }: Props) {
           } : item
         ));
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(`❌ Error uploading STL ${stlFile.name}:`, error);
         
         // Update with error
@@ -350,11 +351,12 @@ export default function EditProductPage({ params }: Props) {
             ...item, 
             progress: 0, 
             isUploading: false,
-            error: error.message || 'Upload failed'
+            error: error instanceof Error ? error.message : 'Upload failed'
           } : item
         ));
 
-        showError(`Erreur lors de l'upload de ${stlFile.name}: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+        showError(`Erreur lors de l'upload de ${stlFile.name}: ${errorMessage}`);
       }
     }
   };

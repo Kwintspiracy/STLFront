@@ -215,7 +215,7 @@ export default function StudioDashboard({ params }: Props) {
                 Welcome back to {studio.name}! 👋
               </h2>
               <p className="text-text-secondary mb-4">
-                Here's what's happening with your studio today.
+                Here&apos;s what&apos;s happening with your studio today.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link 

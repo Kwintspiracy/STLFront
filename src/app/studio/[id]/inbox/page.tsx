@@ -38,10 +38,11 @@ export default function StudioInbox({ params }: Props) {
         setError(null);
         const studioData = await getStudio(studioId);
         setStudio(studioData);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error loading studio:', err);
-        setError(err.message || 'Failed to load studio');
-        if (err.message?.includes('404') || err.message?.includes('not found')) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load studio';
+        setError(errorMessage);
+        if (errorMessage.includes('404') || errorMessage.includes('not found')) {
           notFound();
         }
       } finally {
@@ -188,7 +189,7 @@ export default function StudioInbox({ params }: Props) {
             </div>
             <h2 className="text-xl font-semibold text-text-primary mb-2">Full Messaging System Coming Soon</h2>
             <p className="text-text-secondary mb-6">
-              We're building a complete messaging system with real-time chat, file attachments, 
+              We&apos;re building a complete messaging system with real-time chat, file attachments,
               message threading, and automated responses.
             </p>
             <div className="text-sm text-text-muted">

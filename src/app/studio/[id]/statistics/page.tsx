@@ -38,10 +38,11 @@ export default function StudioStatistics({ params }: Props) {
         setError(null);
         const studioData = await getStudio(studioId);
         setStudio(studioData);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error loading studio:', err);
-        setError(err.message || 'Failed to load studio');
-        if (err.message?.includes('404') || err.message?.includes('not found')) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load studio';
+        setError(errorMessage);
+        if (errorMessage.includes('404') || errorMessage.includes('not found')) {
           notFound();
         }
       } finally {
@@ -128,7 +129,7 @@ export default function StudioStatistics({ params }: Props) {
             </div>
             <h2 className="text-xl font-semibold text-text-primary mb-2">Advanced Statistics Coming Soon</h2>
             <p className="text-text-secondary mb-6">
-              We're working on detailed analytics including traffic sources, user demographics, 
+              We&apos;re working on detailed analytics including traffic sources, user demographics,
               product performance metrics, and more comprehensive reporting tools.
             </p>
             <div className="text-sm text-text-muted">

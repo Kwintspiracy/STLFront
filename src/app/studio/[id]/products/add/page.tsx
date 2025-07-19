@@ -336,7 +336,7 @@ export default function AddProductPage({ params }: Props) {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent, isDraft: boolean = false) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Run validation
@@ -536,7 +536,7 @@ export default function AddProductPage({ params }: Props) {
         </div>
 
         {/* Form */}
-        <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
           <div id="basic-info" className={`bg-background-secondary border rounded-lg p-6 ${
             showValidationHighlight && validationErrors.name ? 'border-red-500 bg-red-500/5' : 'border-border'
@@ -673,7 +673,7 @@ export default function AddProductPage({ params }: Props) {
                             Proposer une licence professionnelle
                           </label>
                           <p className="text-xs text-text-secondary">
-                            Permettre {"l'usage"} commercial avec un supplément
+                            Permettre l&apos;usage commercial avec un supplément
                           </p>
                         </div>
                       </div>

@@ -77,10 +77,11 @@ export default function StudioSettings({ params }: Props) {
           description: studioData.description || '',
           founder: studioData.founder.toString()
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error loading studio:', err);
-        setError(err.message || 'Failed to load studio');
-        if (err.message?.includes('404') || err.message?.includes('not found')) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load studio';
+        setError(errorMessage);
+        if (errorMessage.includes('404') || errorMessage.includes('not found')) {
           notFound();
         }
       } finally {
@@ -118,7 +119,7 @@ export default function StudioSettings({ params }: Props) {
     try {
       setIsSaving(true);
       
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
       
       // Only include changed text fields
       if (studioName !== originalValues?.name) {
@@ -153,9 +154,10 @@ export default function StudioSettings({ params }: Props) {
       setBannerFile(null);
       
       showToast('Studio settings updated successfully', 'success');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving settings:', error);
-      showToast(error.message || 'Failed to save settings', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save settings';
+      showToast(errorMessage, 'error');
     } finally {
       setIsSaving(false);
     }

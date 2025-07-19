@@ -169,8 +169,8 @@ export default function ProfilePage() {
       }
       
       setEditing(false);
-    } catch (error) {
-      console.error('Error saving profile:', error);
+    } catch (err) {
+      console.error('Error saving profile:', err);
     } finally {
       setSaving(false);
     }

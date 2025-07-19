@@ -35,10 +35,10 @@ export default function SearchResultsCount({ className = "" }: SearchResultsCoun
     <p className={`text-gray-400 text-sm ${className}`}>
       {totalResults > 0 ? (
         <>
-          Showing {startResult}-{endResult} of {totalResults} results for "{searchQuery}"
+          Showing {startResult}-{endResult} of {totalResults} results for &quot;{searchQuery}&quot;
         </>
       ) : (
-        `No results for "${searchQuery}"`
+        `No results for &quot;${searchQuery}&quot;`
       )}
     </p>
   );

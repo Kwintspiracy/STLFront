@@ -54,10 +54,11 @@ export default function StudioProducts({ params }: Props) {
         setError(null);
         const studioData = await getStudio(studioId);
         setStudio(studioData);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error loading studio:', err);
-        setError(err.message || 'Failed to load studio');
-        if (err.message?.includes('404') || err.message?.includes('not found')) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load studio';
+        setError(errorMessage);
+        if (errorMessage.includes('404') || errorMessage.includes('not found')) {
           notFound();
         }
       } finally {
@@ -97,7 +98,7 @@ export default function StudioProducts({ params }: Props) {
         }
         
         setProducts(productsData);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error loading products:', err);
         // Don't show error for products, just show empty state
         setProducts([]);
@@ -148,9 +149,10 @@ export default function StudioProducts({ params }: Props) {
       showSuccess(`Le produit "${productToDelete.name}" a été supprimé avec succès`);
       setDeleteModalOpen(false);
       setProductToDelete(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting product:', error);
-      showError(error.message || 'Erreur lors de la suppression du produit');
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression du produit';
+      showError(errorMessage);
     } finally {
       setIsDeleting(false);
     }

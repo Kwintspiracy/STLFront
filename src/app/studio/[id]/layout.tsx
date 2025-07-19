@@ -3,7 +3,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import { useStudio } from "@/context/StudioContext";
-import { useAuth } from "@/context/AuthContext";
 import StudioClientLayout from "./StudioClientLayout";
 import type { Studio } from "@/types/studio";
 

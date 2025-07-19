@@ -7,7 +7,7 @@ import { Studio } from '@/types/studio';
 import { Studio as ProductStudio } from '@/types/product';
 import { followStudio, unfollowStudio } from '@/lib/api/studioService';
 import DefaultAvatar from '@/components/ui/DefaultAvatar';
-import { RiUserFollowLine, RiUserUnfollowLine, RiUserLine, RiCalendarLine } from 'react-icons/ri';
+import { RiUserFollowLine, RiUserUnfollowLine } from 'react-icons/ri';
 
 interface StudioBlockProps {
   studio: Studio | ProductStudio;
@@ -44,21 +44,9 @@ export default function StudioBlock({ studio, className = '' }: StudioBlockProps
     }
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Date inconnue';
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long'
-    });
-  };
-
   // Helper functions to safely access properties
   const getFollowerCount = () => {
     return 'follower_count' in studio ? studio.follower_count : 0;
-  };
-
-  const getBanner = () => {
-    return 'banner' in studio ? studio.banner : undefined;
   };
 
   return (

@@ -333,7 +333,7 @@ export default function CreateStudioPage() {
           <ul className="text-blue-300 text-sm space-y-1">
             <li>• Studio names must be unique across the platform</li>
             <li>• You can only be a member of one studio at a time</li>
-            <li>• As the creator, you'll automatically become the studio owner</li>
+            <li>• As the creator, you&apos;ll automatically become the studio owner</li>
             <li>• You can update your studio information anytime after creation</li>
           </ul>
         </div>
