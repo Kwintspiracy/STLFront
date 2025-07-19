@@ -937,7 +937,7 @@ export default function EditProductPage({ params }: Props) {
               <div className="px-6 pb-6 space-y-6">
                 <div>
                   <label htmlFor="print_settings" className="block text-sm font-medium text-gray-300 mb-2">
-                    Paramètres d'impression
+                    Paramètres d&apos;impression
                   </label>
                   <textarea
                     id="print_settings"
