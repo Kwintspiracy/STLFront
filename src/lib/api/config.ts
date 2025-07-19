@@ -1,10 +1,12 @@
 // src/lib/api/config.ts
-export const USE_MOCK_DATA = false; // Set to true to use mock data for products
-export const USE_REAL_API = false; // Set to false to disable real API calls for auth
 
-// API Configuration
-export const API_BASE_URL = "http://127.0.0.1:8000/api/v1";
-export const REAL_API_BASE_URL = "https://little-sea-1837.fly.dev";
+// Environment variables with fallback values
+export const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' || false;
+export const USE_REAL_API = process.env.NEXT_PUBLIC_USE_REAL_API === 'true' || false;
+
+// API Configuration with environment variables
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api/v1";
+export const REAL_API_BASE_URL = process.env.NEXT_PUBLIC_REAL_API_BASE_URL || "https://little-sea-1837.fly.dev";
 
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
