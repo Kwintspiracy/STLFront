@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { RiPaletteLine, RiMoonLine, RiSunLine, RiDropLine, RiPlantLine, RiFireLine } from 'react-icons/ri';
+import { RiPaletteLine } from 'react-icons/ri';
 
 const themes = [
   { value: '', label: 'Dark', icon: '🌙' },

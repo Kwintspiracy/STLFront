@@ -288,7 +288,7 @@ export default function RegisterForm() {
           <p className="text-xs text-[var(--color-text-muted)] text-center">
             En créant un compte, vous acceptez nos{' '}
             <Link href="/terms" className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors">
-              Conditions d'utilisation
+              Conditions d&apos;utilisation
             </Link>{' '}
             et notre{' '}
             <Link href="/privacy" className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors">

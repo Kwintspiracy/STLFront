@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, DragEvent } from "react";
-import { RiUploadCloud2Line, RiCloseLine, RiDragMove2Line, RiImageLine, RiFileTextLine, RiStarLine, RiStarFill, RiGridLine, RiListUnordered, RiBox3Line } from "react-icons/ri";
+import { RiUploadCloud2Line, RiCloseLine, RiDragMove2Line, RiImageLine, RiStarLine, RiStarFill, RiGridLine, RiListUnordered, RiBox3Line } from "react-icons/ri";
 import { useToast } from "@/context/ToastContext";
 
 interface UploadedFile {

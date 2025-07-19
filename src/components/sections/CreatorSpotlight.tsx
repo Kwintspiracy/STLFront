@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { getAllStudios } from '@/lib/api/studioService';
 import { getProductsByStudio } from '@/lib/api/products';
-import type { Studio } from '@/types/studio';
 
 interface Creator {
   id: number;
@@ -57,7 +56,7 @@ export default function CreatorSpotlight({
               avatar: studio.name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2),
               logo: studio.badge
             };
-          } catch (error) {
+          } catch {
             // If we can't get products, use default values
             return {
               id: studio.id,

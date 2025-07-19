@@ -26,13 +26,6 @@ function getDefaultIcon(categoryName: string): string {
   return '📦'; // Icône par défaut
 }
 
-// Fonction pour formater le nombre de produits
-function formatProductCount(count: number): string {
-  if (count >= 1000) {
-    return `${(count / 1000).toFixed(1)}K`;
-  }
-  return count.toString();
-}
 
 export default function CategoryGrid({ className = "" }: CategoryGridProps) {
   const [categories, setCategories] = useState<Category[]>([]);

@@ -431,9 +431,10 @@ export default function EditProductPage({ params }: Props) {
       await updateImageOrder(productId, imageOrders);
       console.log('✅ Image order updated successfully');
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error updating image order:', error);
-      showError(`Erreur lors de la mise à jour de l'ordre des images: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour';
+      showError(`Erreur lors de la mise à jour de l'ordre des images: ${errorMessage}`);
     }
   };
 
@@ -468,9 +469,10 @@ export default function EditProductPage({ params }: Props) {
 
       showSuccess("Image principale mise à jour avec succès!");
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`❌ Error setting main image:`, error);
-      showError(`Erreur lors de la définition de l'image principale: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la définition';
+      showError(`Erreur lors de la définition de l'image principale: ${errorMessage}`);
     }
   };
 
@@ -551,11 +553,22 @@ export default function EditProductPage({ params }: Props) {
     
     try {
       // Prepare product data for ProductSerializer (used for updates)
-      const productData: any = {
+      const productData: {
+        name: string;
+        description: string;
+        price: string;
+        professional_license_fee?: string;
+        print_settings: string;
+        dimensions: string;
+        status: "draft" | "published" | "withdrawn";
+        is_public: boolean;
+        category_id?: number;
+        tag_ids?: number[];
+      } = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         price: formData.isFree ? "0.00" : formData.price,
-        professional_license_fee: formData.isFree ? null : (formData.enableProfessionalLicense && formData.professional_license_fee ? formData.professional_license_fee : null),
+        professional_license_fee: formData.isFree ? undefined : (formData.enableProfessionalLicense && formData.professional_license_fee ? formData.professional_license_fee : undefined),
         print_settings: formData.print_settings.trim(),
         dimensions: formData.dimensions.trim(),
         status: formData.status,
@@ -584,19 +597,34 @@ export default function EditProductPage({ params }: Props) {
 
       console.log('🔄 Updating product with data:', productData);
 
-      const updatedProduct = await updateProduct(productId, productData);
+      await updateProduct(productId, productData);
       
       showSuccess("Produit mis à jour avec succès!");
       
       // Redirect to the studio products page
       router.push(`/studio/${studioId}/products`);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erreur lors de la mise à jour du produit:", error);
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.detail || 
-                          error.message || 
-                          "Erreur lors de la mise à jour du produit";
+      
+      let errorMessage = "Erreur lors de la mise à jour du produit";
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as {
+          response?: {
+            data?: {
+              error?: string;
+              detail?: string;
+            };
+          };
+        };
+        errorMessage = axiosError.response?.data?.error || 
+                      axiosError.response?.data?.detail || 
+                      errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       showError(errorMessage);
     } finally {
       setLoading(false);
@@ -827,7 +855,7 @@ export default function EditProductPage({ params }: Props) {
                             Proposer une licence professionnelle
                           </label>
                           <p className="text-xs text-gray-400">
-                            Permettre l'usage commercial avec un supplément
+                          Permettre l&apos;usage commercial avec un supplément
                           </p>
                         </div>
                       </div>
@@ -847,7 +875,7 @@ export default function EditProductPage({ params }: Props) {
                           min={formData.price ? parseFloat(formData.price) : 0.01}
                           step="0.01"
                           required={formData.enableProfessionalLicense}
-                          placeholder={formData.price ? `Minimum: ${formData.price}` : "Ex: 9.99"}
+                        placeholder={formData.price ? `Minimum: ${formData.price}` : "Ex: 9.99"}
                           className="w-full bg-[#131618] border border-[#2A2D30] text-white rounded-lg px-4 py-3 focus:outline-none focus:border-[#FDD811] transition-colors"
                         />
                         <p className="text-xs text-gray-400 mt-1">
