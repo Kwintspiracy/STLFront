@@ -86,7 +86,7 @@ export default function AddProductPage({ params }: Props) {
     // Check studio membership and match with URL
     if (!myStudioLoading && studioId) {
       if (!myStudio || myStudio.studio.id !== studioId) {
-        showError("Vous n'avez pas accès à ce studio");
+        showError("Vous n&apos;avez pas accès à ce studio");
         router.push("/");
         return;
       }
@@ -673,7 +673,7 @@ export default function AddProductPage({ params }: Props) {
                             Proposer une licence professionnelle
                           </label>
                           <p className="text-xs text-text-secondary">
-                            Permettre l'usage commercial avec un supplément
+                            Permettre l&apos;usage commercial avec un supplément
                           </p>
                         </div>
                       </div>
