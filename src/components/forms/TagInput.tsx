@@ -3,7 +3,7 @@
 import React from 'react';
 import { Tag } from '@/types/product';
 import { useTagManagement } from '@/hooks/useTagManagement';
-import { RiCloseLine, RiAddLine, RiLoader4Line, RiCheckLine, RiAlertLine } from 'react-icons/ri';
+import { RiCloseLine, RiLoader4Line, RiCheckLine, RiAlertLine } from 'react-icons/ri';
 
 interface TagInputProps {
   selectedTags: Tag[];
@@ -120,7 +120,7 @@ export default function TagInput({
         {/* Suggestions Dropdown */}
         {showSuggestions && suggestions.length > 0 && (
           <div className="absolute z-50 w-full mt-1 bg-background-secondary border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-            {suggestions.map((suggestion, index) => (
+            {suggestions.map((suggestion) => (
               <button
                 key={suggestion.id}
                 type="button"

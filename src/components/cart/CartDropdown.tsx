@@ -55,7 +55,7 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
     return price.toFixed(2);
   };
 
-  const getItemPrice = (item: any) => {
+  const getItemPrice = (item: { product: { price: string; professional_license_fee?: string }; license: string }) => {
     const basePrice = parseFloat(item.product.price);
     let price = basePrice;
     

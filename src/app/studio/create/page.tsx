@@ -21,7 +21,7 @@ export default function CreateStudioPage() {
 
   const router = useRouter();
   const { createNewStudio } = useStudio();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { showError, showSuccess } = useToast();
 
   // Redirect if not authenticated
@@ -127,15 +127,20 @@ export default function CreateStudioPage() {
       showSuccess('Studio created successfully!');
       router.push(`/studio/${newStudio.id}`);
       
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 
-                          error.message || 
-                          'Failed to create studio. Please try again.';
+    } catch (error: unknown) {
+      const errorMessage = error && typeof error === 'object' && 'response' in error
+        ? (error as { response?: { data?: { error?: string } } }).response?.data?.error ||
+          (error as { message?: string }).message ||
+          'Failed to create studio. Please try again.'
+        : 'Failed to create studio. Please try again.';
       showError(errorMessage);
       
       // Handle specific field errors
-      if (error.response?.data?.name) {
-        setErrors(prev => ({ ...prev, name: error.response.data.name[0] }));
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { name?: string[] } } };
+        if (axiosError.response?.data?.name && axiosError.response.data.name.length > 0) {
+          setErrors(prev => ({ ...prev, name: axiosError.response!.data!.name![0] }));
+        }
       }
     } finally {
       setIsLoading(false);

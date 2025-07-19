@@ -9,9 +9,7 @@ import {
   FaShoppingCart, 
   FaDownload,
   FaEye,
-  FaTrash,
-  FaFilter,
-  FaSort
+  FaTrash
 } from 'react-icons/fa';
 import { Product } from '@/types/product';
 import TagPill from '@/components/card/TagPill';

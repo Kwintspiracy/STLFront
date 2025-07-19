@@ -18,14 +18,10 @@ export default function SearchResults({ className = "" }: SearchResultsProps) {
     currentPage,
     resultsPerPage,
     setCurrentPage,
-    getSearchQuery,
-    addElement,
-    executeSearch
+    getSearchQuery
   } = useSearch();
 
   const totalPages = Math.ceil(totalResults / resultsPerPage);
-  const startResult = (currentPage - 1) * resultsPerPage + 1;
-  const endResult = Math.min(currentPage * resultsPerPage, totalResults);
 
   // Loading state
   if (isLoading) {
@@ -76,7 +72,7 @@ export default function SearchResults({ className = "" }: SearchResultsProps) {
           <FaSearch className="w-8 h-8 text-gray-500 mb-4" />
           <p className="text-white font-medium mb-2">No Results Found</p>
           <p className="text-gray-400 text-center mb-4">
-            No products match your search for "{searchQuery}"
+            No products match your search for &quot;{searchQuery}&quot;
           </p>
           <div className="text-sm text-gray-500 text-center">
             <p>Try:</p>
@@ -128,7 +124,7 @@ export default function SearchResults({ className = "" }: SearchResultsProps) {
             const pages = [];
             const showPages = 5;
             let startPage = Math.max(1, currentPage - Math.floor(showPages / 2));
-            let endPage = Math.min(totalPages, startPage + showPages - 1);
+            const endPage = Math.min(totalPages, startPage + showPages - 1);
 
             // Adjust start page if we're near the end
             if (endPage - startPage < showPages - 1) {

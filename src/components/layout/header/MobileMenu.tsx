@@ -19,11 +19,9 @@ export default function MobileMenu({
   className = "",
   user,
   isAuthenticated = false,
-  myStudio,
   onLogout
 }: MobileMenuProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const pathname = usePathname();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);

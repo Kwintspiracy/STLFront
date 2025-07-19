@@ -6,14 +6,14 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useStudio } from "@/context/StudioContext";
 import { useToast } from "@/context/ToastContext";
-import { createProduct, uploadProductImage, uploadProductSTL, updateImageOrder } from "@/lib/api/products";
+import { createProduct, uploadProductImage, uploadProductSTL } from "@/lib/api/products";
 import { getAllCategories } from "@/lib/api/categories";
 import { getAllTags } from "@/lib/api/tags";
 import { Category, Tag } from "@/types/product";
 import FileUploadZone from "@/components/studio/FileUploadZone";
 import TagInput from "@/components/forms/TagInput";
 import { processTagsForSubmission } from "@/lib/utils/tagUtils";
-import { RiArrowLeftLine, RiArrowDownSLine, RiArrowUpSLine, RiEyeLine, RiSaveLine } from "react-icons/ri";
+import { RiArrowLeftLine, RiArrowDownSLine, RiArrowUpSLine, RiSaveLine } from "react-icons/ri";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -39,7 +39,6 @@ export default function AddProductPage({ params }: Props) {
   const [studioId, setStudioId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -111,8 +110,7 @@ export default function AddProductPage({ params }: Props) {
 
   const loadTags = async () => {
     try {
-      const tagsData = await getAllTags();
-      setTags(tagsData);
+      await getAllTags();
     } catch (error) {
       console.error("Erreur lors du chargement des tags:", error);
     }
@@ -372,14 +370,27 @@ export default function AddProductPage({ params }: Props) {
       console.log('User is authenticated, proceeding with product creation...');
 
       // Prepare product data for ProductCreateSerializer
-      const productData: any = {
+      const productData: {
+        name: string;
+        description: string;
+        price: string;
+        professional_license_fee?: string;
+        print_settings: string;
+        dimensions: string;
+        category_id?: number;
+        tag_ids?: number[];
+      } = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         price: formData.isFree ? "0.00" : formData.price,
-        professional_license_fee: formData.isFree ? null : (formData.enableProfessionalLicense && formData.professional_license_fee ? formData.professional_license_fee : null),
         print_settings: formData.print_settings.trim(),
         dimensions: formData.dimensions.trim(),
       };
+
+      // Add professional license fee if applicable
+      if (!formData.isFree && formData.enableProfessionalLicense && formData.professional_license_fee) {
+        productData.professional_license_fee = formData.professional_license_fee;
+      }
 
       // Add category if selected (ProductCreateSerializer expects category_id)
       if (formData.category) {
@@ -437,36 +448,48 @@ export default function AddProductPage({ params }: Props) {
       // Redirect to the studio products page
       router.push(`/studio/${studioId}/products`);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erreur lors de la création du produit:", error);
-      console.error("Error response:", error.response);
-      console.error("Error response data:", error.response?.data);
-      console.error("Error response status:", error.response?.status);
       
       let errorMessage = "Erreur lors de la création du produit";
       
-      if (error.response?.data) {
-        // Try to extract detailed error messages
-        const data = error.response.data;
-        if (typeof data === 'string') {
-          errorMessage = data;
-        } else if (data.detail) {
-          errorMessage = data.detail;
-        } else if (data.error) {
-          errorMessage = data.error;
-        } else if (data.non_field_errors) {
-          errorMessage = Array.isArray(data.non_field_errors) ? data.non_field_errors.join(', ') : data.non_field_errors;
-        } else {
-          // Show field-specific errors
-          const fieldErrors = Object.entries(data).map(([field, errors]) => {
-            const errorList = Array.isArray(errors) ? errors : [errors];
-            return `${field}: ${errorList.join(', ')}`;
-          }).join('; ');
-          if (fieldErrors) {
-            errorMessage = fieldErrors;
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as {
+          response?: {
+            data?: {
+              detail?: string;
+              error?: string;
+              non_field_errors?: string[] | string;
+              [key: string]: unknown;
+            };
+          };
+        };
+        
+        console.error("Error response:", axiosError.response);
+        console.error("Error response data:", axiosError.response?.data);
+        
+        if (axiosError.response?.data) {
+          const data = axiosError.response.data;
+          if (typeof data === 'string') {
+            errorMessage = data;
+          } else if (data.detail) {
+            errorMessage = data.detail;
+          } else if (data.error) {
+            errorMessage = data.error;
+          } else if (data.non_field_errors) {
+            errorMessage = Array.isArray(data.non_field_errors) ? data.non_field_errors.join(', ') : data.non_field_errors;
+          } else {
+            // Show field-specific errors
+            const fieldErrors = Object.entries(data).map(([field, errors]) => {
+              const errorList = Array.isArray(errors) ? errors : [errors];
+              return `${field}: ${errorList.join(', ')}`;
+            }).join('; ');
+            if (fieldErrors) {
+              errorMessage = fieldErrors;
+            }
           }
         }
-      } else if (error.message) {
+      } else if (error instanceof Error) {
         errorMessage = error.message;
       }
       
@@ -650,7 +673,7 @@ export default function AddProductPage({ params }: Props) {
                             Proposer une licence professionnelle
                           </label>
                           <p className="text-xs text-text-secondary">
-                            Permettre l'usage commercial avec un supplément
+                            Permettre {"l'usage"} commercial avec un supplément
                           </p>
                         </div>
                       </div>

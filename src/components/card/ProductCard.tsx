@@ -1,6 +1,5 @@
 'use client';
 
-import { Product } from "@/types/product";
 import { RiImageLine, RiDownloadLine } from "react-icons/ri";
 import { FaShoppingCart, FaHeart } from "react-icons/fa";
 import Link from 'next/link';

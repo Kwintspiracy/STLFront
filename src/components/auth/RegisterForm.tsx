@@ -7,7 +7,7 @@ import { AUTH_ENDPOINTS, USE_MOCK_DATA } from '@/lib/api/config';
 import type { RegisterRequest, RegisterResponse } from '@/types/auth';
 import axios from 'axios';
 import Link from 'next/link';
-import { FaEye, FaEyeSlash, FaUser, FaLock, FaEnvelope, FaCheckCircle } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaLock, FaEnvelope, FaCheckCircle } from 'react-icons/fa';
 import GoogleSignInButton from './GoogleSignInButton';
 import DiscordSignInButton from './DiscordSignInButton';
 
@@ -93,21 +93,24 @@ export default function RegisterForm() {
         showSuccess(response.data.detail || 'Registration successful! Please check your email for verification.');
         router.push('/auth/register/check-email');
       }
-    } catch (error: any) {
-      if (error.response?.data) {
-        // Handle validation errors from API
-        const apiErrors = error.response.data;
-        setErrors(apiErrors);
-        
-        // Show first error as toast
-        const firstError = Object.values(apiErrors)[0];
-        if (Array.isArray(firstError) && firstError.length > 0) {
-          showError(firstError[0]);
-        } else if (typeof firstError === 'string') {
-          showError(firstError);
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: Record<string, string[]> } };
+        if (axiosError.response?.data) {
+          // Handle validation errors from API
+          const apiErrors = axiosError.response.data;
+          setErrors(apiErrors);
+          
+          // Show first error as toast
+          const firstError = Object.values(apiErrors)[0];
+          if (Array.isArray(firstError) && firstError.length > 0) {
+            showError(firstError[0]);
+          } else if (typeof firstError === 'string') {
+            showError(firstError);
+          }
         }
       } else {
-        const errorMessage = error.message || 'Registration failed. Please try again.';
+        const errorMessage = error instanceof Error ? error.message : 'Registration failed. Please try again.';
         showError(errorMessage);
       }
     } finally {

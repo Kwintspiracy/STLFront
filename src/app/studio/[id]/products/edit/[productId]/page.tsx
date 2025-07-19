@@ -51,7 +51,6 @@ export default function EditProductPage({ params }: Props) {
   const [loading, setLoading] = useState(false);
   const [loadingProduct, setLoadingProduct] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -129,8 +128,7 @@ export default function EditProductPage({ params }: Props) {
 
   const loadTags = async () => {
     try {
-      const tagsData = await getAllTags();
-      setTags(tagsData);
+      await getAllTags();
     } catch (error) {
       console.error("Erreur lors du chargement des tags:", error);
     }
@@ -184,7 +182,7 @@ export default function EditProductPage({ params }: Props) {
         file: new File([], img.title || `Image ${index + 1}`),
         name: img.title || `Image ${index + 1}`,
         progress: 100,
-        url: img.url || img.image, // Support both new and legacy format
+        url: img.image, // Use the image property
         isUploading: false,
         isMain: img.rank === 1,
       }));
@@ -284,7 +282,7 @@ export default function EditProductPage({ params }: Props) {
             ...item, 
             progress: 100, 
             isUploading: false,
-            url: uploadResult.url || URL.createObjectURL(img.file)
+            url: URL.createObjectURL(img.file)
           } : item
         ));
 
@@ -339,7 +337,7 @@ export default function EditProductPage({ params }: Props) {
             ...item, 
             progress: 100, 
             isUploading: false,
-            url: uploadResult.file || uploadResult.url
+            url: stlFile.file.name
           } : item
         ));
 

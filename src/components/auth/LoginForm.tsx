@@ -40,8 +40,8 @@ export default function LoginForm() {
         // Redirect based on user data (for now, just go to home)
         router.replace('/');
       }
-    } catch (err: any) {
-      const errorMessage = err.message || 'Identifiants invalides';
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Identifiants invalides';
       setError(errorMessage);
     } finally {
       setIsLoading(false);

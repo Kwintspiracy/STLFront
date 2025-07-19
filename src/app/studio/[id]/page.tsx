@@ -18,7 +18,7 @@ export default function StudioDashboard({ params }: Props) {
   const [error, setError] = useState<string | null>(null);
   
   const { getStudio } = useStudio();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const router = useRouter();
 
   // Resolve params
@@ -39,10 +39,11 @@ export default function StudioDashboard({ params }: Props) {
         setError(null);
         const studioData = await getStudio(studioId);
         setStudio(studioData);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error loading studio:', err);
-        setError(err.message || 'Failed to load studio');
-        if (err.message?.includes('404') || err.message?.includes('not found')) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load studio';
+        setError(errorMessage);
+        if (errorMessage?.includes('404') || errorMessage?.includes('not found')) {
           notFound();
         }
       } finally {
@@ -241,7 +242,7 @@ export default function StudioDashboard({ params }: Props) {
                     <span className="text-green-400 text-sm">✓</span>
                   </div>
                   <div className="flex-1">
-                    <p className="text-text-primary text-sm">New product "Dragon Miniature" published</p>
+                    <p className="text-text-primary text-sm">New product {"\"Dragon Miniature\""} published</p>
                     <p className="text-text-secondary text-xs">2 hours ago</p>
                   </div>
                 </div>
