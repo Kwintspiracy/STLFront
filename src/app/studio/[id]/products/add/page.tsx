@@ -673,7 +673,7 @@ export default function AddProductPage({ params }: Props) {
                             Proposer une licence professionnelle
                           </label>
                           <p className="text-xs text-text-secondary">
-                            Permettre l&apos;usage commercial avec un supplément
+                            Permettre l'usage commercial avec un supplément
                           </p>
                         </div>
                       </div>

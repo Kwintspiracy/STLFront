@@ -855,7 +855,7 @@ export default function EditProductPage({ params }: Props) {
                             Proposer une licence professionnelle
                           </label>
                           <p className="text-xs text-gray-400">
-                          Permettre l&apos;usage commercial avec un supplément
+                          Permettre l'usage commercial avec un supplément
                           </p>
                         </div>
                       </div>
