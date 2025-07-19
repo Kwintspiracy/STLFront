@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -8,7 +8,7 @@ import { AUTH_ENDPOINTS } from '@/lib/api/config';
 import { setTokenCookies } from '@/lib/utils/tokenService';
 import axios from 'axios';
 
-export default function GoogleCallbackPage() {
+function GoogleCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refreshAuth } = useAuth();
@@ -142,5 +142,35 @@ export default function GoogleCallbackPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center px-4">
+      <div className="max-w-md w-full text-center">
+        <div className="bg-[var(--color-background-card)] border border-[var(--color-border)] rounded-xl p-8 shadow-2xl">
+          <div className="mb-6">
+            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
+            </div>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">
+              Chargement...
+            </h1>
+            <p className="text-[var(--color-text-secondary)]">
+              Préparation de la page d&apos;authentification Google.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function GoogleCallbackPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <GoogleCallbackContent />
+    </Suspense>
   );
 }

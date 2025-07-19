@@ -204,7 +204,7 @@ export async function uploadProductImage(productId: number, file: File, title: s
   formData.append('title', title);
   formData.append('rank', rank.toString());
 
-  const response = await apiRequest.post(
+  const response = await apiRequest.post<{ id: number; title: string; image: string; rank: number }>(
     PRODUCT_ENDPOINTS.UPLOAD_IMAGE(productId),
     formData,
     {
@@ -224,7 +224,7 @@ export async function uploadProductSTL(productId: number, file: File, title: str
   formData.append('file', file);
   formData.append('title', title);
 
-  const response = await apiRequest.post(
+  const response = await apiRequest.post<{ id: number; title: string; file: string; size: number }>(
     PRODUCT_ENDPOINTS.UPLOAD_STL(productId),
     formData,
     {

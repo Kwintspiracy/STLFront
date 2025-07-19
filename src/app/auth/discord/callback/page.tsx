@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -8,7 +8,7 @@ import { setTokenCookies } from '@/lib/utils/tokenService';
 import { AUTH_ENDPOINTS } from '@/lib/api/config';
 import axios from 'axios';
 
-export default function DiscordCallbackPage() {
+function DiscordCallbackContent() {
   const [isProcessing, setIsProcessing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -149,12 +149,36 @@ export default function DiscordCallbackPage() {
           </svg>
         </div>
         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">
-          {"Connexion Discord réussie !"}
+          Connexion Discord réussie !
         </h2>
         <p className="text-[var(--color-text-secondary)]">
           Redirection en cours...
         </p>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)]">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto mb-4"></div>
+        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">
+          Chargement...
+        </h2>
+        <p className="text-[var(--color-text-secondary)]">
+          Préparation de la page d&apos;authentification Discord.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default function DiscordCallbackPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <DiscordCallbackContent />
+    </Suspense>
   );
 }
