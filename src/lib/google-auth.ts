@@ -151,7 +151,7 @@ export const signInWithGoogleRedirect = (): void => {
  * Note: For public clients, we'll send the code directly to our backend
  * and let the backend handle the token exchange with the client secret
  */
-export const exchangeCodeForToken = async (code: string): Promise<{ access_token: string; user_info: any }> => {
+export const exchangeCodeForToken = async (code: string): Promise<{ access_token: string; user_info: unknown }> => {
   try {
     // For security reasons, we'll let our backend handle the token exchange
     // since it has access to the client secret
@@ -172,7 +172,7 @@ export const exchangeCodeForToken = async (code: string): Promise<{ access_token
 /**
  * Get user info from Google using access token
  */
-export const getUserInfoFromGoogle = async (accessToken: string): Promise<any> => {
+export const getUserInfoFromGoogle = async (accessToken: string): Promise<unknown> => {
   try {
     const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: {

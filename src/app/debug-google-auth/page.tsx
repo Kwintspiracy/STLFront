@@ -33,8 +33,9 @@ export default function DebugGoogleAuth() {
       } else {
         addLog(`❌ Django server responded with status: ${response.status}`);
       }
-    } catch (error: any) {
-      addLog(`❌ Cannot connect to Django server: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      addLog(`❌ Cannot connect to Django server: ${errorMessage}`);
     }
 
     try {
@@ -52,8 +53,9 @@ export default function DebugGoogleAuth() {
       } else {
         addLog(`❌ API root responded with status: ${apiResponse.status}`);
       }
-    } catch (error: any) {
-      addLog(`❌ Cannot access API root: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      addLog(`❌ Cannot access API root: ${errorMessage}`);
     }
 
     try {
@@ -71,8 +73,9 @@ export default function DebugGoogleAuth() {
       } else {
         addLog(`❌ Auth endpoints responded with status: ${authResponse.status}`);
       }
-    } catch (error: any) {
-      addLog(`❌ Cannot access auth endpoints: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      addLog(`❌ Cannot access auth endpoints: ${errorMessage}`);
     }
 
     try {
@@ -85,8 +88,9 @@ export default function DebugGoogleAuth() {
       
       addLog(`📋 CORS preflight status: ${corsResponse.status}`);
       addLog(`📋 CORS headers: ${JSON.stringify(Object.fromEntries(corsResponse.headers.entries()))}`);
-    } catch (error: any) {
-      addLog(`❌ CORS preflight failed: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      addLog(`❌ CORS preflight failed: ${errorMessage}`);
     }
 
     setLoading(false);
@@ -133,8 +137,9 @@ export default function DebugGoogleAuth() {
           addLog(`❌ ${testCase.name} - Internal Server Error`);
         }
 
-      } catch (error: any) {
-        addLog(`❌ ${testCase.name} failed: ${error.message}`);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        addLog(`❌ ${testCase.name} failed: ${errorMessage}`);
       }
     }
 
