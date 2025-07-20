@@ -1,0 +1,22 @@
+frontend@0.1.0 C:\Users\kwintgaming\Documents\Websites\STL_Forge\frontend
++-- @emnapi/core@1.4.3 extraneous
++-- @emnapi/runtime@1.4.3 extraneous
++-- @emnapi/wasi-threads@1.0.2 extraneous
++-- @eslint/eslintrc@3.3.1
++-- @napi-rs/wasm-runtime@0.2.11 extraneous
++-- @tailwindcss/postcss@4.1.10
++-- @tybys/wasm-util@0.9.0 extraneous
++-- @types/node@20.19.1
++-- @types/react-dom@19.1.6
++-- @types/react@19.1.8
++-- eslint-config-next@15.3.3
++-- eslint@9.29.0
++-- lucide-react@0.515.0
++-- next@15.3.3
++-- react-dom@19.1.0
++-- react-icons@5.5.0
++-- react@19.1.0
++-- remixicon@4.6.0
++-- tailwindcss@4.1.10
+`-- typescript@5.8.3
+

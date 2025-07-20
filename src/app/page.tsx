@@ -1,39 +1,69 @@
-import { getAllCategories } from "@/lib/api/categories";
-import MainSearch from "@/components/layout/MainSearch";
-import { getAllProducts } from "@/lib/api/products";
-import ProductList from "@/components/product/ProductsList";
-import Link from "next/link";
+import { getFeaturedProducts, getTrendingProducts, getCommercialProducts, getLatestProducts } from "@/lib/api/products";
+import SearchWrapper from "@/components/search/SearchWrapper";
+import ProductSection from "@/components/sections/ProductSection";
+import CategoryGrid from "@/components/sections/CategoryGrid";
+import CreatorSpotlight from "@/components/sections/CreatorSpotlight";
+import CallToAction from "@/components/sections/CallToAction";
+import LatestSection from "@/components/sections/LatestSection";
+import { FaCrown, FaFire } from "react-icons/fa";
 
-export default async function Home({ searchParams }: { searchParams: { category?: string } }) {
-  const products = await getAllProducts();
-  const categories = await getAllCategories();
-
+export default async function Home() {
+  // Use proper filtering functions instead of just slicing
+  const featuredProducts = await getFeaturedProducts();
+  const trendingProducts = await getTrendingProducts();
+  const commercialProducts = await getCommercialProducts();
+  const newProducts = await getLatestProducts();
+  
   return (
     <div className="mx-auto">
-      <MainSearch />
-      <div className="bg-[#131618]">
-        {/* Liste des categories */}
-        <div className="max-w-[1920px] mx-auto flex justify-between text items-center pt-12 pb-12">
-          <span className="text-4xl font-bold text-white">Browse our latest addition</span>
+      {/* Hero Section */}
+      <SearchWrapper />
 
-          <div className="flex flex-wrap gap-3 py-4">
-            {categories
-            .filter((cat) => cat.id === 1 || cat.id === 6)
-            .map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/tag/${cat.name}`}
-                className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600"
-              >
-                {cat.name}
-              </Link>
-            ))}
+      {/* Featured Section */}
+      <ProductSection
+        title="Featured Models"
+        icon={<FaCrown className="w-6 h-6" />}
+        products={featuredProducts}
+        variant="featured"
+        viewAllHref="/featured"
+      />
+
+      {/* Categories Section */}
+      <CategoryGrid />
+
+      {/* Trending Section */}
+      <ProductSection
+        title="Trending This Week"
+        icon={<FaFire className="w-6 h-6" />}
+        products={trendingProducts}
+        variant="trending"
+        viewAllHref="/trending"
+        showRanking={true}
+        showDownloads={true}
+      />
+
+      {/* Creator Spotlight */}
+      <CreatorSpotlight />
+
+      {/* Commercial License Available */}
+      <ProductSection
+        title="Commercial License Available"
+        icon={
+          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+            <span className="text-black text-xs font-bold">$</span>
           </div>
-        </div>
-      </div>
+        }
+        products={commercialProducts}
+        variant="commercial"
+        viewAllHref="/commercial"
+        showCommercialInfo={true}
+      />
 
-      {/* Liste des produits */}
-      <ProductList products={products} />
+      {/* Latest Additions */}
+      <LatestSection products={newProducts} />
+
+      {/* Call to Action */}
+      <CallToAction />
     </div>
   );
 }

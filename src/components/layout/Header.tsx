@@ -1,26 +1,106 @@
-import NavButton from '@/components/buttons/NavButton';
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { useStudio } from '@/context/StudioContext';
+import { useEffect, useState } from 'react';
+import { Navigation, SearchSection, QuickActions, UserMenu, MobileMenu } from './header/index';
 
 const Header = () => {
+  const { user, logout, isAuthenticated } = useAuth();
+  const { myStudio } = useStudio();
+  const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  const isHomePage = pathname === '/';
+  const isStudioPage = pathname.startsWith('/studio/');
+  const showSearch = !isHomePage && !isStudioPage;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
-    <header className="text-white w-full bg-[#0F1213]  border-b-[#272D31] border-b-1">
-      <div className="max-w-[1920px] mx-auto flex items-center justify-between py-4 px-4 lg:px-0 text-black border">
+    <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur-md border-b border-border/50 shadow-lg">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between" style={{ height: 'var(--header-height)' }}>
+          
+          {/* Left: Logo + Navigation */}
+          <div className="flex items-center gap-8">
+            {/* Logo */}
+            <Link 
+              href="/" 
+              className="flex items-center gap-2 text-xl font-bold text-text-primary hover:text-primary transition-colors duration-200"
+            >
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">3D</span>
+              </div>
+              <span className="hidden sm:block">STLForge</span>
+            </Link>
 
+            {/* Desktop Navigation */}
+            <Navigation />
+          </div>
 
-        {/* Logo */}
-        <div className="text-xl font-black text-white"><a href="http://localhost:3000/">3D STLForge</a></div>
+          {/* Center: Search Bar (non-homepage and non-studio pages) */}
+          {showSearch && (
+            <SearchSection isVisible={true} />
+          )}
 
-        {/* Main Navigation */}
-        {/* <nav className="hidden md:flex items-center space-x-6">
-          <NavButton href="/fantasy">Fantasy</NavButton>
-          <NavButton href="/science-fiction">Sci-Fi</NavButton>
-          <NavButton href="/terrain">Terrain</NavButton>
-        </nav> */}
+          {/* Right: Actions + User */}
+          <div className="flex items-center gap-6">
+            {/* Search Button for mobile when search should be visible */}
+            {showSearch && (
+              <SearchSection isVisible={false} />
+            )}
 
-        {/* User Actions */}
-        <div className="flex items-center space-x-4">
-          <span className="cursor-pointer">Cart</span>
-          <span className="cursor-pointer btn"><a href="auth/signin">Sign In</a></span>
+            {/* Quick Actions - Hidden on mobile */}
+            <div className="hidden lg:flex">
+              <QuickActions 
+                isAuthenticated={isAuthenticated}
+                notificationCount={0}
+              />
+            </div>
+
+            {/* Cart icon visible on mobile */}
+            <div className="lg:hidden">
+              <QuickActions 
+                isAuthenticated={isAuthenticated}
+                notificationCount={0}
+                mobileOnly={true}
+              />
+            </div>
+
+            {/* Vertical Separator - Desktop only */}
+            <div className="hidden lg:block w-px h-6 bg-border"></div>
+
+            {/* User Profile - Hidden on mobile */}
+            <div className="hidden lg:block">
+              {!mounted ? (
+                <div className="w-8 h-8 bg-background-card rounded-full animate-pulse" />
+              ) : (
+                <UserMenu
+                  user={user}
+                  isAuthenticated={isAuthenticated}
+                  myStudio={myStudio}
+                  onLogout={handleLogout}
+                />
+              )}
+            </div>
+
+            {/* Mobile Menu Button - Always at the right on mobile */}
+            <MobileMenu 
+              user={user}
+              isAuthenticated={isAuthenticated}
+              myStudio={myStudio}
+              onLogout={handleLogout}
+            />
+          </div>
         </div>
       </div>
     </header>

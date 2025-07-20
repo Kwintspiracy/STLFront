@@ -1,31 +1,225 @@
 @import "tailwindcss";
 
-
 html,
 body {
   height: 100%;
 }
 
+/* ========================================
+   THEME SYSTEM
+   To switch themes, add one of these classes to <html>:
+   - (no class) - Default dark theme
+   - theme-light - Light theme
+   ======================================== */
+
+/* Default Theme Variables (Original STL Forge Theme) */
+:root {
+  /* Primary Colors - Public Area */
+  --color-primary: #49C5C9;
+  --color-primary-hover: #5dd1d5;
+  --color-primary-foreground: #000000;
+  
+  /* Primary Colors - Studio Area */
+  --color-primary-studio: #FDD811;
+  --color-primary-studio-hover: #fde047;
+  --color-primary-studio-foreground: #000000;
+  
+  /* Backgrounds - Public Area */
+  --color-background: #0D1117;
+  --color-background-secondary: #151B23;
+  --color-background-card: #151B23;
+  --color-background-hover: #1A1C21;
+  
+  /* Backgrounds - Studio Area */
+  --color-background-studio: #131618;
+  --color-background-studio-secondary: #1A1C21;
+  --color-background-studio-card: #1A1C21;
+  --color-background-studio-hover: #1F2124;
+  
+  /* Text Colors - Studio Area */
+  --color-text-studio-primary: #F4F4F4;
+  --color-text-studio-secondary: #9ca3af;
+  --color-text-studio-muted: #6b7280;
+  
+  /* Borders - Studio Area */
+  --color-border-studio: #2A2D30;
+  --color-border-studio-hover: #3A3D40;
+  
+  /* Accent Color - Studio Area */
+  --color-accent-studio: #FDD811;
+  --color-accent-studio-hover: #fde047;
+  --color-accent-studio-foreground: #000000;
+  
+  /* Text Colors */
+  --color-text-primary: #F4F4F4;
+  --color-text-secondary: #9ca3af;
+  --color-text-muted: #6b7280;
+  --color-text-section-title: #ffffff;
+  
+  /* Borders */
+  --color-border: #2A2D30;
+  --color-border-hover: #3A3D40;
+  
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+  
+  /* Layout Variables */
+  --header-height: 5rem; /* 64px - h-16 */
+  
+  /* Border Variables */
+  --border-width: 0px;
+  
+  /* Search Section Gradient Variables */
+  --search-gradient-from: var(--color-background);
+  --search-gradient-via: var(--color-background-card);
+  --search-gradient-to: var(--color-background);
+}
+
+/* Studio context - override all colors for studio */
+.in-studio {
+  --color-primary: var(--color-primary-studio);
+  --color-primary-hover: var(--color-primary-studio-hover);
+  --color-primary-foreground: var(--color-primary-studio-foreground);
+  
+  --color-background: var(--color-background-studio);
+  --color-background-secondary: var(--color-background-studio-secondary);
+  --color-background-card: var(--color-background-studio-card);
+  --color-background-hover: var(--color-background-studio-hover);
+  
+  --color-text-primary: var(--color-text-studio-primary);
+  --color-text-secondary: var(--color-text-studio-secondary);
+  --color-text-muted: var(--color-text-studio-muted);
+  
+  --color-border: var(--color-border-studio);
+  --color-border-hover: var(--color-border-studio-hover);
+  
+  /* Studio accent color available as CSS variable */
+  --color-accent: var(--color-accent-studio);
+  --color-accent-hover: var(--color-accent-studio-hover);
+  --color-accent-foreground: var(--color-accent-studio-foreground);
+}
+
+
+/* Light Theme */
+.theme-light {
+  /* Primary Colors - Public Area - Bright and accessible */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-foreground: #ffffff;
+  
+  /* Primary Colors - Studio Area */
+  --color-primary-studio: #f59e0b;
+  --color-primary-studio-hover: #d97706;
+  --color-primary-studio-foreground: #000000;
+  
+  /* Backgrounds - Public Area - Strong contrast with dark sections */
+  --color-background: #ffffff;
+  --color-background-secondary: #131519;
+  --color-background-card: #374151;
+  --color-background-hover: #4b5563;
+  
+  /* Backgrounds - Studio Area - Warm with dark sections */
+  --color-background-studio: #fef3c7;
+  --color-background-studio-secondary: #451a03;
+  --color-background-studio-card: #78350f;
+  --color-background-studio-hover: #92400e;
+  
+  /* Text Colors - Studio Area - Adapted for dark sections */
+  --color-text-studio-primary: #fbbf24;
+  --color-text-studio-secondary: #fcd34d;
+  --color-text-studio-muted: #fed7aa;
+  
+  /* Borders - Studio Area */
+  --color-border-studio: #92400e;
+  --color-border-studio-hover: #b45309;
+  
+  /* Accent Color - Studio Area */
+  --color-accent-studio: #f59e0b;
+  --color-accent-studio-hover: #d97706;
+  --color-accent-studio-foreground: #000000;
+  
+  /* Text Colors - Adapted for dark sections on light theme */
+  --color-text-primary: #111827;
+  --color-text-secondary: #e5e7eb;
+  --color-text-muted: #9ca3af;
+  --color-text-section-title: #131519;
+  
+  /* Borders - Strong contrast */
+  --color-border: #374151;
+  --color-border-hover: #4b5563;
+  
+  /* Status colors - Bright and visible */
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+}
 
 @theme {
-  /* custom colors */
-  --color-primary: #FFD700;
-  --color-secondary: #FFFFFF;
+  /* Map CSS variables to Tailwind utilities */
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-foreground: var(--color-primary-foreground);
+  
+  --color-accent: var(--color-accent, var(--color-primary));
+  --color-accent-hover: var(--color-accent-hover, var(--color-primary-hover));
+  --color-accent-foreground: var(--color-accent-foreground, var(--color-primary-foreground));
+  
+  --color-background: var(--color-background);
+  --color-background-secondary: var(--color-background-secondary);
+  --color-background-card: var(--color-background-card);
+  --color-background-hover: var(--color-background-hover);
+  
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-section-title: var(--color-text-section-title);
+  
+  --color-border: var(--color-border);
+  --color-border-hover: var(--color-border-hover);
+  
+  --color-success: var(--color-success);
+  --color-error: var(--color-error);
+  --color-warning: var(--color-warning);
+  --color-info: var(--color-info);
+
+  /* Legacy color mappings for backward compatibility */
+  --color-primarybackground: var(--color-background);
+  --color-secondarybackground: var(--color-background-secondary);
+  --color-cardbackground: var(--color-background-card);
+  --color-secondary: var(--color-text-primary);
 
   /* custom font */
   --font-heading: "Open Sans", sans-serif;
   --font-base: "Open Sans", sans-serif;
+  --font-primarycolor: var(--color-text-primary);
 
   /* custom spacing */
   --spacing-7: 1.78rem;
+
+  /* custom breakpoints */
+  --breakpoint-xs: 26.875rem; /* 430px - for large mobile devices like iPhone Pro Max */
+  --breakpoint-3xl: 120rem;
+  
+  /* Layout Variables */
+  --header-height: var(--header-height);
+  
+  /* Border Variables */
+  --border-width: var(--border-width);
 }
 
 @layer base {
-  a{
-    color: white;
+  a {
+    color: var(--color-text-primary);
     @apply hover:underline;
   }
   
+  .theme-light a {
+    color: var(--color-primary);
+  }
 }
 
 @layer components {

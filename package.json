@@ -6,9 +6,13 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "check-env": "powershell -ExecutionPolicy Bypass -File ./scripts/env-check.ps1"
   },
   "dependencies": {
+    "@google-cloud/local-auth": "^3.0.1",
+    "axios": "^1.10.0",
+    "google-auth-library": "^10.1.0",
     "lucide-react": "^0.515.0",
     "next": "15.3.3",
     "react": "^19.0.0",
