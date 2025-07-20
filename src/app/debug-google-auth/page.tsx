@@ -247,7 +247,7 @@ export default function DebugGoogleAuth() {
           <h3 className="text-lg font-semibold text-yellow-800 mb-3">💡 Troubleshooting Tips</h3>
           <ul className="text-sm text-yellow-700 space-y-2">
             <li><strong>400 Bad Request:</strong> Usually means the request format is wrong or missing required fields</li>
-            <li><strong>405 Method Not Allowed:</strong> The endpoint doesn't accept the HTTP method used</li>
+            <li><strong>405 Method Not Allowed:</strong> The endpoint doesn&apos;t accept the HTTP method used</li>
             <li><strong>500 Internal Server Error:</strong> Server-side error, check Django logs</li>
             <li><strong>CORS errors:</strong> Check Django CORS settings for localhost:3002</li>
             <li><strong>Redirect URI mismatch:</strong> Ensure Google Console has the exact redirect URI</li>
