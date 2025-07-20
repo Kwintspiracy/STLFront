@@ -32,7 +32,9 @@ function GoogleCallbackContent() {
 
         console.log('🔄 Processing Google authentication callback...');
 
-        // Send the code to our backend
+        // Send the authorization code directly to our backend
+        // The backend will handle the token exchange securely with the client secret
+        console.log('🔄 Sending authorization code to backend...');
         const response = await axios.post(AUTH_ENDPOINTS.GOOGLE_LOGIN, {
           code: code,
         }, {
@@ -68,6 +70,7 @@ function GoogleCallbackContent() {
               data?: {
                 detail?: string;
                 message?: string;
+                error?: string;
               };
             };
             message?: string;
@@ -75,6 +78,7 @@ function GoogleCallbackContent() {
           
           errorMessage = axiosError.response?.data?.detail || 
                         axiosError.response?.data?.message || 
+                        axiosError.response?.data?.error ||
                         axiosError.message || 
                         "Échec de l'authentification Google";
         }

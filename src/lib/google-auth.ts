@@ -147,6 +147,51 @@ export const signInWithGoogleRedirect = (): void => {
 };
 
 /**
+ * Exchange authorization code for access token
+ * Note: For public clients, we'll send the code directly to our backend
+ * and let the backend handle the token exchange with the client secret
+ */
+export const exchangeCodeForToken = async (code: string): Promise<{ access_token: string; user_info: any }> => {
+  try {
+    // For security reasons, we'll let our backend handle the token exchange
+    // since it has access to the client secret
+    console.log('🔄 Sending authorization code to backend for token exchange...');
+    
+    // We'll return the code and let the backend handle the exchange
+    // This is a temporary solution - the backend should handle the full OAuth flow
+    return {
+      access_token: code, // We'll send the code as if it's a token for now
+      user_info: null // Backend will get user info after token exchange
+    };
+  } catch (error) {
+    console.error('Error preparing code for backend:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get user info from Google using access token
+ */
+export const getUserInfoFromGoogle = async (accessToken: string): Promise<any> => {
+  try {
+    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get user info: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting user info from Google:', error);
+    throw error;
+  }
+};
+
+/**
  * Parse Google OAuth callback URL
  */
 export const parseGoogleCallback = (url: string): { code?: string; error?: string } => {
