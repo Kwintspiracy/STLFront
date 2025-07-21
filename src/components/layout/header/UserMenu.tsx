@@ -216,7 +216,7 @@ export default function UserMenu({
                   </p>
                   
                   <Link
-                    href="/profile"
+                    href="/useraccount"
                     className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-[var(--color-primary-studio-hover)]/5 hover:text-white rounded-lg mx-1 transition-colors group"
                     onClick={() => setDropdownOpen(false)}
                   >
@@ -225,7 +225,7 @@ export default function UserMenu({
                   </Link>
 
                   <Link
-                    href="/wishlist"
+                    href="/useraccount/wishlist"
                     className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-[var(--color-primary-studio-hover)]/5 hover:text-white rounded-lg mx-1 transition-colors group"
                     onClick={() => setDropdownOpen(false)}
                   >
@@ -234,7 +234,7 @@ export default function UserMenu({
                   </Link>
 
                   <Link
-                    href="/settings"
+                    href="/useraccount/settings"
                     className="flex items-center px-3 py-2 text-sm text-gray-300 hover:bg-[var(--color-primary-studio-hover)]/5 hover:text-white rounded-lg mx-1 transition-colors group"
                     onClick={() => setDropdownOpen(false)}
                   >

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { login } from '@/lib/api/authService';
-import { useUser } from '@/context/UserContext';
 import { useAuth } from '@/context/AuthContext';
 import { USE_MOCK_DATA } from '@/lib/api/config';
 import type { User } from '@/data/mock-users';
@@ -19,7 +18,6 @@ export default function LoginForm() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { setUser } = useUser();
   const auth = useAuth();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -31,7 +29,7 @@ export default function LoginForm() {
       if (USE_MOCK_DATA) {
         // Use existing mock authentication
         const user: User = await login(email, password);
-        setUser(user); // ✅ met à jour le contexte global
+        // For mock data, we'll just redirect - in a real app, this would be handled by AuthContext
         router.push(user.studio ? `/studio/${user.studio.id}` : '/');
       } else {
         // Use real API authentication via AuthContext
