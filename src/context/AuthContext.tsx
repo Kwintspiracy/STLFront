@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { AuthState, ApiUser, LoginRequest, AuthResponse } from '@/types/auth';
-import { AUTH_ENDPOINTS, USE_MOCK_DATA } from '@/lib/api/config';
+import { AUTH_ENDPOINTS, USE_MOCK_DATA, OAUTH_CALLBACKS } from '@/lib/api/config';
 import { 
   setTokenCookies, 
   clearTokenCookies, 
@@ -213,7 +213,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Discord Client ID not configured');
       }
 
-      const redirectUri = `${window.location.origin}/auth/discord/callback`;
+      const redirectUri = OAUTH_CALLBACKS.DISCORD;
       const scope = 'identify email';
       
       const discordAuthUrl = `https://discord.com/api/oauth2/authorize?` +

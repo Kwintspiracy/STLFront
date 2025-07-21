@@ -35,8 +35,14 @@ function GoogleCallbackContent() {
         // Send the authorization code directly to our backend
         // The backend will handle the token exchange securely with the client secret
         console.log('🔄 Sending authorization code to backend...');
+        
+        const redirectUri = `${window.location.origin}/auth/google/callback`;
+        console.log('🔗 Redirect URI envoyée au backend:', redirectUri);
+        console.log('📋 Payload complet:', { code: code, redirect_uri: redirectUri });
+        
         const response = await axios.post(AUTH_ENDPOINTS.GOOGLE_LOGIN, {
           code: code,
+          redirect_uri: redirectUri,
         }, {
           headers: {
             'Content-Type': 'application/json',

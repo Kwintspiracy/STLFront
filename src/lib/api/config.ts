@@ -16,6 +16,25 @@ const getApiBaseUrl = (): string => {
 
 export const API_BASE_URL = getApiBaseUrl();
 
+// Frontend URL Configuration based on environment
+const getFrontendUrl = (): string => {
+  // In production, use the production frontend URL
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.NEXT_PUBLIC_FRONTEND_URL_PROD || "https://stl-front.vercel.app";
+  }
+  
+  // In development, use local frontend URL
+  return process.env.NEXT_PUBLIC_FRONTEND_URL_DEV || "http://localhost:3000";
+};
+
+export const FRONTEND_URL = getFrontendUrl();
+
+// OAuth callback URLs - dynamically generated based on environment
+export const OAUTH_CALLBACKS = {
+  GOOGLE: `${FRONTEND_URL}/auth/google/callback`,
+  DISCORD: `${FRONTEND_URL}/auth/discord/callback`,
+};
+
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
   LOGIN: `${API_BASE_URL}/auth/login/`,
