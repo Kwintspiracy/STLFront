@@ -13,6 +13,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 // Variables d'environnement avec fallbacks
 const apiHostname = process.env.NEXT_PUBLIC_API_HOSTNAME || '127.0.0.1';
 const mediaPath = process.env.NEXT_PUBLIC_MEDIA_PATH || '/media';
+const mediaPathProd = process.env.NEXT_PUBLIC_MEDIA_PATH_PROD;
 
 // Génération des remotePatterns dynamiques
 const generateRemotePatterns = (): Array<{
@@ -44,6 +45,20 @@ const generateRemotePatterns = (): Array<{
       pathname: '/**',
     },
   ];
+
+  // Google Cloud Storage pour les médias de production
+  if (mediaPathProd) {
+    try {
+      const url = new URL(mediaPathProd);
+      patterns.push({
+        protocol: 'https',
+        hostname: url.hostname,
+        pathname: url.pathname === '/' ? '/**' : `${url.pathname}/**`,
+      });
+    } catch (error) {
+      console.warn('Invalid NEXT_PUBLIC_MEDIA_PATH_PROD URL:', mediaPathProd);
+    }
+  }
 
   // Configuration API selon l'environnement
   if (isDevelopment) {

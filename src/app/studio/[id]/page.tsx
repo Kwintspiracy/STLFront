@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useStudio } from '@/context/StudioContext';
 import { useAuth } from '@/context/AuthContext';
 import { notFound, useRouter } from 'next/navigation';
@@ -90,10 +91,13 @@ export default function StudioDashboard({ params }: Props) {
       {/* Hero Banner Section */}
       {studio.banner && (
         <div className="relative h-64 md:h-80 overflow-hidden">
-          <img 
-            src={studio.banner} 
+          <Image
+            src={studio.banner}
             alt={`${studio.name} banner`}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
           
@@ -102,11 +106,15 @@ export default function StudioDashboard({ params }: Props) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
               <div className="flex items-end gap-6">
                 {studio.badge && (
-                  <img 
-                    src={studio.badge} 
-                    alt={`${studio.name} badge`}
-                    className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover border-4 border-white/20 shadow-2xl"
-                  />
+                  <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden border-4 border-white/20 shadow-2xl">
+                    <Image
+                      src={studio.badge}
+                      alt={`${studio.name} badge`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 80px, 96px"
+                    />
+                  </div>
                 )}
                 <div className="flex-1 text-white">
                   <h1 className="text-3xl md:text-4xl font-bold mb-2">{studio.name}</h1>
@@ -138,11 +146,15 @@ export default function StudioDashboard({ params }: Props) {
           <div className="mb-8">
             <div className="flex items-center gap-4 mb-4">
               {studio.badge && (
-                <img 
-                  src={studio.badge} 
-                  alt={`${studio.name} badge`}
-                  className="w-16 h-16 rounded-lg object-cover"
-                />
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden">
+                  <Image
+                    src={studio.badge}
+                    alt={`${studio.name} badge`}
+                    fill
+                    className="object-cover"
+                    sizes="64px"
+                  />
+                </div>
               )}
               <div>
                 <h1 className="text-3xl font-bold text-text-primary">{studio.name}</h1>

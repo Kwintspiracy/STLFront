@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { BaseProductCardProps } from './types';
 import DefaultAvatar from '@/components/ui/DefaultAvatar';
 import { useCart } from '@/context/CartContext';
+import { processImageUrl } from '@/lib/utils/mediaUtils';
 
 interface ProductCardProps extends BaseProductCardProps {
   loading?: boolean;
@@ -32,7 +33,8 @@ export default function ProductCard({
   const { addToCart } = useCart();
 
   const sortedImages = [...product.images].sort((a, b) => a.rank - b.rank);
-  const mainImage = sortedImages[0]?.url || sortedImages[0]?.image; // Support both new and legacy format
+  const rawImageUrl = sortedImages[0]?.url || sortedImages[0]?.image; // Support both new and legacy format
+  const mainImage = rawImageUrl ? processImageUrl(rawImageUrl) : null;
 
   const handleImageLoad = () => {
     setImageLoading(false);
@@ -217,7 +219,7 @@ export default function ProductCard({
               {/* Check if studio has a badge */}
               {product.creator.badge ? (
                 <Image
-                  src={product.creator.badge}
+                  src={processImageUrl(product.creator.badge)}
                   alt={`${product.creator.name} badge`}
                   width={32}
                   height={32}
