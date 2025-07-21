@@ -44,6 +44,12 @@ const generateRemotePatterns = (): Array<{
       hostname: 'fbi.cults3d.com',
       pathname: '/**',
     },
+    // Google Cloud Storage (toujours autorisé)
+    {
+      protocol: 'https',
+      hostname: 'storage.googleapis.com',
+      pathname: '/**',
+    },
   ];
 
   // Google Cloud Storage pour les médias de production
