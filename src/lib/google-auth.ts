@@ -1,5 +1,4 @@
 // Google Authentication utilities for Next.js frontend
-import { OAUTH_CALLBACKS } from '@/lib/api/config';
 
 export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
 
@@ -82,7 +81,7 @@ export const initializeGoogleAuth = (): Promise<void> => {
 export const getGoogleAuthUrl = (): string => {
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: OAUTH_CALLBACKS.GOOGLE,
+    redirect_uri: `${window.location.origin}/auth/google/callback`,
     scope: 'openid email profile',
     response_type: 'code',
     access_type: 'online',
