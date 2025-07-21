@@ -18,7 +18,7 @@ interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
 
 // Create axios instance
 const httpClient: AxiosInstance = axios.create({
-  timeout: 10000,
+  timeout: 120000, // 2 minutes for file uploads
   headers: {
     'Content-Type': 'application/json',
   },
