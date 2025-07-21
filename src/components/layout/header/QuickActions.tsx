@@ -77,7 +77,7 @@ export default function QuickActions({
 
           {/* Favorites */}
           <Link 
-            href="/wishlist"
+            href="/useraccount/wishlist"
             className="p-2 text-text-secondary hover:text-text-primary hover:bg-background-hover rounded-lg transition-colors"
             aria-label="My favorites"
           >
@@ -86,7 +86,7 @@ export default function QuickActions({
 
           {/* Public Profile */}
           <Link 
-            href="/profile"
+            href="/useraccount"
             className="p-2 text-text-secondary hover:text-text-primary hover:bg-background-hover rounded-lg transition-colors"
             aria-label="My profile"
           >

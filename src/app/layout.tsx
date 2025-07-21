@@ -2,7 +2,6 @@ import "./globals.css";
 import { Open_Sans } from "next/font/google";
 import Header from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { UserProvider } from "@/context/UserContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { StudioProvider } from "@/context/StudioContext";
@@ -27,14 +26,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ToastProvider>
           <AuthProvider>
             <StudioProvider>
-              <UserProvider>
-                <CartProvider>
-                  <Header />
-                  <main className="flex-1">{children}</main>
-                  <Footer />
-                  <ThemeSwitcher />
-                </CartProvider>
-              </UserProvider>
+              <CartProvider>
+                <Header />
+                <main className="flex-1">{children}</main>
+                <Footer />
+                <ThemeSwitcher />
+              </CartProvider>
             </StudioProvider>
           </AuthProvider>
         </ToastProvider>
