@@ -64,7 +64,7 @@ export default function ProductCard({
       case 'trending':
         return {
           badgeText: ranking ? `#${ranking}` : 'TRENDING',
-          badgeColor: 'bg-orange-600 text-white',
+          badgeColor: 'bg-orange-700 text-white',
           hoverBorder: 'hover:border-orange-500/50',
           accentColor: 'text-orange-500'
         };

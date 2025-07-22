@@ -18,16 +18,44 @@ export function Footer() {
               The ultimate marketplace for premium 3D printable models. Join thousands of creators and makers worldwide.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-primary transition-colors">
+              <a 
+                href="https://discord.gg/stlforge" 
+                className="text-gray-400 hover:text-primary transition-colors"
+                aria-label="Join our Discord community"
+                title="Join our Discord community"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaDiscord className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary transition-colors">
+              <a 
+                href="https://twitter.com/stlforge" 
+                className="text-gray-400 hover:text-primary transition-colors"
+                aria-label="Follow us on Twitter"
+                title="Follow us on Twitter"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaTwitter className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary transition-colors">
+              <a 
+                href="https://instagram.com/stlforge" 
+                className="text-gray-400 hover:text-primary transition-colors"
+                aria-label="Follow us on Instagram"
+                title="Follow us on Instagram"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaInstagram className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary transition-colors">
+              <a 
+                href="https://youtube.com/@stlforge" 
+                className="text-gray-400 hover:text-primary transition-colors"
+                aria-label="Subscribe to our YouTube channel"
+                title="Subscribe to our YouTube channel"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaYoutube className="w-5 h-5" />
               </a>
             </div>
@@ -35,7 +63,7 @@ export function Footer() {
 
           {/* Browse */}
           <div>
-            <h4 className="font-semibold mb-4 text-white">Browse</h4>
+            <h3 className="font-semibold mb-4 text-white">Browse</h3>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link href="/products" className="text-gray-400 hover:text-white transition-colors">
@@ -67,7 +95,7 @@ export function Footer() {
 
           {/* Creators */}
           <div>
-            <h4 className="font-semibold mb-4 text-white">For Creators</h4>
+            <h3 className="font-semibold mb-4 text-white">For Creators</h3>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link href="/studio/create" className="text-gray-400 hover:text-white transition-colors">
@@ -99,7 +127,7 @@ export function Footer() {
 
           {/* Support & Newsletter */}
           <div>
-            <h4 className="font-semibold mb-4 text-white">Support</h4>
+            <h3 className="font-semibold mb-4 text-white">Support</h3>
             <ul className="space-y-3 text-sm mb-6">
               <li>
                 <Link href="/help" className="text-gray-400 hover:text-white transition-colors">
@@ -125,7 +153,7 @@ export function Footer() {
             
             {/* Newsletter Signup */}
             <div className="bg-cardbackground border border-gray-700 rounded-lg p-4">
-              <h5 className="font-medium text-white mb-2 text-sm">Stay Updated</h5>
+              <h4 className="font-medium text-white mb-2 text-sm">Stay Updated</h4>
               <p className="text-gray-400 text-xs mb-3">
                 Get the latest releases and creator content.
               </p>
@@ -135,8 +163,13 @@ export function Footer() {
                   placeholder="Your email"
                   className="flex-1 bg-primarybackground border border-gray-600 rounded-l-md px-3 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-primary"
                 />
-                <button className="bg-primary text-black px-3 py-2 rounded-r-md hover:bg-primary/90 transition-colors">
+                <button 
+                  className="bg-primary text-black px-3 py-2 rounded-r-md hover:bg-primary/90 transition-colors"
+                  aria-label="Subscribe to newsletter"
+                  title="Subscribe to newsletter"
+                >
                   <FaEnvelope className="w-4 h-4" />
+                  <span className="sr-only">Subscribe to newsletter</span>
                 </button>
               </div>
             </div>
