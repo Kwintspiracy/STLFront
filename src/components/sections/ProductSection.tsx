@@ -38,7 +38,7 @@ export default function ProductSection({
         else if (width >= 1024) setVisibleCards(4); // lg: 4 cards
         else if (width >= 768) setVisibleCards(3);  // md: 3 cards
         else if (width >= 640) setVisibleCards(2);  // sm: 2 cards
-        else setVisibleCards(1);                     // mobile: 1 card
+        else setVisibleCards(6);                     // mobile: 6 cards (3 rows x 2 cols)
       }
     };
 
@@ -115,7 +115,7 @@ export default function ProductSection({
                     {icon}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-text-section-title">{title}</h2>
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-text-section-title">{title}</h2>
                     {description && (
                       <p className="text-gray-400 mt-1">{description}</p>
                     )}
@@ -123,9 +123,9 @@ export default function ProductSection({
                 </div>
                 
                 <div className="flex items-center gap-4">
-                  {/* Carousel Navigation */}
+                  {/* Carousel Navigation - Hidden on mobile */}
                   {carouselProducts.length > visibleCards && (
-                    <div className="flex items-center gap-2">
+                    <div className="hidden sm:flex items-center gap-2">
                       <button
                         onClick={goToPrevious}
                         className="p-2 rounded-full bg-cardbackground border border-gray-700 text-gray-300 hover:text-white hover:border-gray-600 transition-colors"
@@ -146,7 +146,7 @@ export default function ProductSection({
                   {viewAllHref && (
                     <Link 
                       href={viewAllHref} 
-                      className="flex items-center gap-2 text-primary hover:text-white transition-colors text-sm"
+                      className="hidden sm:flex items-center gap-2 text-primary hover:text-white transition-colors text-sm"
                     >
                       View All <FaArrowRight className="w-3 h-3" />
                     </Link>
@@ -163,7 +163,7 @@ export default function ProductSection({
                 {icon}
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-text-section-title">{title}</h2>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-text-section-title">{title}</h2>
                 {description && (
                   <p className="text-gray-400 mt-1">{description}</p>
                 )}
@@ -183,17 +183,16 @@ export default function ProductSection({
         
         {/* Products Display */}
         {useCarousel ? (
-          /* Carousel Layout - Responsive */
-          <div className="flex justify-center">
-            <div className="relative overflow-hidden w-full max-w-[1720px]">
-              {/* Visible window - Responsive grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-[30px]">
-                {carouselProducts.slice(currentIndex, currentIndex + visibleCards).map((product, index) => (
+          <>
+            {/* Mobile: Fixed Grid (3 rows x 2 cols) */}
+            <div className="sm:hidden">
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {carouselProducts.slice(0, 6).map((product, index) => (
                   <ProductCard
                     key={product.id}
                     product={product}
                     variant={variant}
-                    ranking={showRanking ? currentIndex + index + 1 : undefined}
+                    ranking={showRanking ? index + 1 : undefined}
                     showDownloads={showDownloads}
                     showCommercialPrice={showCommercialInfo}
                     showFavorite={false}
@@ -201,16 +200,41 @@ export default function ProductSection({
                   />
                 ))}
               </div>
-              
-              {/* Mobile swipe hint */}
-              <div className="xl:hidden mt-4 text-center text-sm text-gray-400">
-                Swipe or use arrows to see more
+              {/* Mobile View All Button */}
+              {viewAllHref && (
+                <Link 
+                  href={viewAllHref}
+                  className="w-full bg-primary text-black py-3 rounded-lg font-medium hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
+                >
+                  View All <FaArrowRight className="w-4 h-4" />
+                </Link>
+              )}
+            </div>
+
+            {/* Desktop: Carousel Layout */}
+            <div className="hidden sm:flex justify-center">
+              <div className="relative overflow-hidden w-full max-w-[1720px]">
+                {/* Visible window - Responsive grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 lg:gap-[30px]">
+                  {carouselProducts.slice(currentIndex, currentIndex + visibleCards).map((product, index) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      variant={variant}
+                      ranking={showRanking ? currentIndex + index + 1 : undefined}
+                      showDownloads={showDownloads}
+                      showCommercialPrice={showCommercialInfo}
+                      showFavorite={false}
+                      className="w-full"
+                    />
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          </>
         ) : (
           /* Standard Grid Layout */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {products.map((product, index) => (
               <ProductCard
                 key={product.id}

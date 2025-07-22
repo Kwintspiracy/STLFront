@@ -91,7 +91,7 @@ export default function SearchResults({ className = "" }: SearchResultsProps) {
   return (
     <div className={`${className}`}>
       {/* Results Grid - Aligned with filter sidebar top */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
         {results.map((product) => (
           <ProductCard
             key={product.id}

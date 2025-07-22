@@ -154,16 +154,107 @@ export async function getProductsByStudio(studioId: number): Promise<Product[]> 
 }
 
 /**
+ * Helper function to delay execution
+ */
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Check if error is a network/connection error that should be retried
+ */
+const isRetryableError = (error: unknown): boolean => {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const axiosError = error as { 
+      response?: { status?: number };
+      code?: string;
+      message?: string;
+    };
+    
+    // Retry on network errors, timeouts, and 500 errors
+    return (
+      !axiosError.response || // Network error (no response)
+      (axiosError.response.status !== undefined && axiosError.response.status >= 500) || // Server errors
+      axiosError.code === 'ECONNABORTED' || // Timeout
+      axiosError.code === 'ERR_NETWORK' || // Network error
+      axiosError.code === 'ERR_BAD_RESPONSE' || // Bad response (like stream error)
+      (axiosError.message?.includes('stream error') ?? false) || // Stream errors
+      (axiosError.message?.includes('connection') ?? false) // Connection errors
+    );
+  }
+  return false;
+};
+
+/**
  * Crée un nouveau produit (nécessite l'authentification)
  */
 export async function createProduct(productData: Partial<Product>): Promise<Product> {
-  const response = await apiRequest.post<Product>(PRODUCT_ENDPOINTS.CREATE, productData);
+  console.log('🚀 Creating product with data:', JSON.stringify(productData, null, 2));
+  console.log('📡 Endpoint URL:', PRODUCT_ENDPOINTS.CREATE);
+  console.log('🔑 Token available:', !!getAccessToken());
   
-  console.log('Raw response:', response);
-  console.log('Response data:', response.data);
-  console.log('Product ID from response:', response.data?.id);
+  const maxRetries = 3;
+  let lastError: unknown;
   
-  return response.data;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🔄 Attempt ${attempt}/${maxRetries}`);
+      
+      const response = await apiRequest.post<Product>(PRODUCT_ENDPOINTS.CREATE, productData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('✅ Raw response:', response);
+      console.log('✅ Response data:', response.data);
+      console.log('✅ Product ID from response:', response.data?.id);
+      
+      return response.data;
+      
+    } catch (error: unknown) {
+      lastError = error;
+      console.error(`❌ Attempt ${attempt} failed:`, error);
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { 
+          response?: { 
+            status?: number; 
+            data?: unknown;
+            statusText?: string;
+          };
+          message?: string;
+          code?: string;
+        };
+        
+        console.error('❌ Error status:', axiosError.response?.status);
+        console.error('❌ Error statusText:', axiosError.response?.statusText);
+        console.error('❌ Error code:', axiosError.code);
+        console.error('❌ Error message:', axiosError.message);
+        
+        // Don't retry on client errors (4xx) except 408 (timeout)
+        if (axiosError.response?.status && 
+            axiosError.response.status >= 400 && 
+            axiosError.response.status < 500 && 
+            axiosError.response.status !== 408) {
+          console.error('❌ Client error - not retrying');
+          break;
+        }
+      }
+      
+      // Check if we should retry
+      if (attempt < maxRetries && isRetryableError(error)) {
+        const delayMs = 1000 * attempt; // 1s, 2s, 3s
+        console.log(`⏳ Retrying in ${delayMs}ms...`);
+        await delay(delayMs);
+        continue;
+      }
+      
+      // Last attempt or non-retryable error
+      break;
+    }
+  }
+  
+  console.error('❌ All retry attempts failed');
+  throw lastError;
 }
 
 /**
@@ -178,20 +269,32 @@ export async function updateProduct(id: number, productData: Partial<Product>): 
  * Supprime un produit (nécessite l'authentification)
  */
 export async function deleteProduct(id: number): Promise<void> {
-  // Since the API doesn't seem to support deletion, we'll mark it as draft
-  // and add a prefix to indicate it's been "deleted"
+  console.log(`🗑️ Deleting product ${id}...`);
+  
   try {
-    const product = await getProductById(id);
-    if (product) {
-      await updateProduct(id, { 
-        status: 'draft',
-        name: `[SUPPRIMÉ] ${product.name}`
-      });
-      console.log('Product marked as deleted (draft status with [SUPPRIMÉ] prefix)');
-    }
+    await apiRequest.delete(PRODUCT_ENDPOINTS.DELETE(id));
+    console.log('✅ Product deleted successfully from database');
   } catch (error: unknown) {
-    console.error('Error in deleteProduct:', error);
-    throw new Error('Impossible de supprimer le produit. L\'API ne supporte pas la suppression directe.');
+    console.error('❌ Error deleting product:', error);
+    
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { status?: number; data?: unknown } };
+      
+      if (axiosError.response?.status === 404) {
+        console.log('⚠️ Product not found, may already be deleted');
+        return; // Consider it successful if already deleted
+      }
+      
+      if (axiosError.response?.status === 403) {
+        throw new Error('Vous n\'avez pas les permissions pour supprimer ce produit');
+      }
+      
+      if (axiosError.response?.data && typeof axiosError.response.data === 'object' && 'error' in axiosError.response.data) {
+        throw new Error(String(axiosError.response.data.error));
+      }
+    }
+    
+    throw new Error('Erreur lors de la suppression du produit. Veuillez réessayer.');
   }
 }
 
@@ -254,7 +357,10 @@ export async function deleteProductImage(productId: number, imageId: number): Pr
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || `Failed to delete image: ${res.status} ${res.statusText}`);
+    const errorMessage = (errorData && typeof errorData === 'object' && 'error' in errorData) 
+      ? String(errorData.error) 
+      : `Failed to delete image: ${res.status} ${res.statusText}`;
+    throw new Error(errorMessage);
   }
 }
 
@@ -276,7 +382,10 @@ export async function deleteProductSTL(productId: number, stlId: number): Promis
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || `Failed to delete STL file: ${res.status} ${res.statusText}`);
+    const errorMessage = (errorData && typeof errorData === 'object' && 'error' in errorData) 
+      ? String(errorData.error) 
+      : `Failed to delete STL file: ${res.status} ${res.statusText}`;
+    throw new Error(errorMessage);
   }
 }
 
@@ -301,7 +410,10 @@ export async function setMainProductImage(productId: number, imageId: number): P
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || `Failed to set main image: ${res.status} ${res.statusText}`);
+    const errorMessage = (errorData && typeof errorData === 'object' && 'error' in errorData) 
+      ? String(errorData.error) 
+      : `Failed to set main image: ${res.status} ${res.statusText}`;
+    throw new Error(errorMessage);
   }
 }
 
@@ -326,7 +438,10 @@ export async function updateImageOrder(productId: number, imageOrders: { id: num
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || `Failed to update image order: ${res.status} ${res.statusText}`);
+    const errorMessage = (errorData && typeof errorData === 'object' && 'error' in errorData) 
+      ? String(errorData.error) 
+      : `Failed to update image order: ${res.status} ${res.statusText}`;
+    throw new Error(errorMessage);
   }
 }
 

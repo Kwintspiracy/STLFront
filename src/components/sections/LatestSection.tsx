@@ -18,7 +18,7 @@ export default function LatestSection({ products, className = "" }: LatestSectio
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-white">Latest Additions</h2>
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Latest Additions</h2>
             <p className="text-gray-400 mt-1">Fresh models from our community</p>
           </div>
           <Link 

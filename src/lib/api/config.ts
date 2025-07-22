@@ -76,6 +76,7 @@ export const PRODUCT_ENDPOINTS = {
   DETAIL: (id: number) => `${API_BASE_URL}/products/products/${id}/`,
   CREATE: `${API_BASE_URL}/products/products/`,
   UPDATE: (id: number) => `${API_BASE_URL}/products/products/${id}/`,
+  DELETE: (id: number) => `${API_BASE_URL}/products/products/${id}/`,
   BY_CATEGORY: (categorySlug: string) => `${API_BASE_URL}/products/products/?category=${categorySlug}`,
   BY_TAG: (tagSlug: string) => `${API_BASE_URL}/products/products/?tags=${tagSlug}`,
   BY_STUDIO: (studioId: number) => `${API_BASE_URL}/products/products/?studio=${studioId}`,

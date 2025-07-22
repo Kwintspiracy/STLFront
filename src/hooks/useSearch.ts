@@ -159,38 +159,6 @@ export function useSearch() {
     setCurrentPage(1);
   }, []);
 
-  // Search execution
-  const executeSearch = useCallback(async () => {
-    const query = getSearchQuery();
-    if (!query.trim() && elements.length === 0) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    // Add to search history
-    if (query.trim()) {
-      setSearchHistory(prev => {
-        const newHistory = [query, ...prev.filter(h => h !== query)].slice(0, 10);
-        return newHistory;
-      });
-    }
-
-    try {
-      // Use the search service
-      const searchResult = await searchProducts(elements, filters, currentPage, resultsPerPage);
-      
-      setResults(searchResult.results);
-      setTotalResults(searchResult.totalResults);
-      
-      updateURL();
-    } catch (error) {
-      console.error('Search error:', error);
-      setError(error instanceof Error ? error.message : 'Search failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [elements, filters, currentPage, resultsPerPage]);
-
   // Utility functions
   const getSearchQuery = useCallback(() => {
     const tags = elements
@@ -228,6 +196,38 @@ export function useSearch() {
     const url = params.toString() ? `/search?${params.toString()}` : '/search';
     router.push(url);
   }, [elements, filters, currentPage, router]);
+
+  // Search execution
+  const executeSearch = useCallback(async () => {
+    const query = getSearchQuery();
+    if (!query.trim() && elements.length === 0) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    // Add to search history
+    if (query.trim()) {
+      setSearchHistory(prev => {
+        const newHistory = [query, ...prev.filter(h => h !== query)].slice(0, 10);
+        return newHistory;
+      });
+    }
+
+    try {
+      // Use the search service
+      const searchResult = await searchProducts(elements, filters, currentPage, resultsPerPage);
+      
+      setResults(searchResult.results);
+      setTotalResults(searchResult.totalResults);
+      
+      updateURL();
+    } catch (error) {
+      console.error('Search error:', error);
+      setError(error instanceof Error ? error.message : 'Search failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [elements, filters, currentPage, resultsPerPage, getSearchQuery, updateURL]);
 
   // Keyboard handling
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {

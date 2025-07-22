@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -104,19 +104,6 @@ export default function EditProductPage({ params }: Props) {
     }
   }, [myStudio, myStudioLoading, studioId, router, showError]);
 
-  useEffect(() => {
-    // Load categories and tags
-    loadCategories();
-    loadTags();
-  }, []);
-
-  useEffect(() => {
-    // Load product data
-    if (productId) {
-      loadProduct();
-    }
-  }, [productId]);
-
   const loadCategories = async () => {
     try {
       const cats = await getAllCategories();
@@ -134,7 +121,7 @@ export default function EditProductPage({ params }: Props) {
     }
   };
 
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
     if (!productId) return;
     
     try {
@@ -206,7 +193,20 @@ export default function EditProductPage({ params }: Props) {
     } finally {
       setLoadingProduct(false);
     }
-  };
+  }, [productId, showError, router, studioId]);
+
+  useEffect(() => {
+    // Load categories and tags
+    loadCategories();
+    loadTags();
+  }, []);
+
+  useEffect(() => {
+    // Load product data
+    if (productId) {
+      loadProduct();
+    }
+  }, [productId, loadProduct]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;

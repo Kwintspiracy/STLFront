@@ -72,7 +72,7 @@ export default function SearchBar({
                     onKeyDown={onKeyDown}
                     className="bg-transparent text-text-primary outline-none text-base grow min-w-[120px] placeholder-text-muted"
                     placeholder={
-                        elements.length === 0 && input === "" ? "Search miniatures, creators, or tags..." : ""
+                        elements.length === 0 && input === "" ? "Search miniatures..." : ""
                     }
                 />
             </div>
@@ -80,7 +80,7 @@ export default function SearchBar({
             {/* Search Button */}
             <button
                 onClick={onSearch}
-                className="bg-background-card text-text-secondary px-4 py-3.5 rounded-xl text-base font-medium hover:bg-background-hover hover:text-text-primary transition-colors flex items-center justify-center min-w-[56px] border border-border"
+                className="bg-background-card text-text-secondary px-4 rounded-xl text-base font-medium hover:bg-background-hover hover:text-text-primary transition-colors flex items-center justify-center min-w-[56px] min-h-[56px] border border-border"
             >
                 <span className="block sm:hidden"><FiSearch size={18} /></span>
                 <span className="hidden sm:block">Search</span>
