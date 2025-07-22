@@ -92,8 +92,13 @@ function LatestProductCard({ product }: { product: Product }) {
 
           {/* Favorite button */}
           <div className="absolute top-2 right-2">
-            <button className="p-1.5 bg-black/50 backdrop-blur-sm rounded-full hover:bg-red-500/50 transition-colors">
+            <button 
+              className="p-1.5 bg-black/50 backdrop-blur-sm rounded-full hover:bg-red-500/50 transition-colors"
+              aria-label="Add to favorites"
+              title="Add to favorites"
+            >
               <FaHeart className="w-3 h-3 text-white" />
+              <span className="sr-only">Add to favorites</span>
             </button>
           </div>
         </div>
@@ -112,8 +117,13 @@ function LatestProductCard({ product }: { product: Product }) {
         
         <div className="flex items-center justify-between mt-2">
           <span className="text-sm font-bold text-primary">${product.price}</span>
-          <button className="bg-primary text-black px-2 py-1 rounded text-xs font-medium hover:bg-[#3f6061] hover:text-secondary transition-colors flex items-center gap-1">
+          <button 
+            className="bg-primary text-black px-2 py-1 rounded text-xs font-medium hover:bg-[#3f6061] hover:text-secondary transition-colors flex items-center gap-1"
+            aria-label="Add to cart"
+            title="Add to cart"
+          >
             <FaShoppingCart className="w-3 h-3" />
+            <span className="sr-only">Add to cart</span>
           </button>
         </div>
       </div>
