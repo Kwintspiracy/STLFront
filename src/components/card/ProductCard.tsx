@@ -196,12 +196,15 @@ export default function ProductCard({
               {/* Favorite button for standard cards */}
               {showFavorite && (
                 <button 
-                  className="p-1.5 bg-black/50 backdrop-blur-sm rounded-full hover:bg-red-500/50 transition-colors"
+                  className="p-1.5 bg-black/50 backdrop-blur-sm rounded-full hover:bg-red-500/50 transition-colors group/fav"
                   aria-label="Add to favorites"
                   title="Add to favorites"
                 >
                   <FaHeart className="w-3 h-3 text-white" />
                   <span className="sr-only">Add to favorites</span>
+                  <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-white bg-black/80 px-1 py-0.5 rounded opacity-0 group-hover/fav:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                    Add to favorites
+                  </span>
                 </button>
               )}
             </div>
@@ -273,24 +276,30 @@ export default function ProductCard({
             <div className="flex items-center gap-2">
               {parseFloat(product.price) === 0 ? (
                 <button 
-                  className="bg-green-500 text-black px-3 py-1.5 rounded text-sm font-medium hover:bg-green-600 transition-colors flex items-center gap-2"
+                  className="relative bg-green-500 text-black px-3 py-1.5 rounded text-sm font-medium hover:bg-green-600 transition-colors flex items-center gap-2 group/download"
                   aria-label="Download free product"
                   title="Download free product"
                 >
                   <RiDownloadLine className="w-4 h-4" />
                   <span className="hidden sm:inline">Free</span>
                   <span className="sr-only sm:hidden">Download free</span>
+                  <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs text-white bg-black/80 px-2 py-1 rounded opacity-0 group-hover/download:opacity-100 transition-opacity whitespace-nowrap pointer-events-none sm:hidden">
+                    Download free
+                  </span>
                 </button>
               ) : (
                 <button 
                   onClick={handleAddToCart}
-                  className="bg-primary text-black px-3 py-1.5 rounded text-sm font-medium hover:bg-[#3f6061] hover:text-secondary transition-colors flex items-center gap-2"
+                  className="relative bg-primary text-black px-3 py-1.5 rounded text-sm font-medium hover:bg-[#3f6061] hover:text-secondary transition-colors flex items-center gap-2 group/cart"
                   aria-label="Add to cart"
                   title="Add to cart"
                 >
                   <FaShoppingCart className="w-4 h-4" />
                   <span className="hidden sm:inline">Add</span>
                   <span className="sr-only sm:hidden">Add to cart</span>
+                  <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs text-white bg-black/80 px-2 py-1 rounded opacity-0 group-hover/cart:opacity-100 transition-opacity whitespace-nowrap pointer-events-none sm:hidden">
+                    Add to cart
+                  </span>
                 </button>
               )}
             </div>
