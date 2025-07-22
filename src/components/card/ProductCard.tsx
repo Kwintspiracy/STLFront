@@ -64,7 +64,7 @@ export default function ProductCard({
       case 'trending':
         return {
           badgeText: ranking ? `#${ranking}` : 'TRENDING',
-          badgeColor: 'bg-orange-500 text-white',
+          badgeColor: 'bg-orange-600 text-white',
           hoverBorder: 'hover:border-orange-500/50',
           accentColor: 'text-orange-500'
         };
@@ -219,7 +219,7 @@ export default function ProductCard({
           </Link>
 
           {/* Studio Info */}
-          <div className="flex items-center gap-3 pb-1 text-sm sm:text-base text-stone-400">
+          <div className="flex items-center gap-3 pb-1 text-sm sm:text-base text-stone-300">
             <div className="relative flex-shrink-0">
               {/* Check if studio has a badge */}
               {product.creator.badge ? (
@@ -241,7 +241,7 @@ export default function ProductCard({
               <p className="text-sm text-gray-300 font-medium truncate">
                 {product.creator.name}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-400">
                 Studio
               </p>
             </div>
@@ -260,10 +260,10 @@ export default function ProductCard({
                 </span>
               )}
               {showCommercialPrice && parseFloat(product.price) > 0 && (
-                <span className="text-xs text-gray-500">Personal Use</span>
+                <span className="text-xs text-gray-400">Personal Use</span>
               )}
               {!showCommercialPrice && parseFloat(product.price) > 0 && (
-                <span className="text-xs text-gray-500">USD</span>
+                <span className="text-xs text-gray-400">USD</span>
               )}
               {parseFloat(product.price) === 0 && (
                 <span className="text-xs text-green-400">Download</span>
