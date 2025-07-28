@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Studio } from '@/types/studio';
 import { RiMenuLine, RiCloseLine, RiBarChartLine, RiMoneyDollarCircleLine, RiSettingsLine, RiMailLine, RiExternalLinkLine, RiDashboardLine, RiShoppingBagLine } from 'react-icons/ri';
@@ -71,9 +72,11 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
             {/* Studio Info - Far Left (aligned with website title) */}
             <div className="flex items-center space-x-3">
               {studio.badge ? (
-                <img
+                <Image
                   src={studio.badge}
                   alt={`${studio.name} logo`}
+                  width={40}
+                  height={40}
                   className="w-10 h-10 rounded-lg object-cover"
                 />
               ) : (
@@ -148,9 +151,11 @@ export default function StudioClientLayout({ studio, children }: StudioClientLay
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               {studio.badge ? (
-                <img
+                <Image
                   src={studio.badge}
                   alt={`${studio.name} logo`}
+                  width={32}
+                  height={32}
                   className="w-8 h-8 rounded-lg object-cover"
                 />
               ) : (

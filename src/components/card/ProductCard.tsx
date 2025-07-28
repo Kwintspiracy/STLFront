@@ -1,14 +1,12 @@
 'use client';
 
-import { RiImageLine, RiDownloadLine } from "react-icons/ri";
-import { FaShoppingCart, FaHeart } from "react-icons/fa";
+import { RiImageLine } from "react-icons/ri";
+import { FaHeart, FaRegHeart, FaCheck, FaShoppingCart } from "react-icons/fa";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 import { BaseProductCardProps } from './types';
-import DefaultAvatar from '@/components/ui/DefaultAvatar';
 import { useCart } from '@/context/CartContext';
-
 interface ProductCardProps extends BaseProductCardProps {
   loading?: boolean;
   ranking?: number;
@@ -19,20 +17,18 @@ interface ProductCardProps extends BaseProductCardProps {
 
 export default function ProductCard({ 
   product, 
-  variant = 'standard',
   loading = false,
-  ranking,
-  showDownloads = false,
-  showCommercialPrice = false,
-  showFavorite = false,
+  showFavorite = true,
   className = ""
 }: ProductCardProps) {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { addToCart } = useCart();
 
   const sortedImages = [...product.images].sort((a, b) => a.rank - b.rank);
-  const mainImage = sortedImages[0]?.url || sortedImages[0]?.image; // Support both new and legacy format
+  const mainImage = sortedImages[0]?.url || sortedImages[0]?.image;
 
   const handleImageLoad = () => {
     setImageLoading(false);
@@ -43,73 +39,46 @@ export default function ProductCard({
     setImageError(true);
   };
 
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsFavorited(!isFavorited);
+  };
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    if (isAddingToCart) return;
+    
+    setIsAddingToCart(true);
     addToCart(product, 'personal');
+    
+    // Reset after 2 seconds
+    setTimeout(() => {
+      setIsAddingToCart(false);
+    }, 2000);
   };
-
-  // Get variant-specific styles and content
-  const getVariantConfig = () => {
-    switch (variant) {
-      case 'featured':
-        return {
-          badgeText: 'FEATURED',
-          badgeColor: 'bg-yellow-500 text-black',
-          hoverBorder: 'hover:border-yellow-500/50',
-          accentColor: 'text-yellow-500'
-        };
-      case 'trending':
-        return {
-          badgeText: ranking ? `#${ranking}` : 'TRENDING',
-          badgeColor: 'bg-orange-500 text-white',
-          hoverBorder: 'hover:border-orange-500/50',
-          accentColor: 'text-orange-500'
-        };
-      case 'commercial':
-        return {
-          badgeText: 'COMMERCIAL',
-          badgeColor: 'bg-green-500 text-black',
-          hoverBorder: 'hover:border-green-500/50',
-          accentColor: 'text-green-500'
-        };
-      default:
-        return {
-          badgeText: null,
-          badgeColor: '',
-          hoverBorder: 'hover:border-gray-700',
-          accentColor: 'text-primary'
-        };
-    }
-  };
-
-  const variantConfig = getVariantConfig();
 
   if (loading) {
     return (
-      <div className={`w-full max-w-xl ${className}`}>
-        {/* Skeleton Card */}
-        <div className="bg-cardbackground overflow-hidden flex flex-col rounded-lg pb-2 border border-gray-800">
-          {/* Image skeleton */}
-          <div className="relative w-full aspect-square overflow-hidden bg-gray-800 animate-pulse">
+      <div className={`w-[300px] ${className}`}>
+        <div className="bg-white/5 rounded-[16px] overflow-hidden animate-pulse">
+          <div className="relative w-full aspect-square bg-[#242627]">
             <div className="w-full h-full bg-gray-700"></div>
           </div>
-
-          {/* Content skeleton */}
-          <div className="px-4 pt-2 pb-4 space-y-2">
-            {/* Title skeleton */}
-            <div className="h-6 bg-gray-700 rounded animate-pulse"></div>
-
-            {/* Creator info skeleton */}
-            <div className="flex items-center gap-3 pb-3">
-              <div className="w-6 h-6 rounded-full bg-gray-700 animate-pulse"></div>
-              <div className="h-4 bg-gray-700 rounded w-20 animate-pulse"></div>
+          <div className="p-4 pt-4 pb-6 space-y-3">
+            <div className="h-6 bg-gray-700 rounded"></div>
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-gray-700 rounded-md"></div>
+              <div className="space-y-1">
+                <div className="h-4 bg-gray-700 rounded w-20"></div>
+                <div className="h-3 bg-gray-700 rounded w-12"></div>
+              </div>
             </div>
-
-            {/* Price and button skeleton */}
             <div className="flex justify-between items-center">
-              <div className="h-6 bg-gray-700 rounded w-16 animate-pulse"></div>
-              <div className="h-8 w-8 bg-gray-700 rounded animate-pulse"></div>
+              <div className="h-7 bg-gray-700 rounded w-16"></div>
+              <div className="h-8 w-24 bg-gray-700 rounded-3xl"></div>
             </div>
           </div>
         </div>
@@ -118,21 +87,15 @@ export default function ProductCard({
   }
 
   return (
-    <div className={`relative group w-full transition-transform duration-300 ease-in-out hover:-translate-y-1 ${className.includes('max-w-') ? className : `max-w-xl ${className}`}`}>
-      {/* Border gradient wrapper for featured cards */}
-      {variant === 'featured' && (
-        <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-b from-primarybackground via-primary to-primarybackground opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0 pointer-events-none" />
-      )}
-
-      {/* Main card content */}
-      <div className={`relative z-10 bg-cardbackground overflow-hidden flex flex-col rounded-lg pb-2 border border-gray-800 ${variantConfig.hoverBorder} transition-colors`}>
-
+    <div className={`w-[300px] group transition-all duration-300 ease-in-out hover:-translate-y-2 ${className}`}>
+      <div className="bg-white/5 rounded-[16px] overflow-hidden transition-all duration-300">
+        
         {/* Image Section */}
         <Link href={`/product/${product.id}`} className="block relative">
-          <div className="relative w-full aspect-square overflow-hidden bg-gray-800">
+          <div className="relative w-full aspect-square bg-[#242627] rounded-t-[16px] overflow-hidden">
             {/* Loading skeleton */}
             {imageLoading && (
-              <div className="absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center">
+              <div className="absolute inset-0 bg-[#242627] animate-pulse flex items-center justify-center">
                 <div className="w-8 h-8 text-gray-600">
                   <RiImageLine className="w-full h-full" />
                 </div>
@@ -145,13 +108,13 @@ export default function ProductCard({
                 src={mainImage}
                 alt={product.name}
                 fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className={`object-cover transition-all duration-500 group-hover:scale-105 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                sizes="300px"
+                className={`object-cover transition-all duration-500 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
                 onLoad={handleImageLoad}
                 onError={handleImageError}
               />
             ) : (
-              <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500">
+              <div className="w-full h-full bg-[#242627] flex items-center justify-center text-gray-500">
                 <div className="text-center">
                   <RiImageLine className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <span className="text-sm">No image</span>
@@ -159,126 +122,104 @@ export default function ProductCard({
               </div>
             )}
 
-            {/* Hover overlay */}
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-            {/* Badge overlay */}
-            {variantConfig.badgeText && (
-              <div className="absolute top-2 left-2">
-                <span className={`${variantConfig.badgeColor} text-xs font-bold px-2 py-1 rounded`}>
-                  {variantConfig.badgeText}
-                </span>
-              </div>
+            {/* Heart Button */}
+            {showFavorite && (
+              <button 
+                onClick={handleFavoriteClick}
+                className={`absolute top-4 right-4 w-12 h-12 rounded-full flex items-center justify-center text-white text-xl cursor-pointer transition-all duration-300 backdrop-blur-[10px] border-none hover:scale-110 ${
+                  isFavorited 
+                    ? 'bg-red-500/80 hover:bg-red-600/80' 
+                    : 'bg-black/30 hover:bg-white/20'
+                }`}
+                aria-label="Add to favorites"
+              >
+                {isFavorited ? <FaHeart /> : <FaRegHeart />}
+              </button>
             )}
-
-            {/* Top-right overlays */}
-            <div className="absolute top-2 right-2 flex flex-col gap-2">
-              {/* Download count for trending */}
-              {showDownloads && (
-                <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm px-2 py-1 rounded">
-                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-xs text-white">{((product.id * 37) % 500) + 100}</span>
-                </div>
-              )}
-
-              {/* Commercial license price */}
-              {showCommercialPrice && parseFloat(product.professional_license_fee) > 0 && (
-                <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm px-2 py-1 rounded">
-                  <span className="text-xs text-white">License: $</span>
-                  <span className="text-xs text-green-400 font-bold">{parseFloat(product.professional_license_fee).toFixed(0)}</span>
-                </div>
-              )}
-
-              {/* Favorite button for standard cards */}
-              {showFavorite && (
-                <button className="p-1.5 bg-black/50 backdrop-blur-sm rounded-full hover:bg-red-500/50 transition-colors">
-                  <FaHeart className="w-3 h-3 text-white" />
-                </button>
-              )}
-            </div>
           </div>
         </Link>
 
-        {/* Content Section */}
-        <div className="px-4 pt-2 pb-4 space-y-2">
-
-          {/* Product Title - Clickable */}
+        {/* Product Information */}
+        <div className="px-5 pt-3 sm:pt-5 pb-5 ">
+          {/* Product Title */}
           <Link href={`/product/${product.id}`}>
-            <h3 className="text-base sm:text-lg font-semibold tracking-tight truncate pb-3 pt-1 hover:text-primary transition-colors duration-200">
+            <h2 className="text-[#F4F4F4] text-base sm:text-xl font-light leading-[1.3] mb-4 sm:mb-2.5 truncate hover:text-primary transition-colors duration-200">
               {product.name}
-            </h3>
+            </h2>
           </Link>
 
-          {/* Studio Info */}
-          <div className="flex items-center gap-3 pb-1 text-sm sm:text-base text-stone-400">
-            <div className="relative flex-shrink-0">
-              {/* Check if studio has a badge */}
+          {/* Creator Section */}
+          <div className="flex items-start mb-4 sm:mb-6">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
               {product.creator.badge ? (
-                <Image
-                  src={product.creator.badge}
-                  alt={`${product.creator.name} badge`}
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 rounded-lg object-cover ring-2 ring-gray-600/50"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
+                <div className="w-full h-full bg-[#242627] border-2 border-white/5 rounded-lg overflow-hidden">
+                  <Image
+                    src={product.creator.badge}
+                    alt={`${product.creator.name} avatar`}
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
               ) : (
-                <DefaultAvatar className="ring-2 ring-gray-600/50" size={32} />
+                <div className="w-full h-full bg-gray-700 border-2 border-white/5 rounded-lg flex items-center justify-center">
+                  <svg 
+                    className="w-6 h-6 sm:w-7 sm:h-7 text-gray-400"
+                    viewBox="0 0 48 48" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle cx="24" cy="18" r="6" fill="currentColor"/>
+                    <path d="M12 36c0-6.627 5.373-12 12-12s12 5.373 12 12v4H12v-4z" fill="currentColor"/>
+                  </svg>
+                </div>
               )}
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm text-gray-300 font-medium truncate">
-                {product.creator.name}
-              </p>
-              <p className="text-xs text-gray-500">
+            <div className="ml-2 sm:ml-2 flex flex-col pt-0">
+              <div className="text-[#F4F4F4] text-sm sm:text-base font-regular mb-0 whitespace-nowrap overflow-hidden text-ellipsis">
+              {product.creator.name}
+              </div>
+              <div className="text-[#969696] text-xs sm:text-sm font-regular">
                 Studio
-              </p>
+              </div>
             </div>
           </div>
 
-          {/* Price and Actions */}
-          <div className="flex items-center justify-between pt-2">
-            <div className="flex flex-col">
-              {parseFloat(product.price) === 0 ? (
-                <span className="text-xl font-bold text-green-400">
-                  FREE
-                </span>
-              ) : (
-                <span className="text-xl font-bold text-primary">
-                  ${product.price}
-                </span>
-              )}
-              {showCommercialPrice && parseFloat(product.price) > 0 && (
-                <span className="text-xs text-gray-500">Personal Use</span>
-              )}
-              {!showCommercialPrice && parseFloat(product.price) > 0 && (
-                <span className="text-xs text-gray-500">USD</span>
-              )}
-              {parseFloat(product.price) === 0 && (
-                <span className="text-xs text-green-400">Download</span>
-              )}
+          {/* Price Section */}
+          <div className="flex justify-between items-center">
+            <div className="text-[#F4F4F4] text-xl sm:text-2xl font-semibold">
+              {parseFloat(product.price) === 0 ? 'FREE' : `$ ${product.price}`}
             </div>
-
-            <div className="flex items-center gap-2">
-              {parseFloat(product.price) === 0 ? (
-                <button className="bg-green-500 text-black px-3 py-1.5 rounded text-sm font-medium hover:bg-green-600 transition-colors flex items-center gap-2">
-                  <RiDownloadLine className="w-4 h-4" />
-                  <span className="hidden sm:inline">Free</span>
-                </button>
+            
+            <button 
+              onClick={handleAddToCart}
+              disabled={isAddingToCart}
+              className={`px-4 py-2.5 rounded-3xl flex items-center justify-center gap-2.5 border-none cursor-pointer transition-all duration-300 hover:-translate-y-0.5 ${
+                isAddingToCart 
+                  ? 'bg-green-500 hover:bg-green-600' 
+                  : 'bg-[#324FEE] hover:bg-[#2940d9]'
+              }`}
+              aria-label="Add to cart"
+            >
+              {isAddingToCart ? (
+                <>
+                  <FaCheck className="text-white text-base" />
+                  <span className="hidden sm:inline text-white text-base font-medium leading-4">
+                    Added!
+                  </span>
+                </>
               ) : (
-                <button 
-                  onClick={handleAddToCart}
-                  className="bg-primary text-black px-3 py-1.5 rounded text-sm font-medium hover:bg-[#3f6061] hover:text-secondary transition-colors flex items-center gap-2"
-                >
-                  <FaShoppingCart className="w-4 h-4" />
-                  <span className="hidden sm:inline">Add</span>
-                </button>
+                <>
+                  <FaShoppingCart className="text-white text-base sm:hidden" />
+                  <span className="hidden sm:inline text-white text-base font-medium leading-4">
+                    Add to Cart
+                  </span>
+                </>
               )}
-            </div>
+            </button>
           </div>
         </div>
       </div>

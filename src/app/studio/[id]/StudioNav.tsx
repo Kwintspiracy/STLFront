@@ -2,6 +2,7 @@
 
 import { ReactNode, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Studio } from "@/types/product";
 
 interface Props {
@@ -18,9 +19,11 @@ export default function StudioClientLayout({ children, studio }: Props) {
       <header className="flex items-center justify-between p-4 border-b border-[#2A2D30] lg:hidden">
         <div className="flex items-center gap-3">
           {studio.badge && (
-            <img
+            <Image
               src={studio.badge}
               alt={studio.name}
+              width={40}
+              height={40}
               className="w-10 h-10 rounded-full border border-[var(--color-primary-studio)]"
             />
           )}
@@ -39,9 +42,11 @@ export default function StudioClientLayout({ children, studio }: Props) {
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             {studio.badge && (
-              <img
+              <Image
                 src={studio.badge}
                 alt={studio.name}
+                width={24}
+                height={24}
                 className="w-6 h-6 rounded-full object-cover border border-[var(--color-primary-studio)]"
               />
             )}
@@ -60,9 +65,11 @@ export default function StudioClientLayout({ children, studio }: Props) {
       <aside className="hidden lg:flex flex-col w-64 bg-[#1A1C21] border-r border-[#2A2D30] p-6 gap-6">
         <div className="flex items-center gap-3">
           {studio.badge && (
-            <img
+            <Image
               src={studio.badge}
               alt={studio.name}
+              width={40}
+              height={40}
               className="w-10 h-10 rounded-full border border-[var(--color-primary-studio)]"
             />
           )}

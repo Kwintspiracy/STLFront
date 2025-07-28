@@ -1,10 +1,10 @@
 import { getFeaturedProducts, getTrendingProducts, getCommercialProducts, getLatestProducts } from "@/lib/api/products";
 import SearchWrapper from "@/components/search/SearchWrapper";
 import ProductSection from "@/components/sections/ProductSection";
-import CategoryGrid from "@/components/sections/CategoryGrid";
 import CreatorSpotlight from "@/components/sections/CreatorSpotlight";
 import CallToAction from "@/components/sections/CallToAction";
 import LatestSection from "@/components/sections/LatestSection";
+import SectionSeparator from "@/components/ui/SectionSeparator";
 import { FaCrown, FaFire } from "react-icons/fa";
 
 export default async function Home() {
@@ -19,6 +19,8 @@ export default async function Home() {
       {/* Hero Section */}
       <SearchWrapper />
 
+      {/* <SectionSeparator /> */}
+
       {/* Featured Section */}
       <ProductSection
         title="Featured Models"
@@ -27,9 +29,13 @@ export default async function Home() {
         variant="featured"
         viewAllHref="/featured"
       />
+{/* 
+      <SectionSeparator /> */}
 
       {/* Categories Section */}
-      <CategoryGrid />
+      {/* <CategoryGrid /> */}
+
+      <SectionSeparator />
 
       {/* Trending Section */}
       <ProductSection
@@ -42,8 +48,12 @@ export default async function Home() {
         showDownloads={true}
       />
 
+      {/* <SectionSeparator /> */}
+
       {/* Creator Spotlight */}
       <CreatorSpotlight />
+
+      {/* <SectionSeparator /> */}
 
       {/* Commercial License Available */}
       <ProductSection
@@ -59,8 +69,12 @@ export default async function Home() {
         showCommercialInfo={true}
       />
 
+      <SectionSeparator />
+
       {/* Latest Additions */}
       <LatestSection products={newProducts} />
+
+      <SectionSeparator />
 
       {/* Call to Action */}
       <CallToAction />

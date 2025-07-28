@@ -49,6 +49,7 @@ export default function SearchSection({ isVisible, className = "" }: SearchSecti
           onKeyDown={handleKeyDown}
           suggestions={suggestions}
           onSearch={executeSearch}
+          compact={true}
         />
       </div>
 
@@ -73,6 +74,7 @@ export default function SearchSection({ isVisible, className = "" }: SearchSecti
             onKeyDown={handleKeyDown}
             suggestions={suggestions}
             onSearch={executeSearch}
+            compact={true}
           />
         </div>
       )}

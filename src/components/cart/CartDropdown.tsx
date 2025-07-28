@@ -70,13 +70,12 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
   };
 
   return (
-    <div className="absolute right-0 top-full mt-2 w-96 bg-cardbackground border border-gray-800 rounded-lg shadow-2xl z-50">
+    <div className="absolute right-0 top-full mt-2 w-96 bg-background-secondary backdrop-blur-[10px] rounded-[16px] shadow-[0_20px_40px_rgba(0,0,0,0.1)] z-50 transition-all duration-300 ease-in-out p-4">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-800">
+      <div className="flex items-center justify-between pb-4 border-b border-white/10">
         <div className="flex items-center gap-2">
-          <FaShoppingCart className="w-4 h-4 text-primary" />
-          <h3 className="font-semibold text-white">Shopping Cart</h3>
-          <span className="text-xs text-gray-400">
+          <h3 className="font-semibold text-[#F4F4F4]">Shopping Cart</h3>
+          <span className="text-sm text-[#969696]">
             ({state.totalItems} {state.totalItems === 1 ? 'item' : 'items'})
           </span>
         </div>
@@ -92,7 +91,7 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
       {/* Cart Items */}
       <div className="max-h-80 overflow-y-auto">
         {state.items.length === 0 ? (
-          <div className="p-6 text-center">
+          <div className="py-6 text-center">
             <FaShoppingCart className="w-12 h-12 text-gray-600 mx-auto mb-3" />
             <p className="text-gray-400 mb-4">Your cart is empty</p>
             <button
@@ -103,13 +102,13 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
             </button>
           </div>
         ) : (
-          <div className="p-2">
+          <div className="py-2">
             {state.items.map((item) => {
               const mainImage = item.product.images?.[0]?.url || item.product.images?.[0]?.image;
               const itemPrice = getItemPrice(item);
               
               return (
-                <div key={item.id} className="flex gap-3 p-2 hover:bg-primarybackground/50 rounded-lg transition-colors">
+                <div key={item.id} className="flex gap-3 py-2 pr-2 hover:bg-primarybackground/50 rounded-lg transition-colors">
                   {/* Product Image */}
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-gray-800 rounded-lg overflow-hidden">
@@ -131,18 +130,18 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
 
                   {/* Product Info */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-white truncate">
+                    <h4 className="text-base font-medium text-[#F4F4F4] truncate">
                       {item.product.name}
                     </h4>
-                    <p className="text-xs text-gray-400 truncate">
+                    <p className="text-sm text-[#969696] truncate">
                       by {item.product.creator.name}
                     </p>
                     
                     {/* License */}
                     <div className="flex items-center justify-between mt-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500 capitalize">
-                          {item.license}
+                        <span className="text-sm text-gray-500 capitalize">
+                          {item.license} License
                         </span>
                         {item.license !== 'personal' && (
                           <span className="text-xs bg-green-900/30 text-green-400 px-1 rounded">
@@ -175,10 +174,10 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
 
       {/* Footer */}
       {state.items.length > 0 && (
-        <div className="border-t border-gray-800 p-4">
+        <div className="border-t border-white/10 pt-4">
           {/* Total */}
           <div className="flex items-center justify-between mb-3">
-            <span className="font-semibold text-white">Total:</span>
+            <span className="font-semibold text-[#F4F4F4]">Total:</span>
             <span className="text-lg font-bold text-primary">
               ${formatPrice(state.totalPrice)}
             </span>
@@ -189,7 +188,7 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
             <Link
               href="/cart"
               onClick={onClose}
-              className="block w-full px-4 py-2 bg-primary text-black text-center rounded-lg hover:bg-[#3f6061] hover:text-secondary transition-colors font-medium"
+              className="block w-full px-4 py-2.5 bg-[#324FEE] text-white text-center rounded-3xl hover:bg-[#2940d9] hover:-translate-y-0.5 transition-all duration-300 ease-in-out font-medium"
             >
               Checkout
             </Link>

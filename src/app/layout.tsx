@@ -7,7 +7,6 @@ import { ToastProvider } from "@/context/ToastContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { StudioProvider } from "@/context/StudioContext";
 import { CartProvider } from "@/context/CartContext";
-import ThemeSwitcher from "@/components/ui/ThemeSwitcher";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -23,7 +22,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${openSans.className} min-h-screen flex flex-col bg-background text-text-primary`}>
+      <body className={`${openSans.className} min-h-screen flex flex-col text-text-primary`} style={{ background: 'radial-gradient(ellipse 56.94% 34.54% at 50.02% 28.09%, #172733 0%, #162631 12.5%, #152530 25%, #14232f 37.5%, #13212a 50%, #131f28 62.5%, #121e26 75%, #121c24 87.5%, #111920 100%)', backdropFilter: 'blur(127.85px)' }}>
         <ToastProvider>
           <AuthProvider>
             <StudioProvider>
@@ -32,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <Header />
                   <main className="flex-1">{children}</main>
                   <Footer />
-                  <ThemeSwitcher />
+                  {/* <ThemeSwitcher /> */}
                 </CartProvider>
               </UserProvider>
             </StudioProvider>

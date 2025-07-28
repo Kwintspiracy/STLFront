@@ -8,7 +8,6 @@ import { ProductSectionProps } from '@/components/card/types';
 
 export default function ProductSection({
   title,
-  icon,
   products,
   variant,
   description,
@@ -34,18 +33,28 @@ export default function ProductSection({
     const updateVisibleCards = () => {
       if (typeof window !== 'undefined') {
         const width = window.innerWidth;
-        if (width >= 1280) setVisibleCards(5);      // xl: 5 cards
-        else if (width >= 1024) setVisibleCards(4); // lg: 4 cards
-        else if (width >= 768) setVisibleCards(3);  // md: 3 cards
-        else if (width >= 640) setVisibleCards(2);  // sm: 2 cards
-        else setVisibleCards(1);                     // mobile: 1 card
+        if (variant === 'featured') {
+          // Featured section shows 4 cards evenly spaced
+          if (width >= 1280) setVisibleCards(4);      // xl: 4 cards
+          else if (width >= 1024) setVisibleCards(4); // lg: 4 cards
+          else if (width >= 768) setVisibleCards(3);  // md: 3 cards
+          else if (width >= 640) setVisibleCards(2);  // sm: 2 cards
+          else setVisibleCards(6);                     // mobile: 6 cards (3 rows x 2 cols)
+        } else {
+          // Other carousel sections show 5 cards
+          if (width >= 1280) setVisibleCards(5);      // xl: 5 cards
+          else if (width >= 1024) setVisibleCards(4); // lg: 4 cards
+          else if (width >= 768) setVisibleCards(3);  // md: 3 cards
+          else if (width >= 640) setVisibleCards(2);  // sm: 2 cards
+          else setVisibleCards(6);                     // mobile: 6 cards (3 rows x 2 cols)
+        }
       }
     };
 
     updateVisibleCards();
     window.addEventListener('resize', updateVisibleCards);
     return () => window.removeEventListener('resize', updateVisibleCards);
-  }, []);
+  }, [variant]);
   
   // Reset index when visible cards change
   useEffect(() => {
@@ -59,22 +68,22 @@ export default function ProductSection({
     switch (variant) {
       case 'featured':
         return {
-          bgClass: 'bg-primarybackground',
+          bgClass: 'bg-transparent',
           iconColor: 'text-yellow-500'
         };
       case 'trending':
         return {
-          bgClass: 'bg-primarybackground',
+          bgClass: 'bg-transparent',
           iconColor: 'text-orange-500'
         };
       case 'commercial':
         return {
-          bgClass: 'bg-primarybackground',
+          bgClass: 'bg-transparent',
           iconColor: 'text-green-500'
         };
       default:
         return {
-          bgClass: 'bg-primarybackground',
+          bgClass: 'bg-transparent',
           iconColor: 'text-primary'
         };
     }
@@ -109,65 +118,48 @@ export default function ProductSection({
         {useCarousel ? (
           <div className="flex justify-center mb-8">
             <div className="w-full" style={{ maxWidth: '1720px' }}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`${sectionConfig.iconColor}`}>
-                    {icon}
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-text-section-title">{title}</h2>
-                    {description && (
-                      <p className="text-gray-400 mt-1">{description}</p>
+              <div className="flex items-center justify-between" style={{ paddingLeft: '40px', paddingRight: '40px' }}>
+                <div>
+                  <h2 className="text-4xl font-extrabold">
+                    {variant === 'featured' && (
+                      <>
+                        <span className="text-yellow-500">FEATURED</span>
+                        <span className="text-white"> MODELS</span>
+                      </>
                     )}
-                  </div>
+                    {variant === 'trending' && (
+                      <>
+                        <span className="text-orange-500">TRENDING</span>
+                        <span className="text-white"> MODELS</span>
+                      </>
+                    )}
+                    {variant === 'commercial' && (
+                      <>
+                        <span className="text-green-500">COMMERCIAL</span>
+                        <span className="text-white"> MODELS</span>
+                      </>
+                    )}
+                  </h2>
+                  {description && (
+                    <p className="text-gray-400 mt-1">{description}</p>
+                  )}
                 </div>
                 
-                <div className="flex items-center gap-4">
-                  {/* Carousel Navigation */}
-                  {carouselProducts.length > visibleCards && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={goToPrevious}
-                        className="p-2 rounded-full bg-cardbackground border border-gray-700 text-gray-300 hover:text-white hover:border-gray-600 transition-colors"
-                        aria-label="Previous products"
-                      >
-                        <FaChevronLeft className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={goToNext}
-                        className="p-2 rounded-full bg-cardbackground border border-gray-700 text-gray-300 hover:text-white hover:border-gray-600 transition-colors"
-                        aria-label="Next products"
-                      >
-                        <FaChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                  
-                  {viewAllHref && (
-                    <Link 
-                      href={viewAllHref} 
-                      className="flex items-center gap-2 text-primary hover:text-white transition-colors text-sm"
-                    >
-                      View All <FaArrowRight className="w-3 h-3" />
-                    </Link>
-                  )}
-                </div>
+                
               </div>
             </div>
           </div>
         ) : (
           /* Standard Header for non-carousel sections */
           <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className={`${sectionConfig.iconColor}`}>
-                {icon}
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-text-section-title">{title}</h2>
-                {description && (
-                  <p className="text-gray-400 mt-1">{description}</p>
-                )}
-              </div>
+            <div>
+              <h2 className="text-4xl font-extrabold">
+                <span className="text-[#FFD700]">{title.split(' ')[0]}</span>
+                <span className="text-white"> {title.split(' ').slice(1).join(' ')}</span>
+              </h2>
+              {description && (
+                <p className="text-gray-400 mt-1">{description}</p>
+              )}
             </div>
             
             {viewAllHref && (
@@ -183,34 +175,145 @@ export default function ProductSection({
         
         {/* Products Display */}
         {useCarousel ? (
-          /* Carousel Layout - Responsive */
-          <div className="flex justify-center">
-            <div className="relative overflow-hidden w-full max-w-[1720px]">
-              {/* Visible window - Responsive grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-[30px]">
-                {carouselProducts.slice(currentIndex, currentIndex + visibleCards).map((product, index) => (
+          <>
+            {/* Mobile: Fixed Grid */}
+            <div className="sm:hidden">
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {carouselProducts.slice(0, 6).map((product, index) => (
                   <ProductCard
                     key={product.id}
                     product={product}
                     variant={variant}
-                    ranking={showRanking ? currentIndex + index + 1 : undefined}
+                    ranking={showRanking ? index + 1 : undefined}
                     showDownloads={showDownloads}
                     showCommercialPrice={showCommercialInfo}
-                    showFavorite={false}
+                    showFavorite={true}
                     className="w-full"
                   />
                 ))}
               </div>
-              
-              {/* Mobile swipe hint */}
-              <div className="xl:hidden mt-4 text-center text-sm text-gray-400">
-                Swipe or use arrows to see more
+              {/* Mobile View All Button */}
+              {viewAllHref && (
+                <Link 
+                  href={viewAllHref}
+                  className="w-full bg-primary text-black py-3 rounded-lg font-medium hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
+                >
+                  View All <FaArrowRight className="w-4 h-4" />
+                </Link>
+              )}
+            </div>
+
+            {/* Desktop: Carousel Layout */}
+            <div className="hidden sm:flex justify-center">
+              <div className="relative w-full" style={{ maxWidth: '1720px' }}>
+                {/* Left Controller - Positioned outside content area but inside container */}
+                {carouselProducts.length > visibleCards && (
+                  <button
+                    onClick={goToPrevious}
+                    className="absolute top-1/2 transform -translate-y-1/2 z-20"
+                    style={{ 
+                      width: '61px', 
+                      height: '134px',
+                      left: '-30px' // Half outside, half inside to stay visible
+                    }}
+                    aria-label="Previous products"
+                  >
+                    <div 
+                      className="w-full h-full relative"
+                      style={{ background: 'rgba(0, 0, 0, 0.13)', borderRadius: '61px' }}
+                    >
+                      <div 
+                        className="absolute overflow-hidden"
+                        style={{ width: '36px', height: '36px', left: '13px', top: '49px' }}
+                      >
+                        <div 
+                          className="absolute flex items-center justify-center"
+                          style={{ 
+                            width: '30px', 
+                            height: '30px', 
+                            left: '3px', 
+                            top: '3px', 
+                            background: '#7C7C7C',
+                            borderRadius: '50%'
+                          }}
+                        >
+                          <FaChevronLeft className="w-3 h-3 text-black" />
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Visible window - Responsive grid with padding for controllers */}
+                <div 
+                  className={`grid gap-6 lg:gap-[18px] ${
+                    variant === 'featured' 
+                      ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4' 
+                      : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+                  }`}
+                  style={{ 
+                    maxWidth: '1720px',
+                    paddingLeft: '40px',
+                    paddingRight: '40px'
+                  }}
+                >
+                  {carouselProducts.slice(currentIndex, currentIndex + visibleCards).map((product, index) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      variant={variant}
+                      ranking={showRanking ? currentIndex + index + 1 : undefined}
+                      showDownloads={showDownloads}
+                      showCommercialPrice={showCommercialInfo}
+                      showFavorite={true}
+                      className="w-full"
+                    />
+                  ))}
+                </div>
+
+                {/* Right Controller - Positioned outside content area but inside container */}
+                {carouselProducts.length > visibleCards && (
+                  <button
+                    onClick={goToNext}
+                    className="absolute top-1/2 transform -translate-y-1/2 z-20"
+                    style={{ 
+                      width: '61px', 
+                      height: '134px',
+                      right: '-30px' // Half outside, half inside to stay visible
+                    }}
+                    aria-label="Next products"
+                  >
+                    <div 
+                      className="w-full h-full relative"
+                      style={{ background: 'rgba(0, 0, 0, 0.13)', borderRadius: '61px' }}
+                    >
+                      <div 
+                        className="absolute overflow-hidden"
+                        style={{ width: '36px', height: '36px', left: '13px', top: '49px' }}
+                      >
+                        <div 
+                          className="absolute flex items-center justify-center"
+                          style={{ 
+                            width: '30px', 
+                            height: '30px', 
+                            left: '3px', 
+                            top: '3px', 
+                            background: '#7C7C7C',
+                            borderRadius: '50%'
+                          }}
+                        >
+                          <FaChevronRight className="w-3 h-3 text-black" />
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                )}
               </div>
             </div>
-          </div>
+          </>
         ) : (
           /* Standard Grid Layout */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {products.map((product, index) => (
               <ProductCard
                 key={product.id}

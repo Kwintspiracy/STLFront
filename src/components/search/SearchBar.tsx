@@ -2,7 +2,6 @@
 
 import { Tag } from "@/data/mock-tags";
 import { useRef, useEffect } from "react";
-import { FiSearch } from "react-icons/fi"; // Exemple d’icône plus élégante
 
 type SearchElement = { type: "tag"; value: Tag } | { type: "text"; value: string };
 
@@ -15,6 +14,7 @@ interface Props {
     onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     suggestions: Tag[];
     onSearch: () => void;
+    compact?: boolean;
 }
 
 export default function SearchBar({
@@ -26,6 +26,7 @@ export default function SearchBar({
     onKeyDown,
     suggestions,
     onSearch,
+    compact = false,
 }: Props) {
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -37,9 +38,17 @@ export default function SearchBar({
     }, []);
 
     return (
-        <div className="relative w-full max-w-3xl flex items-center gap-3">
+        <div className="relative w-full max-w-4xl">
             {/* Search Field */}
-            <div className="flex-1 bg-background border border-border rounded-xl px-4 py-3 flex flex-wrap items-center gap-2 min-h-[56px] focus-within:border-primary transition-colors">
+            <div 
+                className="w-full bg-[#1B2731] rounded-[50px] flex items-center gap-3"
+                style={{ 
+                    paddingTop: compact ? '4px' : '6px',
+                    paddingBottom: compact ? '4px' : '6px',
+                    paddingLeft: compact ? '20px' : '49px',
+                    paddingRight: '6px'
+                }}
+            >
                 {elements.map((el, index) =>
                     el.type === "tag" ? (
                         <div
@@ -57,7 +66,7 @@ export default function SearchBar({
                     ) : (
                         <span
                             key={`text-${index}`}
-                            className="text-text-primary text-base"
+                            className="text-white text-xl font-normal"
                         >
                             {el.value}
                         </span>
@@ -70,21 +79,29 @@ export default function SearchBar({
                     value={input}
                     onChange={(e) => onInputChange(e.target.value)}
                     onKeyDown={onKeyDown}
-                    className="bg-transparent text-text-primary outline-none text-base grow min-w-[120px] placeholder-text-muted"
+                    className="bg-transparent outline-none text-xl font-normal grow min-w-[120px]"
+                    style={{ 
+                        color: elements.length === 0 && input === "" ? 'rgba(255, 255, 255, 0.35)' : 'white'
+                    }}
                     placeholder={
-                        elements.length === 0 && input === "" ? "Search miniatures, creators, or tags..." : ""
+                        elements.length === 0 && input === "" ? "Search for characters, monsters..." : ""
                     }
                 />
-            </div>
 
-            {/* Search Button */}
-            <button
-                onClick={onSearch}
-                className="bg-background-card text-text-secondary px-4 py-3.5 rounded-xl text-base font-medium hover:bg-background-hover hover:text-text-primary transition-colors flex items-center justify-center min-w-[56px] border border-border"
-            >
-                <span className="block sm:hidden"><FiSearch size={18} /></span>
-                <span className="hidden sm:block">Search</span>
-            </button>
+                {/* Integrated Search Button */}
+                <button
+                    onClick={onSearch}
+                    className="bg-[#324FEE] text-white rounded-[50px] flex items-center justify-center hover:bg-[#2940d9] transition-colors"
+                    style={{
+                        paddingLeft: compact ? '20px' : '32px',
+                        paddingRight: compact ? '20px' : '32px',
+                        paddingTop: compact ? '12px' : '18px',
+                        paddingBottom: compact ? '12px' : '18px'
+                    }}
+                >
+                    <span className={`${compact ? 'text-lg' : 'text-xl'} font-normal leading-6`}>Search</span>
+                </button>
+            </div>
 
             {/* Suggestions Dropdown */}
             {suggestions.length > 0 && (

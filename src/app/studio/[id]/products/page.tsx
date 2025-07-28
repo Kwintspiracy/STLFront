@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useStudio } from '@/context/StudioContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -284,10 +285,12 @@ export default function StudioProducts({ params }: Props) {
                 <div key={product.id} className="flex items-center justify-between p-4 bg-background border border-border rounded-lg hover:border-primary/20 transition-colors">
                   <div className="flex items-center space-x-4">
                     <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
-                      {product.images && product.images.length > 0 ? (
-                        <img 
-                          src={product.images[0].url || product.images[0].image} 
+                      {product.images && product.images.length > 0 && (product.images[0].url || product.images[0].image) ? (
+                        <Image 
+                          src={product.images[0].url || product.images[0].image || ''} 
                           alt={product.name}
+                          width={64}
+                          height={64}
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             console.error('Image failed to load:', product.images[0].url || product.images[0].image);

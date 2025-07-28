@@ -26,7 +26,7 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur-md border-b border-border/50 shadow-lg">
+    <header className="sticky top-0 z-40 w-full bg-background">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between" style={{ height: 'var(--header-height)' }}>
           
@@ -35,7 +35,7 @@ const Header = () => {
             {/* Logo */}
             <Link 
               href="/" 
-              className="flex items-center gap-2 text-xl font-bold text-text-primary hover:text-primary transition-colors duration-200"
+              className="flex items-center gap-2 text-xl font-bold text-text-primary hover:text-primary transition-all duration-300 ease-in-out"
             >
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-sm">3D</span>
