@@ -62,7 +62,7 @@ export default function ProductCard({
 
   if (loading) {
     return (
-      <div className={`w-[300px] ${className}`}>
+      <div className={className}>
         <div className="bg-white/5 rounded-[16px] overflow-hidden animate-pulse">
           <div className="relative w-full aspect-square bg-[#242627]">
             <div className="w-full h-full bg-gray-700"></div>
@@ -87,7 +87,7 @@ export default function ProductCard({
   }
 
   return (
-    <div className={`w-[300px] group transition-all duration-300 ease-in-out hover:-translate-y-2 ${className}`}>
+    <div className={`group transition-all duration-300 ease-in-out hover:-translate-y-2 ${className}`}>
       <div className="bg-white/5 rounded-[16px] overflow-hidden transition-all duration-300">
         
         {/* Image Section */}

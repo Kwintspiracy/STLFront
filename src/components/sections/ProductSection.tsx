@@ -20,6 +20,7 @@ export default function ProductSection({
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCards, setVisibleCards] = useState(5);
+  const [screenWidth, setScreenWidth] = useState(1280);
   
   // Determine if this section should use carousel
   const useCarousel = variant === 'featured' || variant === 'trending' || variant === 'commercial';
@@ -33,16 +34,17 @@ export default function ProductSection({
     const updateVisibleCards = () => {
       if (typeof window !== 'undefined') {
         const width = window.innerWidth;
+        setScreenWidth(width);
         if (variant === 'featured') {
           // Featured section shows 4 cards evenly spaced
-          if (width >= 1280) setVisibleCards(4);      // xl: 4 cards
+          if (width >= 1280) setVisibleCards(5);      // xl: 4 cards
           else if (width >= 1024) setVisibleCards(4); // lg: 4 cards
           else if (width >= 768) setVisibleCards(3);  // md: 3 cards
           else if (width >= 640) setVisibleCards(2);  // sm: 2 cards
           else setVisibleCards(6);                     // mobile: 6 cards (3 rows x 2 cols)
         } else {
           // Other carousel sections show 5 cards
-          if (width >= 1280) setVisibleCards(5);      // xl: 5 cards
+          if (width >= 1280) setVisibleCards(6);      // xl: 5 cards
           else if (width >= 1024) setVisibleCards(4); // lg: 4 cards
           else if (width >= 768) setVisibleCards(3);  // md: 3 cards
           else if (width >= 640) setVisibleCards(2);  // sm: 2 cards
@@ -114,12 +116,37 @@ export default function ProductSection({
     <div className={`${sectionConfig.bgClass} ${className}`}>
       <div className={`${useCarousel ? 'max-w-none' : 'max-w-7xl'} mx-auto px-4 sm:px-6 lg:px-8 py-12`}>
         
-        {/* Section Header - Centered for carousel sections */}
+        {/* Section Header - Left aligned with product cards */}
         {useCarousel ? (
-          <div className="flex justify-center mb-8">
-            <div className="w-full" style={{ maxWidth: '1720px' }}>
-              <div className="flex items-center justify-between" style={{ paddingLeft: '40px', paddingRight: '40px' }}>
-                <div>
+          <div className="flex justify-center mb-3 sm:mb-8">
+            <div className="w-full text-left" style={{ maxWidth: '1720px' }}>
+              <div className="px-4 sm:px-0" style={{ paddingLeft: '0px', paddingRight: '0px' }}>
+                <div style={{ paddingLeft: '0px', paddingRight: '0px' }} className="sm:hidden">
+                  <h2 className="text-2xl font-extrabold">
+                    {variant === 'featured' && (
+                      <>
+                        <span className="text-yellow-500">FEATURED</span>
+                        <span className="text-white"> MODELS</span>
+                      </>
+                    )}
+                    {variant === 'trending' && (
+                      <>
+                        <span className="text-orange-500">TRENDING</span>
+                        <span className="text-white"> MODELS</span>
+                      </>
+                    )}
+                    {variant === 'commercial' && (
+                      <>
+                        <span className="text-green-500">COMMERCIAL</span>
+                        <span className="text-white"> MODELS</span>
+                      </>
+                    )}
+                  </h2>
+                  {description && (
+                    <p className="text-gray-400 mt-1 text-sm">{description}</p>
+                  )}
+                </div>
+                <div style={{ paddingLeft: '40px', paddingRight: '40px' }} className="hidden sm:block">
                   <h2 className="text-4xl font-extrabold">
                     {variant === 'featured' && (
                       <>
@@ -141,11 +168,9 @@ export default function ProductSection({
                     )}
                   </h2>
                   {description && (
-                    <p className="text-gray-400 mt-1">{description}</p>
+                    <p className="text-gray-400 mt-1 text-base">{description}</p>
                   )}
                 </div>
-                
-                
               </div>
             </div>
           </div>
@@ -244,13 +269,9 @@ export default function ProductSection({
                   </button>
                 )}
 
-                {/* Visible window - Responsive grid with padding for controllers */}
+                {/* Visible window - Flexbox layout to prevent wrapping */}
                 <div 
-                  className={`grid gap-6 lg:gap-[18px] ${
-                    variant === 'featured' 
-                      ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4' 
-                      : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-                  }`}
+                  className="flex gap-6 lg:gap-[18px]"
                   style={{ 
                     maxWidth: '1720px',
                     paddingLeft: '40px',
@@ -258,16 +279,23 @@ export default function ProductSection({
                   }}
                 >
                   {carouselProducts.slice(currentIndex, currentIndex + visibleCards).map((product, index) => (
-                    <ProductCard
+                    <div
                       key={product.id}
-                      product={product}
-                      variant={variant}
-                      ranking={showRanking ? currentIndex + index + 1 : undefined}
-                      showDownloads={showDownloads}
-                      showCommercialPrice={showCommercialInfo}
-                      showFavorite={true}
-                      className="w-full"
-                    />
+                      className="flex-shrink-0"
+                      style={{ 
+                        width: `calc((100% - ${(visibleCards - 1) * (screenWidth >= 1024 ? 18 : 24)}px) / ${visibleCards})` 
+                      }}
+                    >
+                      <ProductCard
+                        product={product}
+                        variant={variant}
+                        ranking={showRanking ? currentIndex + index + 1 : undefined}
+                        showDownloads={showDownloads}
+                        showCommercialPrice={showCommercialInfo}
+                        showFavorite={true}
+                        className="w-full"
+                      />
+                    </div>
                   ))}
                 </div>
 

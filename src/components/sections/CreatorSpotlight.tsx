@@ -12,6 +12,7 @@ interface Creator {
   downloads: string;
   avatar: string;
   logo?: string;
+  imageError?: boolean;
 }
 
 interface CreatorSpotlightProps {
@@ -27,6 +28,14 @@ const defaultCreators: Creator[] = [
   { id: 5, name: "Forge Masters", models: 41, downloads: "10.3K", avatar: "FM" }
 ];
 
+// Move formatDownloads outside component to prevent dependency cycle
+const formatDownloads = (count: number): string => {
+  if (count >= 1000) {
+    return `${(count / 1000).toFixed(1)}K`;
+  }
+  return count.toString();
+};
+
 export default function CreatorSpotlight({ 
   creators, 
   className = "" 
@@ -34,12 +43,16 @@ export default function CreatorSpotlight({
   const [studios, setStudios] = useState<Creator[]>(creators || defaultCreators);
   const [loading, setLoading] = useState(!creators);
 
-  const formatDownloads = (count: number): string => {
-    if (count >= 1000) {
-      return `${(count / 1000).toFixed(1)}K`;
-    }
-    return count.toString();
-  };
+  // Handle image error for a specific studio
+  const handleImageError = useCallback((studioId: number) => {
+    setStudios(prevStudios => 
+      prevStudios.map(studio => 
+        studio.id === studioId 
+          ? { ...studio, imageError: true }
+          : studio
+      )
+    );
+  }, []);
 
   const loadStudios = useCallback(async () => {
     try {
@@ -81,7 +94,7 @@ export default function CreatorSpotlight({
     } finally {
       setLoading(false);
     }
-  }, [formatDownloads]);
+  }, []); // No dependencies - formatDownloads is now stable
 
   useEffect(() => {
     if (!creators) {
@@ -100,16 +113,16 @@ export default function CreatorSpotlight({
     >
       <div className="max-w-none mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex justify-center mb-8">
-          <div className="text-center w-full" style={{ maxWidth: '1720px' }}>
+          <div className="text-left sm:text-center w-full sm:px-0" style={{ maxWidth: '1720px', paddingLeft: '20px', paddingRight: '20px' }}>
             <h2 
-              className="mb-2 text-[#F4F4F4] text-5xl font-extrabold break-words"
+              className="mb-2 text-[#F4F4F4] text-3xl sm:text-5xl font-extrabold break-words"
               style={{
                 fontFamily: 'Open Sans'
               }}
             >
               CREATORS CORNER
             </h2>
-            <p className="text-gray-400 text-xl">Meet the talented artists behind amazing 3D models</p>
+            <p className="text-gray-400 text-lg sm:text-xl">Meet the talented artists behind amazing 3D models</p>
           </div>
         </div>
         
@@ -117,29 +130,29 @@ export default function CreatorSpotlight({
           <div className="w-full" style={{ maxWidth: '1720px' }}>
             {loading ? (
               <div 
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6"
-                style={{ paddingLeft: '40px', paddingRight: '40px' }}
+                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6"
+                style={{ paddingLeft: '20px', paddingRight: '20px' }}
               >
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="w-full max-w-[300px] animate-pulse">
+                  <div key={i} className="w-full animate-pulse">
                     <div 
-                      className="rounded-2xl p-3 flex flex-col aspect-[10/9]"
+                      className="rounded-2xl p-3 flex flex-col h-[240px]"
                       style={{ background: 'rgba(0, 0, 0, 0.10)' }}
                     >
-                      {/* Image placeholder */}
-                      <div className="bg-gray-700 rounded-lg flex-1 mb-3" />
+                      {/* Image placeholder - fixed height */}
+                      <div className="bg-gray-700 rounded-lg h-[140px] mb-3" />
                       
                       {/* Name placeholder */}
                       <div 
-                        className="rounded-lg mb-3 flex items-center justify-center"
-                        style={{ background: 'rgba(255, 255, 255, 0.10)', height: '37px' }}
+                        className="rounded-lg mb-3 flex items-center justify-center h-[40px] px-2"
+                        style={{ background: 'rgba(255, 255, 255, 0.10)' }}
                       >
-                        <div className="bg-gray-700 rounded w-24 h-4" />
+                        <div className="bg-gray-700 rounded w-20 h-4" />
                       </div>
                       
                       {/* Models count placeholder */}
                       <div className="text-center">
-                        <div className="bg-gray-700 rounded w-20 h-4 mx-auto" />
+                        <div className="bg-gray-700 rounded w-16 h-4 mx-auto" />
                       </div>
                     </div>
                   </div>
@@ -147,30 +160,39 @@ export default function CreatorSpotlight({
               </div>
             ) : (
               <div 
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6"
-                style={{ paddingLeft: '40px', paddingRight: '40px' }}
+                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6"
+                style={{ paddingLeft: '20px', paddingRight: '20px' }}
               >
                 {studios.map((studio) => (
                   <div 
                     key={studio.id} 
-                    className="w-full max-w-[300px] hover:opacity-90 transition-opacity cursor-pointer"
+                    className="w-full hover:opacity-90 transition-opacity cursor-pointer"
                   >
                     <div 
-                      className="rounded-2xl p-3 flex flex-col aspect-[10/9]"
+                      className="rounded-2xl p-3 flex flex-col h-[240px]"
                       style={{ background: 'rgba(0, 0, 0, 0.10)' }}
                     >
-                      {/* Studio Image */}
-                      <div className="rounded-lg overflow-hidden flex-1 mb-3">
-                        {studio.logo ? (
+                      {/* Studio Image - fixed height instead of aspect-square */}
+                      <div className="rounded-lg overflow-hidden h-[140px] mb-3 relative">
+                        {studio.logo && studio.logo.trim() !== '' && !studio.imageError ? (
                           <Image 
                             src={studio.logo} 
                             alt={studio.name} 
                             fill
-                            className="w-full h-full object-cover"
+                            className="object-cover"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                            onError={() => {
+                              console.log(`Image error for studio ${studio.id}: ${studio.name}, URL: ${studio.logo}`);
+                              handleImageError(studio.id);
+                            }}
+                            onLoad={() => {
+                              console.log(`Image loaded for studio ${studio.id}: ${studio.name}`);
+                            }}
+                            unoptimized={studio.logo?.startsWith('http')}
                           />
                         ) : (
                           <div 
-                            className="w-full h-full flex items-center justify-center text-white text-4xl sm:text-5xl lg:text-6xl font-bold"
+                            className="w-full h-full flex items-center justify-center text-white text-2xl font-bold"
                             style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
                           >
                             {studio.avatar}
@@ -178,21 +200,22 @@ export default function CreatorSpotlight({
                         )}
                       </div>
                       
-                      {/* Studio Name */}
+                      {/* Studio Name - fixed height */}
                       <div 
-                        className="rounded-lg mb-3 flex items-center justify-center text-center text-white text-lg sm:text-xl lg:text-lg font-normal px-3 break-words"
+                        className="rounded-lg mb-3 flex items-center justify-center text-center text-white text-sm font-normal px-2 h-[40px]"
                         style={{ 
                           background: 'rgba(255, 255, 255, 0.10)', 
-                          height: '37px',
                           fontFamily: 'Open Sans'
                         }}
                       >
-                        {studio.name}
+                        <span className="line-clamp-2 leading-tight">
+                          {studio.name}
+                        </span>
                       </div>
                       
-                      {/* Models Count */}
+                      {/* Models Count - no mt-auto, fixed position */}
                       <div 
-                        className="text-center text-white text-sm sm:text-base lg:text-base break-words"
+                        className="text-center text-white text-sm"
                         style={{ fontFamily: 'Open Sans' }}
                       >
                         <span className="font-bold">Models</span>
@@ -207,19 +230,19 @@ export default function CreatorSpotlight({
         </div>
         
         {/* Call to Action for Creators */}
-        <div className="mt-12 flex justify-center">
-          <div className="w-full" style={{ maxWidth: '1720px', paddingLeft: '40px', paddingRight: '40px' }}>
+        <div className="mt-8 sm:mt-12 flex justify-center">
+          <div className="w-full px-4 sm:px-8 lg:px-10" style={{ maxWidth: '1720px' }}>
             <div 
-              className="rounded-2xl px-10 py-6 flex items-center justify-between w-full"
+              className="rounded-xl sm:rounded-2xl px-4 py-4 sm:px-6 sm:py-5 lg:px-4 lg:py-3 flex flex-col sm:flex-row items-center justify-between w-full gap-2 sm:gap-4"
               style={{ 
                 background: 'rgba(255, 255, 255, 0.04)'
               }}
             >
               {/* Left Content */}
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-2 xl:gap-x-6 text-center sm:text-left">
                 {/* Main Text */}
                 <h3 
-                  className="text-[#FDD811] text-2xl sm:text-3xl lg:text-4xl font-extrabold break-words whitespace-nowrap"
+                  className="text-[#FDD811] text-lg sm:text-2xl lg:text-xl font-extrabold break-words"
                   style={{ fontFamily: 'Open Sans' }}
                 >
                   ARE YOU A CREATOR?
@@ -227,7 +250,7 @@ export default function CreatorSpotlight({
                 
                 {/* Description */}
                 <p 
-                  className="text-[#F4F4F4] text-lg sm:text-xl lg:text-2xl font-normal break-words hidden md:block"
+                  className="text-[#F4F4F4] text-sm sm:text-base lg:text-lg xl:text-base font-normal break-words"
                   style={{ fontFamily: 'Open Sans' }}
                 >
                   Join STL Forge and benefits from the highest pay rate in the field.
@@ -236,28 +259,16 @@ export default function CreatorSpotlight({
               
               {/* Button */}
               <button 
-                className="px-6 py-2.5 rounded-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity bg-[#FDD811] flex-shrink-0"
+                className="px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-3 rounded-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity bg-[#FDD811] flex-shrink-0 w-full sm:w-auto"
               >
                 <span 
-                  className="text-[#282828] text-xl lg:text-2xl font-normal leading-8 break-words whitespace-nowrap"
+                  className="text-[#282828] text-sm sm:text-base lg:text-lg xl:text-xl font-normal leading-tight break-words whitespace-nowrap"
                   style={{ fontFamily: 'Open Sans' }}
                 >
                   Find out more
                 </span>
               </button>
             </div>
-          </div>
-        </div>
-        
-        {/* Mobile Description */}
-        <div className="md:hidden mt-4 flex justify-center">
-          <div className="w-full" style={{ maxWidth: '1720px' }}>
-            <p 
-              className="text-[#F4F4F4] text-lg font-normal break-words text-center px-4"
-              style={{ fontFamily: 'Open Sans' }}
-            >
-              Join STL Forge and benefits from the highest pay rate in the field.
-            </p>
           </div>
         </div>
       </div>

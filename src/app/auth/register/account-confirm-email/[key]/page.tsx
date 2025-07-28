@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
 import { AUTH_ENDPOINTS, USE_MOCK_DATA } from '@/lib/api/config';
@@ -17,7 +17,7 @@ export default function EmailConfirmPage() {
 
   const key = params.key as string;
 
-  const confirmEmail = async () => {
+  const confirmEmail = useCallback(async () => {
     try {
       if (USE_MOCK_DATA) {
         // Mock email confirmation - always succeed
@@ -61,7 +61,7 @@ export default function EmailConfirmPage() {
       setMessage(errorMessage);
       showError(errorMessage);
     }
-  };
+  }, [key, showError, showSuccess]);
 
   useEffect(() => {
     if (!key) {

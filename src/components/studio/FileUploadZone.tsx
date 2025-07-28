@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, DragEvent } from "react";
+import Image from "next/image";
 import { RiUploadCloud2Line, RiCloseLine, RiDragMove2Line, RiImageLine, RiStarLine, RiStarFill, RiGridLine, RiListUnordered, RiBox3Line } from "react-icons/ri";
 import { useToast } from "@/context/ToastContext";
 
@@ -377,10 +378,12 @@ export default function FileUploadZone({
                       {/* File Preview */}
                       <div className="relative aspect-square mb-2 bg-[#1A1C21] rounded flex items-center justify-center overflow-hidden">
                         {fileType === "image" && file.url ? (
-                          <img
+                          <Image
                             src={file.url}
                             alt={file.name}
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                           />
                         ) : fileType === "image" ? (
                           <RiImageLine className="w-8 h-8 text-gray-500" />
@@ -488,11 +491,15 @@ export default function FileUploadZone({
                       {/* File Preview - Smaller in list view */}
                       <div className="relative w-16 h-16 bg-[#1A1C21] rounded flex items-center justify-center overflow-hidden flex-shrink-0">
                         {fileType === "image" && file.url ? (
-                          <img
-                            src={file.url}
-                            alt={file.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={file.url}
+                              alt={file.name}
+                              fill
+                              className="object-cover"
+                              sizes="64px"
+                            />
+                          </div>
                         ) : fileType === "image" ? (
                           <RiImageLine className="w-6 h-6 text-gray-500" />
                         ) : (

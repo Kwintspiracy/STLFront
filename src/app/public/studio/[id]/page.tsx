@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useStudio } from '@/context/StudioContext';
 import { notFound } from 'next/navigation';
 import type { Studio } from '@/types/studio';
@@ -85,11 +86,15 @@ export default function PublicStudioProfile({ params }: Props) {
             {/* Studio Avatar */}
             <div className="flex-shrink-0">
               {studio.badge ? (
-                <img
-                  src={studio.badge}
-                  alt={`${studio.name} logo`}
-                  className="w-24 h-24 rounded-lg object-cover border-2 border-[#FDD811]"
-                />
+                <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-[#FDD811]">
+                  <Image
+                    src={studio.badge}
+                    alt={`${studio.name} logo`}
+                    fill
+                    className="object-cover"
+                    sizes="96px"
+                  />
+                </div>
               ) : (
                 <div className="w-24 h-24 rounded-lg bg-gray-600 flex items-center justify-center border-2 border-[#FDD811]">
                   <span className="text-2xl font-bold">{studio.name.charAt(0)}</span>
@@ -123,11 +128,13 @@ export default function PublicStudioProfile({ params }: Props) {
 
           {/* Studio Banner */}
           {studio.banner && (
-            <div className="mt-8 w-full h-64 rounded-lg overflow-hidden">
-              <img 
+            <div className="mt-8 w-full h-64 rounded-lg overflow-hidden relative">
+              <Image 
                 src={studio.banner} 
                 alt={`${studio.name} banner`}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
               />
             </div>
           )}
