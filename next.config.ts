@@ -43,6 +43,11 @@ const generateRemotePatterns = (): Array<{
       hostname: 'fbi.cults3d.com',
       pathname: '/**',
     },
+    {
+      protocol: 'https',
+      hostname: 'storage.googleapis.com',
+      pathname: '/**',
+    },
   ];
 
   // Configuration API selon l'environnement
