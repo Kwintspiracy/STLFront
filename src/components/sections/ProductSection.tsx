@@ -36,18 +36,26 @@ export default function ProductSection({
         const width = window.innerWidth;
         setScreenWidth(width);
         if (variant === 'featured') {
-          // Featured section shows 4 cards evenly spaced
-          if (width >= 1280) setVisibleCards(5);      // xl: 4 cards
-          else if (width >= 1024) setVisibleCards(4); // lg: 4 cards
+          // Featured section - optimized breakpoints
+          if (width >= 2560) setVisibleCards(5);      // 4xl: 6 cards
+          else if (width >= 1920) setVisibleCards(6); // 3xl: 6 cards
+          else if (width >= 1536) setVisibleCards(5); // 2xl: 5 cards
+          else if (width >= 1280) setVisibleCards(4); // xl: 4 cards
+          else if (width >= 1024) setVisibleCards(3); // lg: 3 cards
           else if (width >= 768) setVisibleCards(3);  // md: 3 cards
           else if (width >= 640) setVisibleCards(2);  // sm: 2 cards
+          else if (width >= 430) setVisibleCards(2);  // xs: 2 cards
           else setVisibleCards(6);                     // mobile: 6 cards (3 rows x 2 cols)
         } else {
-          // Other carousel sections show 5 cards
-          if (width >= 1280) setVisibleCards(6);      // xl: 5 cards
-          else if (width >= 1024) setVisibleCards(4); // lg: 4 cards
+          // Other carousel sections - optimized breakpoints
+          if (width >= 2560) setVisibleCards(5);      // 4xl: 7 cards
+          else if (width >= 1920) setVisibleCards(6); // 3xl: 6 cards
+          else if (width >= 1536) setVisibleCards(5); // 2xl: 5 cards
+          else if (width >= 1280) setVisibleCards(4); // xl: 4 cards
+          else if (width >= 1024) setVisibleCards(3); // lg: 3 cards
           else if (width >= 768) setVisibleCards(3);  // md: 3 cards
           else if (width >= 640) setVisibleCards(2);  // sm: 2 cards
+          else if (width >= 430) setVisibleCards(2);  // xs: 2 cards
           else setVisibleCards(6);                     // mobile: 6 cards (3 rows x 2 cols)
         }
       }
@@ -91,6 +99,20 @@ export default function ProductSection({
     }
   };
 
+  // Get section-specific margin-top classes
+  const getMarginTopClasses = () => {
+    switch (variant) {
+      case 'featured':
+        return 'mt-5 sm:mt-8';  // Featured section margin-top
+      case 'trending':
+        return 'mt-5 sm:mt-0';  // Trending section margin-top
+      case 'commercial':
+        return 'mt-5 sm:mt-6';  // Commercial section margin-top
+      default:
+        return 'mt-5 sm:mt-8';  // Default section margin-top
+    }
+  };
+
   const sectionConfig = getSectionConfig();
 
   // Carousel navigation
@@ -114,15 +136,15 @@ export default function ProductSection({
 
   return (
     <div className={`${sectionConfig.bgClass} ${className}`}>
-      <div className={`${useCarousel ? 'max-w-none' : 'max-w-7xl'} mx-auto px-4 sm:px-6 lg:px-8 py-12`}>
+      <div className={`${useCarousel ? 'max-w-none' : 'max-w-content'} mx-auto px-4 sm:px-6 lg:px-8 py-12`}>
         
         {/* Section Header - Left aligned with product cards */}
         {useCarousel ? (
-          <div className="flex justify-center mb-3 sm:mb-8">
-            <div className="w-full text-left" style={{ maxWidth: '1720px' }}>
+          <div className={`flex justify-center mb-5 sm:mb-6 ${getMarginTopClasses()}`}>
+            <div className="w-full text-left max-w-wide">
               <div className="px-4 sm:px-0" style={{ paddingLeft: '0px', paddingRight: '0px' }}>
                 <div style={{ paddingLeft: '0px', paddingRight: '0px' }} className="sm:hidden">
-                  <h2 className="text-2xl font-extrabold">
+                  <h2 className="text-3xl font-extrabold">
                     {variant === 'featured' && (
                       <>
                         <span className="text-yellow-500">FEATURED</span>
@@ -358,25 +380,72 @@ export default function ProductSection({
         
         {/* Additional content for commercial section */}
         {variant === 'commercial' && (
-          <div className="mt-8 text-center">
-            <div className="bg-cardbackground border border-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-white mb-2">Need Commercial Rights?</h3>
-              <p className="text-gray-400 text-sm mb-4">
-                Use these models for your business, sell prints, or create derivative works with our commercial licenses.
-              </p>
-              <div className="flex flex-wrap justify-center gap-4 text-sm">
-                <div className="flex items-center gap-2 text-green-400">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Sell Physical Prints</span>
+          <div className="mt-8 sm:mt-12 flex justify-center">
+            <div className="w-full px-4 sm:px-8 lg:px-10" style={{ maxWidth: '1720px' }}>
+              <div 
+                className="rounded-xl sm:rounded-2xl px-4 py-4 sm:px-6 sm:py-5 lg:px-6 lg:py-4 flex flex-col items-center justify-center w-full gap-4 sm:gap-6"
+                style={{ 
+                  background: 'rgba(255, 255, 255, 0.04)'
+                }}
+              >
+                {/* Header */}
+                <div className="text-center">
+                  <h3 
+                    className="text-green-500 text-lg sm:text-xl lg:text-2xl font-extrabold mb-2"
+                    style={{ fontFamily: 'Open Sans' }}
+                  >
+                    NEED COMMERCIAL RIGHTS?
+                  </h3>
+                  <p 
+                    className="text-[#F4F4F4] text-sm sm:text-base lg:text-lg font-normal"
+                    style={{ fontFamily: 'Open Sans' }}
+                  >
+                    Use these models for your business, sell prints, or create derivative works with our commercial licenses.
+                  </p>
                 </div>
-                <div className="flex items-center gap-2 text-blue-400">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span>Commercial Projects</span>
+                
+                {/* Features */}
+                <div className="flex flex-row items-center justify-center gap-3 sm:gap-6 lg:gap-8 w-full flex-wrap">
+                  <div className="flex items-center gap-2 text-green-400">
+                    <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <span 
+                      className="text-xs sm:text-sm lg:text-base font-normal whitespace-nowrap"
+                      style={{ fontFamily: 'Open Sans' }}
+                    >
+                      Sell Physical Prints
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-blue-400">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full flex-shrink-0"></div>
+                    <span 
+                      className="text-xs sm:text-sm lg:text-base font-normal whitespace-nowrap"
+                      style={{ fontFamily: 'Open Sans' }}
+                    >
+                      Commercial Projects
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-purple-400">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full flex-shrink-0"></div>
+                    <span 
+                      className="text-xs sm:text-sm lg:text-base font-normal whitespace-nowrap"
+                      style={{ fontFamily: 'Open Sans' }}
+                    >
+                      Derivative Works
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-purple-400">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  <span>Derivative Works</span>
-                </div>
+                
+                {/* Call to Action Button */}
+                <button 
+                  className="px-6 py-3 sm:px-8 sm:py-3 lg:px-6 lg:py-3 rounded-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity bg-green-500 flex-shrink-0 w-full sm:w-auto mt-2"
+                >
+                  <span 
+                    className="text-black text-sm sm:text-base lg:text-lg font-semibold leading-tight break-words whitespace-nowrap"
+                    style={{ fontFamily: 'Open Sans' }}
+                  >
+                    Learn More About Commercial Licenses
+                  </span>
+                </button>
               </div>
             </div>
           </div>

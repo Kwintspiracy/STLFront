@@ -15,8 +15,17 @@ const openSans = Open_Sans({
 });
 
 export const metadata = {
-  title: "Your App",
-  description: "Your app description",
+  title: "STL Forge",
+  description: "Your 3D marketplace for miniatures and models",
+  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
+  themeColor: "#0C1014",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+  },
+  other: {
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

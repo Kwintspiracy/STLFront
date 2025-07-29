@@ -74,10 +74,10 @@ export default async function Home() {
       {/* Latest Additions */}
       <LatestSection products={newProducts} />
 
-      <SectionSeparator />
+      {/* <SectionSeparator /> */}
 
       {/* Call to Action */}
-      <CallToAction />
+      {/* <CallToAction /> */}
     </div>
   );
 }

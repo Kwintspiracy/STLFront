@@ -113,16 +113,31 @@ export default function CreatorSpotlight({
     >
       <div className="max-w-none mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex justify-center mb-8">
-          <div className="text-left sm:text-center w-full sm:px-0" style={{ maxWidth: '1720px', paddingLeft: '20px', paddingRight: '20px' }}>
-            <h2 
-              className="mb-2 text-[#F4F4F4] text-3xl sm:text-5xl font-extrabold break-words"
-              style={{
-                fontFamily: 'Open Sans'
-              }}
-            >
-              CREATORS CORNER
-            </h2>
-            <p className="text-gray-400 text-lg sm:text-xl">Meet the talented artists behind amazing 3D models</p>
+          <div className="text-left sm:text-center w-full sm:px-0 max-w-wide">
+            <div className="px-4 sm:px-0" style={{ paddingLeft: '0px', paddingRight: '0px' }}>
+              <div style={{ paddingLeft: '0px', paddingRight: '0px' }} className="sm:hidden">
+                <h2 
+                  className="mb-2 text-[#F4F4F4] text-3xl font-extrabold break-words"
+                  style={{
+                    fontFamily: 'Open Sans'
+                  }}
+                >
+                  CREATORS CORNER
+                </h2>
+                <p className="text-gray-400 text-lg">Meet the talented artists behind amazing 3D models</p>
+              </div>
+              <div style={{ paddingLeft: '40px', paddingRight: '40px' }} className="hidden sm:block">
+                <h2 
+                  className="mb-2 text-[#F4F4F4] text-4xl font-extrabold break-words"
+                  style={{
+                    fontFamily: 'Open Sans'
+                  }}
+                >
+                  CREATORS CORNER
+                </h2>
+                <p className="text-gray-400 text-xl">Meet the talented artists behind amazing 3D models</p>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -130,8 +145,8 @@ export default function CreatorSpotlight({
           <div className="w-full" style={{ maxWidth: '1720px' }}>
             {loading ? (
               <div 
-                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6"
-                style={{ paddingLeft: '20px', paddingRight: '20px' }}
+                className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 gap-3 xs:gap-4 sm:gap-4 lg:gap-6"
+                style={{ paddingLeft: '0px', paddingRight: '0px' }}
               >
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div key={i} className="w-full animate-pulse">
@@ -160,8 +175,8 @@ export default function CreatorSpotlight({
               </div>
             ) : (
               <div 
-                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6"
-                style={{ paddingLeft: '20px', paddingRight: '20px' }}
+                className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 gap-3 xs:gap-4 sm:gap-4 lg:gap-6"
+                style={{ paddingLeft: '0px', paddingRight: '0px' }}
               >
                 {studios.map((studio) => (
                   <div 
@@ -218,8 +233,9 @@ export default function CreatorSpotlight({
                         className="text-center text-white text-sm"
                         style={{ fontFamily: 'Open Sans' }}
                       >
-                        <span className="font-bold">Models</span>
-                        <span className="font-normal"> {studio.models}</span>
+                        <span className="font-normal font-xs"> {studio.models} </span>
+                        <span className="font-xs">Models</span>
+                        
                       </div>
                     </div>
                   </div>
@@ -230,7 +246,7 @@ export default function CreatorSpotlight({
         </div>
         
         {/* Call to Action for Creators */}
-        <div className="mt-8 sm:mt-12 flex justify-center">
+        <div className="mt-12 sm:mt-12 flex justify-center">
           <div className="w-full px-4 sm:px-8 lg:px-10" style={{ maxWidth: '1720px' }}>
             <div 
               className="rounded-xl sm:rounded-2xl px-4 py-4 sm:px-6 sm:py-5 lg:px-4 lg:py-3 flex flex-col sm:flex-row items-center justify-between w-full gap-2 sm:gap-4"
@@ -253,16 +269,16 @@ export default function CreatorSpotlight({
                   className="text-[#F4F4F4] text-sm sm:text-base lg:text-lg xl:text-base font-normal break-words"
                   style={{ fontFamily: 'Open Sans' }}
                 >
-                  Join STL Forge and benefits from the highest pay rate in the field.
+                  Join STL Forge and benefits from the highest pay rates in the field.
                 </p>
               </div>
               
               {/* Button */}
               <button 
-                className="px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-3 rounded-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity bg-[#FDD811] flex-shrink-0 w-full sm:w-auto"
+                className="mt-2 sm:mt-0 -px-4 py-4 sm:px-5 sm:py-2.5 lg:px-4 lg:py-3 rounded-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity bg-[#FDD811] flex-shrink-0 w-full sm:w-auto"
               >
                 <span 
-                  className="text-[#282828] text-sm sm:text-base lg:text-lg xl:text-xl font-normal leading-tight break-words whitespace-nowrap"
+                  className="text-[#282828] text-lg sm:text-base lg:text-base xl:text-lg font-semibold leading-tight break-words whitespace-nowrap"
                   style={{ fontFamily: 'Open Sans' }}
                 >
                   Find out more

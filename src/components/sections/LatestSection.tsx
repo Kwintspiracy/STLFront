@@ -31,11 +31,18 @@ export default function LatestSection({
     <div className={`bg-transparent ${className}`}>
       <div className="max-w-none mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
-        {/* Section Header - Same style as carousel sections */}
-        <div className="flex justify-center mb-8">
-          <div className="w-full" style={{ maxWidth: '1720px' }}>
-            <div className="flex items-center justify-between" style={{ paddingLeft: '40px', paddingRight: '40px' }}>
-              <div>
+        {/* Section Header - Responsive like other sections */}
+        <div className="flex justify-center mb-3 sm:mb-8">
+          <div className="w-full text-left" style={{ maxWidth: '1720px' }}>
+            <div className="px-4 sm:px-0" style={{ paddingLeft: '0px', paddingRight: '0px' }}>
+              <div style={{ paddingLeft: '0px', paddingRight: '0px' }} className="sm:hidden">
+                <h2 className="text-3xl font-extrabold">
+                  <span className="text-[#FFD700]">LATEST</span>
+                  <span className="text-white"> ADDITIONS</span>
+                </h2>
+                <p className="text-gray-400 mt-1 text-base">Fresh models from our community</p>
+              </div>
+              <div style={{ paddingLeft: '40px', paddingRight: '40px' }} className="hidden sm:block">
                 <h2 className="text-4xl font-extrabold">
                   <span className="text-[#FFD700]">LATEST</span>
                   <span className="text-white"> ADDITIONS</span>
@@ -46,19 +53,36 @@ export default function LatestSection({
           </div>
         </div>
         
-        {/* Products Grid - Same layout as carousel */}
+        {/* Products Grid - Responsive layout like other sections */}
         <div className="flex justify-center">
-          <div className="w-full" style={{ maxWidth: '1720px', paddingLeft: '40px', paddingRight: '40px' }}>
-            <div className="grid gap-6 lg:gap-[18px] grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {visibleProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  variant="standard"
-                  showFavorite={true}
-                  className="w-full"
-                />
-              ))}
+          <div className="w-full" style={{ maxWidth: '1720px' }}>
+            <div className="px-4 sm:px-0" style={{ paddingLeft: '0px', paddingRight: '0px' }}>
+              <div style={{ paddingLeft: '0px', paddingRight: '0px' }} className="sm:hidden">
+                <div className="grid gap-3 grid-cols-2">
+                  {visibleProducts.slice(0, 6).map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      variant="standard"
+                      showFavorite={true}
+                      className="w-full"
+                    />
+                  ))}
+                </div>
+              </div>
+              <div style={{ paddingLeft: '40px', paddingRight: '40px' }} className="hidden sm:block">
+                <div className="grid gap-6 lg:gap-[18px] grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6">
+                  {visibleProducts.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      variant="standard"
+                      showFavorite={true}
+                      className="w-full"
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>

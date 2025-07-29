@@ -1,8 +1,31 @@
 @import "tailwindcss";
 
-html,
+html {
+  min-height: 100vh;
+  /* Background color pour les zones safe areas (notch, barre de statut) */
+  background-color: #0C1014;
+  /* Support des safe areas pour éviter le contenu sous la barre de statut */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
 body {
+  min-height: 100vh;
+  position: relative;
+  /* Couleur de base comme fallback */
+  background-color: #0C1014;
+}
+
+/* Pseudo-élément pour le gradient qui couvre toute la page */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
+  background-image: radial-gradient(ellipse 56.94% 34.54% at 50.02% 28.09%, #172733 0%, #162631 12.5%, #152530 25%, #14232f 37.5%, #13212a 50%, #131f28 62.5%, #121e26 75%, #121c24 87.5%, #111920 100%);
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* ========================================
@@ -158,6 +181,20 @@ body {
   --color-info: #3b82f6;
 }
 
+/* Light theme background adjustments */
+.theme-light html {
+  background-color: #ffffff;
+}
+
+.theme-light body {
+  background-color: #ffffff;
+}
+
+.theme-light body::before {
+  background-image: none;
+  background-color: #ffffff;
+}
+
 @theme {
   /* Map CSS variables to Tailwind utilities */
   --color-primary: var(--color-primary);
@@ -202,7 +239,14 @@ body {
 
   /* custom breakpoints */
   --breakpoint-xs: 26.875rem; /* 430px - for large mobile devices like iPhone Pro Max */
-  --breakpoint-3xl: 120rem;
+  --breakpoint-3xl: 120rem;   /* 1920px - ultra-wide screens */
+  --breakpoint-4xl: 160rem;   /* 2560px - 4K and above */
+  
+  /* Layout max-widths */
+  --max-width-content: 80rem;  /* 1280px - main content */
+  --max-width-wide: 107.5rem;  /* 1720px - wide sections */
+  --max-width-full: 120rem;    /* 1920px - full width */
+  --max-width-ultra: 160rem;   /* 2560px - ultra-wide */
   
   /* Layout Variables */
   --header-height: var(--header-height);

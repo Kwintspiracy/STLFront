@@ -126,7 +126,7 @@ export default function ProductCard({
             {showFavorite && (
               <button 
                 onClick={handleFavoriteClick}
-                className={`absolute top-4 right-4 w-12 h-12 rounded-full flex items-center justify-center text-white text-xl cursor-pointer transition-all duration-300 backdrop-blur-[10px] border-none hover:scale-110 ${
+                className={`absolute bottom-1 right-1 sm:bottom-2 sm:right-2 w-12 h-12 rounded-full flex items-center justify-center text-white text-xl cursor-pointer transition-all duration-300 backdrop-blur-[10px] border-none hover:scale-110 ${
                   isFavorited 
                     ? 'bg-red-500/80 hover:bg-red-600/80' 
                     : 'bg-black/30 hover:bg-white/20'
@@ -140,17 +140,17 @@ export default function ProductCard({
         </Link>
 
         {/* Product Information */}
-        <div className="px-5 pt-3 sm:pt-5 pb-5 ">
+        <div className="px-3 sm:px-5 pt-3 xs:pt-4 sm:pt-5 pb-4 sm:pb-5">
           {/* Product Title */}
           <Link href={`/product/${product.id}`}>
-            <h2 className="text-[#F4F4F4] text-base sm:text-xl font-light leading-[1.3] mb-4 sm:mb-2.5 truncate hover:text-primary transition-colors duration-200">
+            <h2 className="text-[#F4F4F4] text-sm xs:text-base sm:text-lg lg:text-xl font-light leading-[1.3] mb-3 xs:mb-4 sm:mb-2.5 truncate hover:text-primary transition-colors duration-200">
               {product.name}
             </h2>
           </Link>
 
           {/* Creator Section */}
-          <div className="flex items-start mb-4 sm:mb-6">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
+          <div className="flex items-start mb-3 xs:mb-4 sm:mb-6">
+            <div className="w-10 h-10 xs:w-10 xs:h-10 sm:w-12 sm:h-12 flex-shrink-0">
               {product.creator.badge ? (
                 <div className="w-full h-full bg-[#242627] border-2 border-white/5 rounded-lg overflow-hidden">
                   <Image
@@ -190,8 +190,8 @@ export default function ProductCard({
 
           {/* Price Section */}
           <div className="flex justify-between items-center">
-            <div className="text-[#F4F4F4] text-xl sm:text-2xl font-semibold">
-              {parseFloat(product.price) === 0 ? 'FREE' : `$ ${product.price}`}
+            <div className="text-[#F4F4F4] text-lg sm:text-xl font-semibold">
+              {parseFloat(product.price) === 0 ? 'FREE' : `$${product.price}`}
             </div>
             
             <button 
