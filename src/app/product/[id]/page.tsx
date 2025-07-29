@@ -1,290 +1,180 @@
-'use client';
-
-export const dynamic = 'force-dynamic';
-import { getProductById } from "@/lib/api/products";
+import { getProductById, getAllProducts } from "@/lib/api/products";
 import { notFound } from "next/navigation";
-import CardCartButton from "@/components/card/CardCartButton";
-import { RiShoppingCart2Fill, RiDownloadLine } from "react-icons/ri";
+import { RiDownloadLine } from "react-icons/ri";
 import TagPill from "@/components/card/TagPill";
 import ProductImageGallery from "@/components/product/ProductImageGallery";
-import { useState, useEffect } from "react";
-import { Product } from "@/types/product";
 import StudioBlock from "@/components/studio/StudioBlock";
+import ProductLicenseSelector from "@/app/product/[id]/ProductLicenseSelector";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function ProductPage(props: ProductPageProps) {
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedLicense, setSelectedLicense] = useState<'personal' | 'commercial'>('personal');
+// Static generation with shorter revalidation for product details
+export const revalidate = 1800; // 30 minutes
 
-  useEffect(() => {
-    const loadProduct = async () => {
-      try {
-        const { id } = await props.params;
-        const productData = await getProductById(Number(id));
-        if (!productData) {
-          notFound();
-        }
-        setProduct(productData);
-      } catch (error) {
-        console.error('Error loading product:', error);
-        notFound();
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProduct();
-  }, [props.params]);
-
-  const calculateCreatorEarnings = (price: string) => {
-    const numPrice = parseFloat(price);
-    return (numPrice * 0.7).toFixed(2); // Assuming 70% goes to creator
-  };
-
-  const getCurrentPrice = () => {
-    if (!product) return '0';
+export default async function ProductPage({ params }: ProductPageProps) {
+  const { id } = await params;
+  
+  try {
+    const product = await getProductById(Number(id));
     
-    if (selectedLicense === 'commercial' && product.professional_license_fee) {
-      return product.professional_license_fee; // Use actual professional license price
+    if (!product) {
+      notFound();
     }
-    
-    return product.price; // Use personal price
-  };
 
-  const hasCommercialLicense = () => {
-    return product && 
-           product.professional_license_fee !== null && 
-           product.professional_license_fee !== undefined &&
-           parseFloat(product.professional_license_fee) > 0;
-  };
+    const hasCommercialLicense = product.professional_license_fee !== null && 
+                                 product.professional_license_fee !== undefined &&
+                                 parseFloat(product.professional_license_fee) > 0;
 
-  const isFreeProduct = () => {
-    return product && parseFloat(product.price) === 0;
-  };
+    const isFreeProduct = parseFloat(product.price) === 0;
 
-  if (loading) {
     return (
       <main className="max-w-[1440px] mx-auto text-white px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        <div className="animate-pulse">
-          {/* Breadcrumb skeleton */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-4 py-4 sm:py-6">
-            <div className="h-6 bg-gray-700 rounded-full w-16"></div>
-            <div className="h-6 bg-gray-700 rounded-full w-20"></div>
-            <div className="h-6 bg-gray-700 rounded-full w-14"></div>
+        {/* Breadcrumb Navigation */}
+        <nav className="flex flex-wrap items-center gap-2 sm:gap-4 py-4 sm:py-6" aria-label="Breadcrumb">
+          {product.tag && product.tag.map((tag: { id: number; name: string }) => (
+            <TagPill key={tag.id} tag={tag.name} />
+          ))}
+        </nav>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
+
+          {/* Product Image Gallery */}
+          <div className="lg:col-span-3">
+            <ProductImageGallery images={product.images} name={product.name} />
           </div>
 
-          {/* Content skeleton */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
-            <div className="lg:col-span-3">
-              <div className="aspect-square bg-gray-700 rounded-lg"></div>
+          {/* Product Information */}
+          <div className="lg:col-span-2 space-y-6">
+
+            {/* Product Header */}
+            <div className="space-y-4">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight text-white">
+                {product.name}
+              </h1>
+
+              {/* Studio Block */}
+              {product.creator && (
+                <StudioBlock studio={product.creator} />
+              )}
             </div>
-            <div className="lg:col-span-2 space-y-4">
-              <div className="h-8 bg-gray-700 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-700 rounded w-1/2"></div>
-              <div className="h-12 bg-gray-700 rounded"></div>
+
+            {/* Divider */}
+            <div className="h-px bg-gray-700"></div>
+
+            {/* License Selection Component - Client-side for interactivity */}
+            <ProductLicenseSelector 
+              product={product}
+              hasCommercialLicense={hasCommercialLicense}
+              isFreeProduct={isFreeProduct}
+            />
+
+            {/* Divider */}
+            <div className="h-px bg-gray-700"></div>
+
+            {/* Files Section */}
+            <div className="space-y-4">
+              <h2 className="text-white text-lg sm:text-xl font-bold flex items-center gap-2">
+                <RiDownloadLine className="w-5 h-5 text-primary" />
+                Included Files
+              </h2>
+
+              <div className="space-y-2">
+                {Array.isArray(product.stl_files) && product.stl_files.length > 0 ? (
+                  product.stl_files.map((file) => (
+                    <div
+                      key={file.id}
+                      className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg border border-gray-700"
+                    >
+                      <RiDownloadLine className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span className="text-gray-200 text-sm font-medium truncate">
+                        {file.title}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-gray-400 text-sm italic p-3 bg-gray-800/30 rounded-lg">
+                    No downloadable files available.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-4">
+              <h2 className="text-white text-lg sm:text-xl font-bold">
+                Description
+              </h2>
+              <div className="prose prose-invert prose-sm max-w-none">
+                <p className="text-gray-300 leading-relaxed">
+                  {product.description || "No description available for this product."}
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </main>
     );
+  } catch (error) {
+    console.error('Error loading product:', error);
+    notFound();
   }
+}
 
-  if (!product) return null;
+// Generate static params for popular products
+export async function generateStaticParams() {
+  try {
+    // Get all products and pre-generate the most popular ones
+    const products = await getAllProducts();
+    // For now, generate static params for all published products
+    // In production, you might want to limit this to popular products only
+    return products
+      .filter(p => p.status === 'published')
+      .slice(0, 100) // Limit to first 100 products to avoid long build times
+      .map((product) => ({
+        id: product.id.toString(),
+      }));
+  } catch (error) {
+    console.error('Error generating static params for products:', error);
+    return [];
+  }
+}
 
-  return (
-    <main className="max-w-[1440px] mx-auto text-white px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-      {/* Breadcrumb Navigation */}
-      <nav className="flex flex-wrap items-center gap-2 sm:gap-4 py-4 sm:py-6" aria-label="Breadcrumb">
-        {product.tag && product.tag.map((tag: { id: number; name: string }) => (
-          <TagPill key={tag.id} tag={tag.name} />
-        ))}
-      </nav>
+// Generate metadata for SEO
+export async function generateMetadata({ params }: ProductPageProps) {
+  const { id } = await params;
+  
+  try {
+    const product = await getProductById(Number(id));
+    
+    if (!product) {
+      return {
+        title: 'Product Not Found - STL Forge',
+      };
+    }
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
-
-        {/* Product Image Gallery */}
-        <div className="lg:col-span-3">
-          <ProductImageGallery images={product.images} name={product.name} />
-        </div>
-
-        {/* Product Information */}
-        <div className="lg:col-span-2 space-y-6">
-
-          {/* Product Header */}
-          <div className="space-y-4">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight text-white">
-              {product.name}
-            </h1>
-
-            {/* Studio Block */}
-            {product.creator && (
-              <StudioBlock studio={product.creator} />
-            )}
-          </div>
-
-          {/* Divider */}
-          <div className="h-px bg-gray-700"></div>
-
-          {/* Pricing Section */}
-          <div className="bg-gray-800/50 rounded-lg p-4 sm:p-6 space-y-3">
-            <div className="flex items-baseline gap-2">
-              {isFreeProduct() ? (
-                <span className="text-2xl sm:text-3xl font-bold text-green-400">
-                  FREE
-                </span>
-              ) : (
-                <>
-                  <span className="text-2xl sm:text-3xl font-bold text-white">
-                    ${getCurrentPrice()}
-                  </span>
-                  <span className="text-gray-400 text-sm">USD</span>
-                </>
-              )}
-            </div>
-            {!isFreeProduct() && (
-              <p className="text-primary text-sm font-medium">
-                ${calculateCreatorEarnings(getCurrentPrice())} goes to the creator
-              </p>
-            )}
-            {isFreeProduct() && (
-              <p className="text-green-400 text-sm font-medium">
-                This product is available for free download
-              </p>
-            )}
-          </div>
-
-          {/* License Selection - Only show if commercial license is available */}
-          {hasCommercialLicense() ? (
-            <div className="space-y-4">
-              <h3 className="text-white text-base sm:text-lg font-semibold">
-                Select License Type
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  onClick={() => setSelectedLicense('personal')}
-                  className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${selectedLicense === 'personal'
-                    ? 'border-primary bg-primary/10 text-white shadow-lg'
-                    : 'border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
-                    }`}
-                  aria-pressed={selectedLicense === 'personal'}
-                >
-                  <div className="font-medium">Personal</div>
-                  <div className="text-xs text-gray-400 mt-1">For personal use only</div>
-                </button>
-
-                <button
-                  onClick={() => setSelectedLicense('commercial')}
-                  className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${selectedLicense === 'commercial'
-                    ? 'border-primary bg-primary/10 text-white shadow-lg'
-                    : 'border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
-                    }`}
-                  aria-pressed={selectedLicense === 'commercial'}
-                >
-                  <div className="font-medium">Commercial</div>
-                  <div className="text-xs text-gray-400 mt-1">For business use</div>
-                </button>
-              </div>
-
-              {/* License Description */}
-              <div className="bg-gray-900/50 rounded-lg p-4 text-sm text-gray-300 leading-relaxed">
-                {selectedLicense === 'personal' ? (
-                  <>
-                    <strong className="text-white">Personal License:</strong> Print and use for personal projects only.
-                    Files and printed models cannot be distributed, shared, or sold.
-                  </>
-                ) : (
-                  <>
-                    <strong className="text-white">Commercial License:</strong> Use for commercial projects,
-                    including selling printed models. Includes rights for business use and resale.
-                  </>
-                )}
-              </div>
-            </div>
-          ) : (
-            /* Single license info when no commercial license available */
-            <div className="space-y-4">
-              <h3 className="text-white text-base sm:text-lg font-semibold">
-                License Information
-              </h3>
-              <div className="bg-gray-900/50 rounded-lg p-4 text-sm text-gray-300 leading-relaxed">
-                <strong className="text-white">Personal License:</strong> Print and use for personal projects only.
-                Files and printed models cannot be distributed, shared, or sold.
-                {!isFreeProduct() && (
-                  <div className="mt-2 text-gray-400">
-                    Commercial licensing is not available for this product.
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Add to Cart Button */}
-          <div className="sticky bottom-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 p-4 -mx-4 lg:relative lg:bg-transparent lg:border-0 lg:p-0 lg:mx-0">
-            <CardCartButton href="/cart/" className="w-full">
-              {isFreeProduct() ? (
-                <>
-                  <RiDownloadLine className="w-6 h-6" />
-                  <span className="font-semibold text-lg">TÉLÉCHARGER</span>
-                </>
-              ) : (
-                <>
-                  <RiShoppingCart2Fill className="w-6 h-6" />
-                  <span className="font-semibold text-lg">Add to Cart - ${getCurrentPrice()}</span>
-                </>
-              )}
-            </CardCartButton>
-          </div>
-
-          {/* Divider */}
-          <div className="h-px bg-gray-700"></div>
-
-          {/* Files Section */}
-          <div className="space-y-4">
-            <h2 className="text-white text-lg sm:text-xl font-bold flex items-center gap-2">
-              <RiDownloadLine className="w-5 h-5 text-primary" />
-              Included Files
-            </h2>
-
-            <div className="space-y-2">
-              {Array.isArray(product.stl_files) && product.stl_files.length > 0 ? (
-                product.stl_files.map((file) => (
-                  <div
-                    key={file.id}
-                    className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg border border-gray-700"
-                  >
-                    <RiDownloadLine className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-gray-200 text-sm font-medium truncate">
-                      {file.title}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <div className="text-gray-400 text-sm italic p-3 bg-gray-800/30 rounded-lg">
-                  No downloadable files available.
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-4">
-            <h2 className="text-white text-lg sm:text-xl font-bold">
-              Description
-            </h2>
-            <div className="prose prose-invert prose-sm max-w-none">
-              <p className="text-gray-300 leading-relaxed">
-                {product.description || "No description available for this product."}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  );
+    return {
+      title: `${product.name} - STL Forge`,
+      description: product.description || `Download ${product.name} 3D model from STL Forge. Created by ${product.creator?.name || 'Unknown Creator'}.`,
+      openGraph: {
+        title: product.name,
+        description: product.description || `3D model by ${product.creator?.name || 'Unknown Creator'}`,
+        images: product.images && product.images.length > 0 ? [
+          {
+            url: product.images[0].image,
+            width: 800,
+            height: 600,
+            alt: product.name,
+          }
+        ] : [],
+      },
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return {
+      title: 'Product - STL Forge',
+    };
+  }
 }

@@ -15,7 +15,9 @@ export async function getAllProducts(): Promise<Product[]> {
 
   try {
     // Pour l'endpoint public, on utilise fetch directement (pas d'auth requise)
-    const res = await fetch(PRODUCT_ENDPOINTS.LIST);
+    const res = await fetch(PRODUCT_ENDPOINTS.LIST, {
+      next: { revalidate: 21600 } // 6 hours - products change more frequently than categories
+    });
     if (!res.ok) {
       throw new Error(`Failed to fetch products: ${res.status} ${res.statusText}`);
     }
@@ -39,18 +41,25 @@ export async function getProductById(id: number): Promise<Product | undefined> {
   }
 
   try {
-    const response = await apiRequest.get<Product>(PRODUCT_ENDPOINTS.DETAIL(id));
-    return response.data;
-  } catch (error: unknown) {
-    if (error && typeof error === 'object' && 'response' in error) {
-      const axiosError = error as { response?: { status?: number } };
-      if (axiosError.response?.status === 404) {
+    // For static generation, use fetch with shorter revalidation for product details
+    const res = await fetch(PRODUCT_ENDPOINTS.DETAIL(id), {
+      next: { revalidate: 1800 } // 30 minutes - for product details
+    });
+    
+    if (!res.ok) {
+      if (res.status === 404) {
         return undefined;
       }
-      console.error("Error fetching product:", error);
-      throw new Error(`Failed to fetch product: ${axiosError.response?.status || 'Unknown error'}`);
+      throw new Error(`Failed to fetch product: ${res.status} ${res.statusText}`);
     }
+    
+    const data = await res.json();
+    return data;
+  } catch (error: unknown) {
     console.error("Error fetching product:", error);
+    if (error instanceof Error && error.message.includes('404')) {
+      return undefined;
+    }
     throw new Error(`Failed to fetch product: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -68,16 +77,42 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
   }
 
   try {
-    const res = await fetch(PRODUCT_ENDPOINTS.BY_CATEGORY(categorySlug));
-    if (!res.ok) {
-      throw new Error(`Failed to fetch products by category: ${res.status} ${res.statusText}`);
+    // Try different parameter formats that the API might expect
+    const possibleEndpoints = [
+      `${PRODUCT_ENDPOINTS.LIST}?category__slug=${categorySlug}`,
+      `${PRODUCT_ENDPOINTS.LIST}?category_slug=${categorySlug}`,
+      PRODUCT_ENDPOINTS.BY_CATEGORY(categorySlug), // Original format
+    ];
+
+    let lastError: Error | null = null;
+    
+    for (const endpoint of possibleEndpoints) {
+      try {
+        const res = await fetch(endpoint, {
+          next: { revalidate: 86400 } // 24 hours - category product lists change when new products are added
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          // L'API Django retourne une réponse paginée avec results
+          return data.results || data;
+        } else if (res.status !== 400) {
+          // If it's not a 400 error, throw immediately
+          throw new Error(`Failed to fetch products by category: ${res.status} ${res.statusText}`);
+        }
+        // If it's a 400 error, try the next endpoint
+      } catch (error) {
+        lastError = error as Error;
+        // Continue to next endpoint
+      }
     }
-    const data = await res.json();
-    // L'API Django retourne une réponse paginée avec results
-    return data.results || data;
+    
+    // If all endpoints failed, throw the last error
+    throw lastError || new Error('All category endpoint formats failed');
+    
   } catch (error) {
     console.error("Error fetching products by category:", error);
-    // Return empty array instead of mock data
+    // Return empty array instead of mock data for graceful fallback
     return [];
   }
 }

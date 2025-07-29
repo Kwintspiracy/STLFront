@@ -107,6 +107,10 @@ export async function generateStaticParams() {
     }));
   } catch (error) {
     console.error('Error generating static params for categories:', error);
+    // Return empty array to allow build to continue
     return [];
   }
 }
+
+// Add revalidation for category pages
+export const revalidate = 86400; // 24 hours

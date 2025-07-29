@@ -9,7 +9,10 @@ export async function getAllCategories(): Promise<Category[]> {
   }
 
   try {
-    const res = await fetch(`${API_BASE_URL}/categories/`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE_URL}/categories/`, { 
+      cache: "force-cache",
+      next: { revalidate: 86400 } // 24 hours - categories rarely change
+    });
 
     if (!res.ok) {
       throw new Error(`Failed to fetch categories: ${res.status} ${res.statusText}`);
@@ -31,6 +34,7 @@ export async function getAllCategories(): Promise<Category[]> {
     return [];
   } catch (error) {
     console.error("Error fetching categories:", error);
+    // Return empty array for graceful fallback during build
     return [];
   }
 }
