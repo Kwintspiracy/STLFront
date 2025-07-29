@@ -10,8 +10,7 @@ export async function getAllCategories(): Promise<Category[]> {
 
   try {
     const res = await fetch(`${API_BASE_URL}/categories/`, { 
-      cache: "force-cache",
-      next: { revalidate: 86400 } // 24 hours - categories rarely change
+      next: { revalidate: 3600 } // 1 hour - shorter cache for categories
     });
 
     if (!res.ok) {

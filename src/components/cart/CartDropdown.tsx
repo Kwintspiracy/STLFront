@@ -157,7 +157,7 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
                         ${formatPrice(itemPrice)}
                       </span>
                       <button
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={() => removeFromCart(item.backendId)}
                         className="p-1 text-gray-400 hover:text-red-400 transition-colors"
                         aria-label="Remove item"
                       >

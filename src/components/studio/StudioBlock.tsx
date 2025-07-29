@@ -50,9 +50,9 @@ export default function StudioBlock({ studio, className = '' }: StudioBlockProps
   };
 
   return (
-    <div className={`flex items-center justify-between ${className}`}>
+    <div className={`flex items-center ${className}`}>
       {/* Studio Info - Left aligned */}
-      <div className="flex items-center gap-3 sm:gap-4">
+      <div className="flex items-center gap-3 sm:gap-4 flex-1">
         {/* Studio Avatar */}
         <div className="relative">
           {imageError || !studio.badge ? (

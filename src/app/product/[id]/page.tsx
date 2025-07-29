@@ -1,10 +1,13 @@
-import { getProductById, getAllProducts } from "@/lib/api/products";
+import { getProductById, getAllProducts, getProductsByStudio, getProductsByTags } from "@/lib/api/products";
 import { notFound } from "next/navigation";
 import { RiDownloadLine } from "react-icons/ri";
 import TagPill from "@/components/card/TagPill";
 import ProductImageGallery from "@/components/product/ProductImageGallery";
 import StudioBlock from "@/components/studio/StudioBlock";
 import ProductLicenseSelector from "@/app/product/[id]/ProductLicenseSelector";
+import SectionSeparator from "@/components/ui/SectionSeparator";
+import StudioProductsCarousel from "./StudioProductsCarousel";
+import SimilarProductsCarousel from "./SimilarProductsCarousel";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
@@ -29,93 +32,146 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
     const isFreeProduct = parseFloat(product.price) === 0;
 
+    // Récupérer les produits du même studio (exclure le produit actuel)
+    const studioProducts = product.creator ? 
+      (await getProductsByStudio(product.creator.id)).filter(p => p.id !== product.id).slice(0, 8) : 
+      [];
+
+    // Récupérer les produits avec des tags similaires
+    const similarProducts = product.tag && product.tag.length > 0 ? 
+      await getProductsByTags(product.tag, product.id) : 
+      [];
+
     return (
-      <main className="max-w-[1440px] mx-auto text-white px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        {/* Breadcrumb Navigation */}
-        <nav className="flex flex-wrap items-center gap-2 sm:gap-4 py-4 sm:py-6" aria-label="Breadcrumb">
-          {product.tag && product.tag.map((tag: { id: number; name: string }) => (
-            <TagPill key={tag.id} tag={tag.name} />
-          ))}
-        </nav>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
-
-          {/* Product Image Gallery */}
-          <div className="lg:col-span-3">
-            <ProductImageGallery images={product.images} name={product.name} />
+      <div className="mx-auto">
+        {/* Breadcrumb Section */}
+        <div className="bg-transparent">
+          <div className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <nav className="flex flex-wrap items-center gap-2 sm:gap-4" aria-label="Breadcrumb">
+              {product.tag && product.tag.map((tag: { id: number; name: string }) => (
+                <TagPill key={tag.id} tag={tag.name} />
+              ))}
+            </nav>
           </div>
+        </div>
 
-          {/* Product Information */}
-          <div className="lg:col-span-2 space-y-6">
+        <SectionSeparator />
 
-            {/* Product Header */}
-            <div className="space-y-4">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight text-white">
-                {product.name}
-              </h1>
-
-              {/* Studio Block */}
-              {product.creator && (
-                <StudioBlock studio={product.creator} />
-              )}
-            </div>
-
-            {/* Divider */}
-            <div className="h-px bg-gray-700"></div>
-
-            {/* License Selection Component - Client-side for interactivity */}
-            <ProductLicenseSelector 
-              product={product}
-              hasCommercialLicense={hasCommercialLicense}
-              isFreeProduct={isFreeProduct}
-            />
-
-            {/* Divider */}
-            <div className="h-px bg-gray-700"></div>
-
-            {/* Files Section */}
-            <div className="space-y-4">
-              <h2 className="text-white text-lg sm:text-xl font-bold flex items-center gap-2">
-                <RiDownloadLine className="w-5 h-5 text-primary" />
-                Included Files
-              </h2>
-
-              <div className="space-y-2">
-                {Array.isArray(product.stl_files) && product.stl_files.length > 0 ? (
-                  product.stl_files.map((file) => (
-                    <div
-                      key={file.id}
-                      className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg border border-gray-700"
-                    >
-                      <RiDownloadLine className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <span className="text-gray-200 text-sm font-medium truncate">
-                        {file.title}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-gray-400 text-sm italic p-3 bg-gray-800/30 rounded-lg">
-                    No downloadable files available.
-                  </div>
-                )}
+        {/* Main Content Section */}
+        <div className="bg-transparent">
+          <div className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+              
+              {/* Product Image Gallery */}
+              <div className="space-y-6">
+                <ProductImageGallery images={product.images} name={product.name} />
               </div>
-            </div>
 
-            {/* Description */}
-            <div className="space-y-4">
-              <h2 className="text-white text-lg sm:text-xl font-bold">
-                Description
-              </h2>
-              <div className="prose prose-invert prose-sm max-w-none">
-                <p className="text-gray-300 leading-relaxed">
-                  {product.description || "No description available for this product."}
-                </p>
+              {/* Product Information */}
+              <div className="space-y-8">
+                
+                {/* Product Header */}
+                <div className="space-y-4">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight text-white">
+                    {product.name}
+                  </h1>
+
+                  {/* Studio Block */}
+                  {product.creator && (
+                    <StudioBlock studio={product.creator} />
+                  )}
+                </div>
+
+                {/* Divider */}
+                <div className="h-px bg-gray-700"></div>
+                
+                {/* License Selection Component */}
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-extrabold">
+                    <span className="text-primary">LICENSE</span>
+                    <span className="text-white"> OPTIONS</span>
+                  </h2>
+                  <ProductLicenseSelector 
+                    product={product}
+                    hasCommercialLicense={hasCommercialLicense}
+                    isFreeProduct={isFreeProduct}
+                  />
+                </div>
+
+                {/* Divider */}
+                <div className="h-px bg-gray-700"></div>
+
+                {/* Files Section */}
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-extrabold flex items-center gap-3">
+                    <RiDownloadLine className="w-6 h-6 text-primary" />
+                    <span className="text-primary">INCLUDED</span>
+                    <span className="text-white"> FILES</span>
+                  </h2>
+
+                  <div className="space-y-3">
+                    {Array.isArray(product.stl_files) && product.stl_files.length > 0 ? (
+                      product.stl_files.map((file) => (
+                        <div
+                          key={file.id}
+                          className="flex items-center gap-4 p-4 rounded-xl border border-gray-700"
+                          style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+                        >
+                          <RiDownloadLine className="w-5 h-5 text-primary flex-shrink-0" />
+                          <span className="text-white font-medium">
+                            {file.title}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div 
+                        className="text-gray-400 italic p-4 rounded-xl border border-gray-700"
+                        style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+                      >
+                        No downloadable files available.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="h-px bg-gray-700"></div>
+
+                {/* Description Section */}
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-extrabold">
+                    <span className="text-primary">PRODUCT</span>
+                    <span className="text-white"> DESCRIPTION</span>
+                  </h2>
+                  <p className="text-gray-300 leading-relaxed text-base">
+                    {product.description || "No description available for this product."}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </main>
+
+        {/* More from this Studio Section */}
+        {studioProducts.length > 0 && product.creator && (
+          <>
+            <SectionSeparator />
+            <StudioProductsCarousel 
+              products={studioProducts}
+              studioName={product.creator.name}
+              studioId={product.creator.id}
+            />
+          </>
+        )}
+
+        {/* Similar Products Section */}
+        {similarProducts.length > 0 && (
+          <>
+            <SectionSeparator />
+            <SimilarProductsCarousel products={similarProducts} />
+          </>
+        )}
+      </div>
     );
   } catch (error) {
     console.error('Error loading product:', error);

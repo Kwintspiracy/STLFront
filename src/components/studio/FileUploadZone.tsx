@@ -4,17 +4,7 @@ import { useState, useRef, useEffect, DragEvent } from "react";
 import Image from "next/image";
 import { RiUploadCloud2Line, RiCloseLine, RiDragMove2Line, RiImageLine, RiStarLine, RiStarFill, RiGridLine, RiListUnordered, RiBox3Line } from "react-icons/ri";
 import { useToast } from "@/context/ToastContext";
-
-interface UploadedFile {
-  id: string;
-  file: File;
-  name: string;
-  progress: number;
-  url?: string;
-  isUploading: boolean;
-  error?: string;
-  isMain?: boolean;
-}
+import { UploadedFile } from "@/types/upload";
 
 interface FileUploadZoneProps {
   accept: string;
@@ -28,6 +18,11 @@ interface FileUploadZoneProps {
   onFileRename?: (id: string, newName: string) => void;
   label: string;
   fileType: "image" | "stl";
+  // Props spécifiques pour les uploads STL
+  studioId?: number;
+  onSTLUploadProgress?: (fileId: string, progress: number) => void;
+  onSTLUploadComplete?: (fileId: string, objectKey: string) => void;
+  onSTLUploadError?: (fileId: string, error: string) => void;
 }
 
 export default function FileUploadZone({
@@ -49,6 +44,7 @@ export default function FileUploadZone({
   const [dragOverItem, setDragOverItem] = useState<string | null>(null);
   const [dropPosition, setDropPosition] = useState<{ index: number; position: 'before' | 'after' } | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
   const dropZoneRef = useRef<HTMLDivElement>(null);
@@ -377,16 +373,24 @@ export default function FileUploadZone({
                     <>
                       {/* File Preview */}
                       <div className="relative aspect-square mb-2 bg-[#1A1C21] rounded flex items-center justify-center overflow-hidden">
-                        {fileType === "image" && file.url ? (
+                        {fileType === "image" && file.url && !imageErrors.has(file.id) ? (
                           <Image
                             src={file.url}
                             alt={file.name}
                             fill
                             className="object-cover"
                             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                            onError={() => {
+                              setImageErrors(prev => new Set([...prev, file.id]));
+                            }}
                           />
                         ) : fileType === "image" ? (
-                          <RiImageLine className="w-8 h-8 text-gray-500" />
+                          <div className="flex flex-col items-center justify-center text-gray-500">
+                            <RiImageLine className="w-8 h-8 mb-1" />
+                            <span className="text-[10px] text-center">
+                              {imageErrors.has(file.id) ? "Erreur" : "Pas d'image"}
+                            </span>
+                          </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center">
                             <RiBox3Line className="w-10 h-10 text-[#FDD811]" />

@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useStudio } from "@/context/StudioContext";
 import { useToast } from "@/context/ToastContext";
 import { 
-  getProductById, 
+  getProductByIdAuthenticated, 
   updateProduct, 
   uploadProductImage, 
   uploadProductSTL, 
@@ -22,6 +22,7 @@ import { Category, Tag, Product } from "@/types/product";
 import FileUploadZone from "@/components/studio/FileUploadZone";
 import TagInput from "@/components/forms/TagInput";
 import { processTagsForSubmission } from "@/lib/utils/tagUtils";
+import { getSafeImageUrl } from "@/lib/utils/imageUtils";
 import { RiArrowLeftLine, RiArrowDownSLine, RiArrowUpSLine, RiSaveLine } from "react-icons/ri";
 
 interface Props {
@@ -126,7 +127,7 @@ export default function EditProductPage({ params }: Props) {
     
     try {
       setLoadingProduct(true);
-      const productData = await getProductById(productId);
+      const productData = await getProductByIdAuthenticated(productId);
       
       if (!productData) {
         showError("Produit introuvable");
@@ -163,20 +164,25 @@ export default function EditProductPage({ params }: Props) {
       // Set selected tags
       setSelectedTags(productData.tag || []);
 
-      // Convert existing images to UploadedFile format
-      const existingImages = productData.images.map((img, index) => ({
-        id: `existing-img-${img.id}`,
-        file: new File([], img.title || `Image ${index + 1}`),
-        name: img.title || `Image ${index + 1}`,
-        progress: 100,
-        url: img.image, // Use the image property
-        isUploading: false,
-        isMain: img.rank === 1,
-      }));
+      // Convert existing images to UploadedFile format with secure URL handling
+      const existingImages = productData.images.map((img: { id: number; title?: string; url?: string; image?: string; rank: number }, index: number) => {
+        // Use our utility function to build a safe image URL
+        const imageUrl = getSafeImageUrl(img.url || img.image, '/placeholder-avatar.svg');
+        
+        return {
+          id: `existing-img-${img.id}`,
+          file: new File([], img.title || `Image ${index + 1}`),
+          name: img.title || `Image ${index + 1}`,
+          progress: 100,
+          url: imageUrl || undefined, // Convert null to undefined for TypeScript compatibility
+          isUploading: false,
+          isMain: img.rank === 1,
+        };
+      });
       setUploadedImages(existingImages);
 
       // Convert existing STL files to UploadedFile format
-      const existingSTLs = productData.stl_files.map((stl) => ({
+      const existingSTLs = productData.stl_files.map((stl: { id: number; title: string; file: string }) => ({
         id: `existing-stl-${stl.id}`,
         file: new File([], stl.title),
         name: stl.title,

@@ -2,7 +2,6 @@ import { getFeaturedProducts, getTrendingProducts, getCommercialProducts, getLat
 import SearchWrapper from "@/components/search/SearchWrapper";
 import ProductSection from "@/components/sections/ProductSection";
 import CreatorSpotlight from "@/components/sections/CreatorSpotlight";
-import CallToAction from "@/components/sections/CallToAction";
 import LatestSection from "@/components/sections/LatestSection";
 import SectionSeparator from "@/components/ui/SectionSeparator";
 import { FaCrown, FaFire } from "react-icons/fa";

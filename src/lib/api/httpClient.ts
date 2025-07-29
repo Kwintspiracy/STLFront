@@ -27,16 +27,35 @@ const httpClient: AxiosInstance = axios.create({
 // Request interceptor to add auth token
 httpClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = getAccessToken();
+    console.log('🔧 Request interceptor executing for:', config.url);
+    console.log('🔧 Request method:', config.method?.toUpperCase());
+    console.log('🔧 Request data:', config.data ? JSON.stringify(config.data, null, 2) : 'No data');
     
-    if (token && !isTokenExpired(token)) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
+    const token = getAccessToken();
+    console.log('🔑 Token in interceptor:', token ? 'Present' : 'Missing');
+    
+    if (token) {
+      const expired = isTokenExpired(token);
+      console.log('🔑 Token expired:', expired);
+      
+      if (!expired) {
+        console.log('✅ Adding Authorization header');
+        // Force headers creation and set Authorization
+        config.headers = config.headers || {};
+        config.headers['Authorization'] = `Bearer ${token}`;
+        console.log('📤 Authorization header set:', config.headers['Authorization'] ? 'Yes' : 'No');
+      } else {
+        console.log('❌ Token expired, not adding header');
+      }
+    } else {
+      console.log('❌ No token available');
     }
     
+    console.log('📤 Final request headers:', JSON.stringify(config.headers, null, 2));
     return config;
   },
   (error: AxiosError) => {
+    console.error('🔧 Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -44,6 +63,14 @@ httpClient.interceptors.request.use(
 // Response interceptor to handle token refresh
 httpClient.interceptors.response.use(
   (response: AxiosResponse) => {
+    console.log('📥 Response interceptor - Success response:');
+    console.log('📥 URL:', response.config.url);
+    console.log('📥 Status:', response.status);
+    console.log('📥 Status text:', response.statusText);
+    console.log('📥 Headers:', response.headers);
+    console.log('📥 Data type:', typeof response.data);
+    console.log('📥 Data keys:', response.data && typeof response.data === 'object' ? Object.keys(response.data) : 'Not an object');
+    console.log('📥 Full data:', JSON.stringify(response.data, null, 2));
     return response;
   },
   async (error: AxiosError) => {

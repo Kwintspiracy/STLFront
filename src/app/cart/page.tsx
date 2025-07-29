@@ -5,6 +5,7 @@ import { FaTrash, FaShoppingBag, FaArrowLeft } from "react-icons/fa";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import Image from "next/image";
+import { checkoutService, type CheckoutRequest } from "@/lib/api/checkoutService";
 
 const licenseOptions = [
   { value: "personal", label: "Personal Use" },
@@ -24,13 +25,16 @@ export default function CartPage() {
     const [couponCode, setCouponCode] = useState("");
     const [appliedCoupon, setAppliedCoupon] = useState<{code: string, discount: number, type: string} | null>(null);
     const [couponError, setCouponError] = useState("");
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [checkoutError, setCheckoutError] = useState("");
 
-    const handleLicenseChange = (id: number, value: 'personal' | 'commercial' | 'extended') => {
-        updateLicense(id, value);
+    const handleLicenseChange = async (backendId: number, value: 'personal' | 'commercial' | 'extended') => {
+        const includeProlicense = value === 'commercial' || value === 'extended';
+        await updateLicense(backendId, includeProlicense);
     };
 
-    const handleRemoveItem = (id: number) => {
-        removeFromCart(id);
+    const handleRemoveItem = async (backendId: number) => {
+        await removeFromCart(backendId);
     };
 
     const getItemPrice = (item: {
@@ -95,6 +99,118 @@ export default function CartPage() {
         setAppliedCoupon(null);
         setCouponError("");
         setCouponCode("");
+    };
+
+    const handleCheckout = async () => {
+        if (state.items.length === 0) return;
+        
+        console.log('🛒 CART CHECKOUT - Starting checkout process');
+        console.log('📊 Cart state:', {
+            itemsCount: state.items.length,
+            totalPrice: state.totalPrice,
+            isLoading: state.isLoading,
+            cartCode: state.cartCode
+        });
+        
+        setIsCheckingOut(true);
+        setCheckoutError("");
+        
+        try {
+            // Log cart items details
+            console.log('📦 Cart items details:');
+            state.items.forEach((item, index) => {
+                console.log(`  Item ${index + 1}:`, {
+                    id: item.id,
+                    backendId: item.backendId,
+                    productId: item.product.id,
+                    productName: item.product.name,
+                    license: item.license,
+                    includeprolicense: item.includeprolicense,
+                    price: item.product.price,
+                    professionalFee: item.product.professional_license_fee
+                });
+            });
+            
+            // Prepare checkout data
+            const checkoutData: CheckoutRequest = {
+                items: state.items.map(item => ({
+                    product_id: item.product.id,
+                    license: item.license,
+                    quantity: 1 // Assuming quantity is always 1 for digital products
+                })),
+                coupon_code: appliedCoupon?.code
+            };
+
+            console.log('💰 Pricing details:');
+            console.log('  Subtotal:', subtotal);
+            console.log('  Applied coupon:', appliedCoupon);
+            console.log('  Discount:', discount);
+            console.log('  Final total:', total);
+
+            // Call the checkout service
+            const response = await checkoutService.createCheckoutSession(checkoutData);
+            
+            console.log('✅ CHECKOUT SUCCESS - Response received:');
+            console.log('📥 Response type:', typeof response);
+            console.log('📥 Response keys:', Object.keys(response));
+            console.log('📥 Has data object:', 'data' in response);
+            console.log('📥 Has data.url:', response.data && 'url' in response.data);
+            console.log('📥 data.url value:', response.data?.url);
+            console.log('📥 data.url type:', typeof response.data?.url);
+            console.log('📥 data.url length:', response.data?.url?.length);
+            
+            // Redirect to Stripe checkout URL
+            if (response.data?.url) {
+                console.log('🔄 Redirecting to:', response.data.url);
+                window.location.href = response.data.url;
+            } else {
+                console.error('❌ No data.url in response:', response);
+                throw new Error('No checkout URL received from server');
+            }
+            
+        } catch (error: unknown) {
+            console.error('🛒 CART CHECKOUT ERROR - Detailed error info:');
+            console.error('❌ Error type:', typeof error);
+            
+            // Type guard for error object
+            const isErrorWithMessage = (err: unknown): err is Error => {
+                return err instanceof Error;
+            };
+            
+            const isAxiosError = (err: unknown): err is { response?: { status: number; data?: { message?: string }; statusText: string; headers: unknown } } => {
+                return typeof err === 'object' && err !== null && 'response' in err;
+            };
+            
+            if (isErrorWithMessage(error)) {
+                console.error('❌ Error constructor:', error.constructor.name);
+                console.error('❌ Error message:', error.message);
+                console.error('❌ Error stack:', error.stack);
+            }
+            
+            if (isAxiosError(error) && error.response) {
+                console.error('❌ HTTP Response error:');
+                console.error('  Status:', error.response.status);
+                console.error('  Status text:', error.response.statusText);
+                console.error('  Headers:', error.response.headers);
+                console.error('  Data:', error.response.data);
+                
+                // Handle different types of errors
+                if (error.response.status === 401) {
+                    setCheckoutError("Please sign in to continue with checkout");
+                } else if (error.response.status === 400) {
+                    setCheckoutError(error.response.data?.message || "Invalid checkout data");
+                } else if (error.response.status === 500) {
+                    setCheckoutError("Server error. Please try again later");
+                } else {
+                    setCheckoutError("Failed to process checkout. Please try again");
+                }
+            } else {
+                setCheckoutError("Failed to process checkout. Please try again");
+            }
+        } finally {
+            setIsCheckingOut(false);
+            console.log('🛒 CART CHECKOUT - Process completed');
+        }
     };
 
     return (
@@ -206,7 +322,7 @@ export default function CartPage() {
                                                         <select
                                                             className="px-2 py-1 bg-primarybackground border border-gray-600 rounded text-white text-xs focus:outline-none focus:border-primary transition-colors"
                                                             value={item.license}
-                                                            onChange={(e) => handleLicenseChange(item.id, e.target.value as 'personal' | 'commercial' | 'extended')}
+                                                            onChange={(e) => handleLicenseChange(item.backendId, e.target.value as 'personal' | 'commercial' | 'extended')}
                                                         >
                                                             {licenseOptions.map((option) => (
                                                                 <option key={option.value} value={option.value}>
@@ -218,7 +334,7 @@ export default function CartPage() {
 
                                                     {/* Remove Button */}
                                                     <button
-                                                        onClick={() => handleRemoveItem(item.id)}
+                                                        onClick={() => handleRemoveItem(item.backendId)}
                                                         className="flex items-center gap-2 px-3 py-1.5 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded transition-colors text-sm"
                                                         aria-label="Remove item"
                                                     >
@@ -310,9 +426,27 @@ export default function CartPage() {
                                         </div>
                                     </div>
 
+                                    {/* Checkout Error */}
+                                    {checkoutError && (
+                                        <div className="mt-4 p-3 bg-red-900/20 border border-red-500/20 rounded text-red-400 text-sm">
+                                            {checkoutError}
+                                        </div>
+                                    )}
+
                                     {/* Checkout Button */}
-                                    <button className="w-full mt-6 px-6 py-3 bg-primary text-black rounded-lg hover:bg-[#3f6061] hover:text-secondary transition-colors font-semibold">
-                                        Proceed to Checkout
+                                    <button 
+                                        onClick={handleCheckout}
+                                        disabled={isCheckingOut || state.items.length === 0}
+                                        className="w-full mt-6 px-6 py-3 bg-primary text-black rounded-lg hover:bg-[#3f6061] hover:text-secondary transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isCheckingOut ? (
+                                            <div className="flex items-center justify-center gap-2">
+                                                <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                                                Processing...
+                                            </div>
+                                        ) : (
+                                            'Proceed to Checkout'
+                                        )}
                                     </button>
 
                                     {/* Security Note */}

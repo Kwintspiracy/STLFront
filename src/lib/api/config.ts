@@ -62,4 +62,5 @@ export const PRODUCT_ENDPOINTS = {
   BY_STUDIO: (studioId: number) => `${API_BASE_URL}/products/products/?studio=${studioId}`,
   UPLOAD_IMAGE: (id: number) => `${API_BASE_URL}/products/products/${id}/upload_image/`,
   UPLOAD_STL: (id: number) => `${API_BASE_URL}/products/products/${id}/upload_stl/`,
+  STL_UPLOAD_URLS: `${API_BASE_URL}/products/stl-upload-urls/`,
 };

@@ -41,7 +41,7 @@ export default function ProductSection({
           else if (width >= 1920) setVisibleCards(6); // 3xl: 6 cards
           else if (width >= 1536) setVisibleCards(5); // 2xl: 5 cards
           else if (width >= 1280) setVisibleCards(4); // xl: 4 cards
-          else if (width >= 1024) setVisibleCards(3); // lg: 3 cards
+          else if (width >= 1024) setVisibleCards(4); // lg: 3 cards
           else if (width >= 768) setVisibleCards(3);  // md: 3 cards
           else if (width >= 640) setVisibleCards(2);  // sm: 2 cards
           else if (width >= 430) setVisibleCards(2);  // xs: 2 cards
@@ -52,7 +52,7 @@ export default function ProductSection({
           else if (width >= 1920) setVisibleCards(6); // 3xl: 6 cards
           else if (width >= 1536) setVisibleCards(5); // 2xl: 5 cards
           else if (width >= 1280) setVisibleCards(4); // xl: 4 cards
-          else if (width >= 1024) setVisibleCards(3); // lg: 3 cards
+          else if (width >= 1024) setVisibleCards(4); // lg: 3 cards
           else if (width >= 768) setVisibleCards(3);  // md: 3 cards
           else if (width >= 640) setVisibleCards(2);  // sm: 2 cards
           else if (width >= 430) setVisibleCards(2);  // xs: 2 cards

@@ -25,7 +25,10 @@ export default function ProductCard({
   const [imageError, setImageError] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const { addToCart } = useCart();
+  const { addToCart, isProductInCart } = useCart();
+  
+  // Check if product is already in cart
+  const isInCart = isProductInCart(product.id);
 
   const sortedImages = [...product.images].sort((a, b) => a.rank - b.rank);
   const mainImage = sortedImages[0]?.url || sortedImages[0]?.image;
@@ -45,19 +48,28 @@ export default function ProductCard({
     setIsFavorited(!isFavorited);
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // If product is already in cart, do nothing (or optionally redirect to cart)
+    if (isInCart) {
+      return;
+    }
     
     if (isAddingToCart) return;
     
     setIsAddingToCart(true);
-    addToCart(product, 'personal');
     
-    // Reset after 2 seconds
-    setTimeout(() => {
+    try {
+      await addToCart(product);
+      // Reset loading state after successful add
       setIsAddingToCart(false);
-    }, 2000);
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
+      // Reset immediately on error
+      setIsAddingToCart(false);
+    }
   };
 
   if (loading) {
@@ -140,7 +152,7 @@ export default function ProductCard({
         </Link>
 
         {/* Product Information */}
-        <div className="px-3 sm:px-5 pt-3 xs:pt-4 sm:pt-5 pb-4 sm:pb-5">
+        <div className="px-3 lg:px-3 xl:px-5 pt-3 xs:pt-4 sm:pt-5 pb-4 sm:pb-5">
           {/* Product Title */}
           <Link href={`/product/${product.id}`}>
             <h2 className="text-[#F4F4F4] text-sm xs:text-base sm:text-lg lg:text-xl font-light leading-[1.3] mb-3 xs:mb-4 sm:mb-2.5 truncate hover:text-primary transition-colors duration-200">
@@ -196,19 +208,28 @@ export default function ProductCard({
             
             <button 
               onClick={handleAddToCart}
-              disabled={isAddingToCart}
-              className={`px-4 py-2.5 rounded-3xl flex items-center justify-center gap-2.5 border-none cursor-pointer transition-all duration-300 hover:-translate-y-0.5 ${
-                isAddingToCart 
-                  ? 'bg-green-500 hover:bg-green-600' 
-                  : 'bg-[#324FEE] hover:bg-[#2940d9]'
+              disabled={isAddingToCart || isInCart}
+              className={`px-2 lg:px-3 py-2.5 rounded-3xl flex items-center justify-center gap-2.5 border-none transition-all duration-300 ${
+                isInCart
+                  ? 'bg-green-500 cursor-default'
+                  : isAddingToCart 
+                    ? 'bg-green-500 hover:bg-green-600' 
+                    : 'bg-[#324FEE] hover:bg-[#2940d9] cursor-pointer hover:-translate-y-0.5'
               }`}
-              aria-label="Add to cart"
+              aria-label={isInCart ? "Product in cart" : "Add to cart"}
             >
-              {isAddingToCart ? (
+              {isInCart ? (
                 <>
                   <FaCheck className="text-white text-base" />
                   <span className="hidden sm:inline text-white text-base font-medium leading-4">
-                    Added!
+                    Added
+                  </span>
+                </>
+              ) : isAddingToCart ? (
+                <>
+                  <FaCheck className="text-white text-base" />
+                  <span className="hidden sm:inline text-white text-base font-medium leading-4">
+                    Adding...
                   </span>
                 </>
               ) : (

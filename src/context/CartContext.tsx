@@ -2,12 +2,21 @@
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { Product } from '@/types/product';
+import { 
+  cartService, 
+  Cart as BackendCart, 
+  CartItem as BackendCartItem,
+  getOrCreateCartCode
+} from '@/lib/api/cartService';
 
+// Frontend cart item interface (mapped from backend)
 export interface CartItem {
   id: number;
   product: Product;
   license: 'personal' | 'commercial' | 'extended';
   addedAt: Date;
+  backendId: number; // Backend cart item ID for API operations
+  includeprolicense: boolean;
 }
 
 interface CartState {
@@ -15,105 +24,127 @@ interface CartState {
   totalItems: number;
   totalPrice: number;
   isOpen: boolean;
+  isLoading: boolean;
+  error: string | null;
+  cartCode: string | null;
 }
 
 type CartAction =
-  | { type: 'ADD_TO_CART'; payload: { product: Product; license?: 'personal' | 'commercial' | 'extended' } }
-  | { type: 'REMOVE_FROM_CART'; payload: { id: number } }
-  | { type: 'UPDATE_LICENSE'; payload: { id: number; license: 'personal' | 'commercial' | 'extended' } }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'SET_CART_CODE'; payload: string }
+  | { type: 'LOAD_CART_SUCCESS'; payload: { cart: BackendCart } }
+  | { type: 'ADD_TO_CART_SUCCESS'; payload: { cart: BackendCart } }
+  | { type: 'REMOVE_FROM_CART_SUCCESS'; payload: { cartItemId: number } }
+  | { type: 'UPDATE_LICENSE_SUCCESS'; payload: { cartItem: BackendCartItem } }
   | { type: 'CLEAR_CART' }
   | { type: 'TOGGLE_CART' }
-  | { type: 'SET_CART_OPEN'; payload: boolean }
-  | { type: 'LOAD_CART'; payload: CartItem[] };
+  | { type: 'SET_CART_OPEN'; payload: boolean };
 
 const initialState: CartState = {
   items: [],
   totalItems: 0,
   totalPrice: 0,
   isOpen: false,
+  isLoading: false,
+  error: null,
+  cartCode: null,
 };
 
-function calculateTotals(items: CartItem[]): { totalItems: number; totalPrice: number } {
-  const totalItems = items.length;
-  const totalPrice = items.reduce((sum, item) => {
-    const basePrice = parseFloat(item.product.price);
-    let price = basePrice;
-    
-    // Add commercial license fee if applicable
-    if (item.license === 'commercial' && item.product.professional_license_fee) {
-      price += parseFloat(item.product.professional_license_fee);
-    } else if (item.license === 'extended') {
-      // Extended license is typically 2x the commercial price
-      const commercialFee = item.product.professional_license_fee ? parseFloat(item.product.professional_license_fee) : 0;
-      price += commercialFee * 2;
-    }
-    
-    return sum + price;
-  }, 0);
-  
-  return { totalItems, totalPrice };
+// Helper function to map backend cart item to frontend cart item
+function mapBackendCartItem(backendItem: BackendCartItem): CartItem {
+  return {
+    id: Date.now() + Math.random(), // Generate unique frontend ID
+    product: backendItem.product,
+    license: backendItem.includeprolicense ? 'commercial' : 'personal',
+    addedAt: new Date(),
+    backendId: backendItem.id,
+    includeprolicense: backendItem.includeprolicense,
+  };
 }
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
-    case 'ADD_TO_CART': {
-      const { product, license = 'personal' } = action.payload;
-      const existingItemIndex = state.items.findIndex(
-        item => item.product.id === product.id && item.license === license
-      );
+    case 'SET_LOADING':
+      return {
+        ...state,
+        isLoading: action.payload,
+      };
 
-      let newItems: CartItem[];
-      
-      if (existingItemIndex >= 0) {
-        // Item already exists with same license, don't add duplicate
-        return state;
-      } else {
-        // Add new item
-        const newItem: CartItem = {
-          id: Date.now(), // Simple ID generation
-          product,
-          license,
-          addedAt: new Date(),
-        };
-        newItems = [...state.items, newItem];
-      }
+    case 'SET_ERROR':
+      return {
+        ...state,
+        error: action.payload,
+        isLoading: false,
+      };
 
-      const { totalItems, totalPrice } = calculateTotals(newItems);
+    case 'SET_CART_CODE':
+      return {
+        ...state,
+        cartCode: action.payload,
+      };
+
+    case 'LOAD_CART_SUCCESS': {
+      const { cart } = action.payload;
+      const items = cart.cartitems.map(mapBackendCartItem);
       
       return {
         ...state,
-        items: newItems,
-        totalItems,
-        totalPrice,
+        items,
+        totalItems: items.length,
+        totalPrice: cart.carttotal,
+        isLoading: false,
+        error: null,
+        cartCode: cart.cart_code,
       };
     }
 
-    case 'REMOVE_FROM_CART': {
-      const newItems = state.items.filter(item => item.id !== action.payload.id);
-      const { totalItems, totalPrice } = calculateTotals(newItems);
+    case 'ADD_TO_CART_SUCCESS': {
+      const { cart } = action.payload;
+      const items = cart.cartitems.map(mapBackendCartItem);
       
       return {
         ...state,
-        items: newItems,
-        totalItems,
-        totalPrice,
+        items,
+        totalItems: items.length,
+        totalPrice: cart.carttotal,
+        isLoading: false,
+        error: null,
+        cartCode: cart.cart_code,
       };
     }
 
-
-    case 'UPDATE_LICENSE': {
-      const { id, license } = action.payload;
-      const newItems = state.items.map(item =>
-        item.id === id ? { ...item, license } : item
-      );
-      
-      const { totalItems, totalPrice } = calculateTotals(newItems);
+    case 'REMOVE_FROM_CART_SUCCESS': {
+      const { cartItemId } = action.payload;
+      const newItems = state.items.filter(item => item.backendId !== cartItemId);
       
       return {
         ...state,
         items: newItems,
-        totalItems,
-        totalPrice,
+        totalItems: newItems.length,
+        totalPrice: newItems.reduce((sum, item) => sum + parseFloat(item.product.price), 0),
+        isLoading: false,
+        error: null,
+      };
+    }
+
+    case 'UPDATE_LICENSE_SUCCESS': {
+      const { cartItem } = action.payload;
+      const updatedItems = state.items.map(item =>
+        item.backendId === cartItem.id
+          ? {
+              ...item,
+              includeprolicense: cartItem.includeprolicense,
+              license: (cartItem.includeprolicense ? 'commercial' : 'personal') as 'personal' | 'commercial' | 'extended',
+            }
+          : item
+      );
+      
+      return {
+        ...state,
+        items: updatedItems,
+        isLoading: false,
+        error: null,
       };
     }
 
@@ -137,18 +168,6 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         isOpen: action.payload,
       };
 
-    case 'LOAD_CART': {
-      const items = action.payload;
-      const { totalItems, totalPrice } = calculateTotals(items);
-      
-      return {
-        ...state,
-        items,
-        totalItems,
-        totalPrice,
-      };
-    }
-
     default:
       return state;
   }
@@ -156,59 +175,78 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
 interface CartContextType {
   state: CartState;
-  addToCart: (product: Product, license?: 'personal' | 'commercial' | 'extended') => void;
-  removeFromCart: (id: number) => void;
-  updateLicense: (id: number, license: 'personal' | 'commercial' | 'extended') => void;
+  addToCart: (product: Product) => Promise<void>;
+  removeFromCart: (backendId: number) => Promise<void>;
+  updateLicense: (backendId: number, includeProlicense: boolean) => Promise<void>;
   clearCart: () => void;
   toggleCart: () => void;
   setCartOpen: (open: boolean) => void;
+  loadCart: () => Promise<void>;
+  isProductInCart: (productId: number) => boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const CART_STORAGE_KEY = 'stlforge_cart';
-
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
 
-  // Load cart from localStorage on mount
+  // Load cart on mount
   useEffect(() => {
-    try {
-      const savedCart = localStorage.getItem(CART_STORAGE_KEY);
-      if (savedCart) {
-        const parsedCart: CartItem[] = JSON.parse(savedCart);
-        // Convert date strings back to Date objects
-        const cartWithDates = parsedCart.map(item => ({
-          ...item,
-          addedAt: new Date(item.addedAt),
-        }));
-        dispatch({ type: 'LOAD_CART', payload: cartWithDates });
-      }
-    } catch (error) {
-      console.error('Error loading cart from localStorage:', error);
-    }
+    loadCart();
   }, []);
 
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
+  const loadCart = async () => {
     try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state.items));
-    } catch (error) {
-      console.error('Error saving cart to localStorage:', error);
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      // Get cart code for anonymous users
+      const cartCode = getOrCreateCartCode();
+      dispatch({ type: 'SET_CART_CODE', payload: cartCode });
+      
+      const cart = await cartService.getCart(cartCode);
+      dispatch({ type: 'LOAD_CART_SUCCESS', payload: { cart } });
+    } catch (error: unknown) {
+      console.error('Error loading cart:', error);
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to load cart' });
     }
-  }, [state.items]);
-
-  const addToCart = (product: Product, license: 'personal' | 'commercial' | 'extended' = 'personal') => {
-    dispatch({ type: 'ADD_TO_CART', payload: { product, license } });
   };
 
-  const removeFromCart = (id: number) => {
-    dispatch({ type: 'REMOVE_FROM_CART', payload: { id } });
+  const addToCart = async (product: Product) => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      const cartCode = state.cartCode || getOrCreateCartCode();
+      const response = await cartService.addToCart(product.id, cartCode);
+      
+      dispatch({ type: 'ADD_TO_CART_SUCCESS', payload: { cart: response.data } });
+    } catch (error: unknown) {
+      console.error('Error adding to cart:', error);
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to add item to cart' });
+    }
   };
 
+  const removeFromCart = async (backendId: number) => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      await cartService.removeFromCart(backendId);
+      dispatch({ type: 'REMOVE_FROM_CART_SUCCESS', payload: { cartItemId: backendId } });
+    } catch (error: unknown) {
+      console.error('Error removing from cart:', error);
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to remove item from cart' });
+    }
+  };
 
-  const updateLicense = (id: number, license: 'personal' | 'commercial' | 'extended') => {
-    dispatch({ type: 'UPDATE_LICENSE', payload: { id, license } });
+  const updateLicense = async (backendId: number, includeProlicense: boolean) => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      const response = await cartService.editCartItem(backendId, includeProlicense);
+      dispatch({ type: 'UPDATE_LICENSE_SUCCESS', payload: { cartItem: response.data } });
+    } catch (error: unknown) {
+      console.error('Error updating license:', error);
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to update license' });
+    }
   };
 
   const clearCart = () => {
@@ -223,6 +261,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_CART_OPEN', payload: open });
   };
 
+  const isProductInCart = (productId: number): boolean => {
+    return state.items.some(item => item.product.id === productId);
+  };
+
   const value: CartContextType = {
     state,
     addToCart,
@@ -231,6 +273,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     clearCart,
     toggleCart,
     setCartOpen,
+    loadCart,
+    isProductInCart,
   };
 
   return (

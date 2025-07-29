@@ -6,10 +6,12 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useStudio } from "@/context/StudioContext";
 import { useToast } from "@/context/ToastContext";
-import { createProduct, uploadProductImage, uploadProductSTL } from "@/lib/api/products";
+import { createProduct, uploadProductImage } from "@/lib/api/products";
 import { getAllCategories } from "@/lib/api/categories";
 import { getAllTags } from "@/lib/api/tags";
 import { Category, Tag } from "@/types/product";
+import { UploadedFile, UploadedSTLFile } from "@/types/upload";
+import { uploadMultipleSTLFiles, formatFileSize } from "@/lib/api/stlUploadService";
 import FileUploadZone from "@/components/studio/FileUploadZone";
 import TagInput from "@/components/forms/TagInput";
 import { processTagsForSubmission } from "@/lib/utils/tagUtils";
@@ -17,17 +19,6 @@ import { RiArrowLeftLine, RiArrowDownSLine, RiArrowUpSLine, RiSaveLine } from "r
 
 interface Props {
   params: Promise<{ id: string }>;
-}
-
-interface UploadedFile {
-  id: string;
-  file: File;
-  name: string;
-  progress: number;
-  url?: string;
-  isUploading: boolean;
-  error?: string;
-  isMain?: boolean;
 }
 
 export default function AddProductPage({ params }: Props) {
@@ -173,21 +164,91 @@ export default function AddProductPage({ params }: Props) {
     });
   };
 
-  const handleSTLFilesAdded = (files: File[]) => {
-    const newFiles = files.map(file => ({
+  const handleSTLFilesAdded = async (files: File[]) => {
+    if (!studioId) {
+      showError("Studio ID manquant");
+      return;
+    }
+
+    const newFiles: UploadedSTLFile[] = files.map(file => ({
       id: `stl-${Date.now()}-${Math.random()}`,
       file,
       name: file.name.replace(/\.[^/.]+$/, ""),
       progress: 0,
       isUploading: true,
+      uploadComplete: false,
+      fileSize: file.size,
+      fileSizeDisplay: formatFileSize(file.size),
     }));
 
     setUploadedSTLFiles(prev => [...prev, ...newFiles]);
 
-    // Simulate upload for each file
-    newFiles.forEach(file => {
-      simulateUpload(file.id, 'stl');
-    });
+    // Upload files to GCS using the real service
+    try {
+      await uploadMultipleSTLFiles(
+        studioId,
+        files,
+        // onFileProgress
+        (fileIndex: number, progress) => {
+          const fileId = newFiles[fileIndex].id;
+          setUploadedSTLFiles(prev => prev.map(file => 
+            file.id === fileId 
+              ? { ...file, progress: progress.percentage }
+              : file
+          ));
+        },
+        // onFileComplete
+        (fileIndex: number, objectKey: string) => {
+          const fileId = newFiles[fileIndex].id;
+          setUploadedSTLFiles(prev => prev.map(file => 
+            file.id === fileId 
+              ? { 
+                  ...file, 
+                  progress: 100, 
+                  isUploading: false, 
+                  uploadComplete: true,
+                  object_key: objectKey 
+                } as UploadedSTLFile
+              : file
+          ));
+        },
+        // onFileError
+        (fileIndex: number, error: string) => {
+          const fileId = newFiles[fileIndex].id;
+          setUploadedSTLFiles(prev => prev.map(file => 
+            file.id === fileId 
+              ? { 
+                  ...file, 
+                  isUploading: false, 
+                  uploadComplete: false,
+                  uploadError: error,
+                  error: error 
+                } as UploadedSTLFile
+              : file
+          ));
+        }
+      );
+    } catch (error) {
+      console.error('Erreur lors de l\'upload STL:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      
+      // Marquer tous les fichiers comme échoués
+      newFiles.forEach(newFile => {
+        setUploadedSTLFiles(prev => prev.map(file => 
+          file.id === newFile.id 
+            ? { 
+                ...file, 
+                isUploading: false, 
+                uploadComplete: false,
+                uploadError: errorMessage,
+                error: errorMessage 
+              } as UploadedSTLFile
+            : file
+        ));
+      });
+      
+      showError(`Erreur lors de l'upload: ${errorMessage}`);
+    }
   };
 
   const simulateUpload = (fileId: string, type: 'image' | 'stl') => {
@@ -369,22 +430,26 @@ export default function AddProductPage({ params }: Props) {
       
       console.log('User is authenticated, proceeding with product creation...');
 
+      // Prepare STL files data with object_keys
+      const stlFilesData = uploadedSTLFiles
+        .filter(file => (file as UploadedSTLFile).uploadComplete && (file as UploadedSTLFile).object_key)
+        .map(file => {
+          const stlFile = file as UploadedSTLFile;
+          return {
+            file_path: stlFile.object_key!,
+            title: file.name,
+            description: `Fichier STL: ${file.name}`
+          };
+        });
+
       // Prepare product data for ProductCreateSerializer
-      const productData: {
-        name: string;
-        description: string;
-        price: string;
-        professional_license_fee?: string;
-        print_settings: string;
-        dimensions: string;
-        category_id?: number;
-        tag_ids?: number[];
-      } = {
+      const productData: Record<string, unknown> = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         price: formData.isFree ? "0.00" : formData.price,
         print_settings: formData.print_settings.trim(),
         dimensions: formData.dimensions.trim(),
+        stl_files: stlFilesData,
       };
 
       // Add professional license fee if applicable
@@ -433,15 +498,9 @@ export default function AddProductPage({ params }: Props) {
         }
       }
       
-      // Upload STL files
-      for (const stlFile of uploadedSTLFiles) {
-        try {
-          await uploadProductSTL(newProduct.id, stlFile.file, stlFile.name);
-        } catch (error) {
-          console.error(`Failed to upload STL file ${stlFile.name}:`, error);
-          // Continue with other uploads even if one fails
-        }
-      }
+      // Note: STL files are now uploaded directly to GCS during file selection
+      // The object_keys are already stored in uploadedSTLFiles and will be
+      // included in the product creation via stl_files parameter
       
       showSuccess("Produit créé avec succès!");
       

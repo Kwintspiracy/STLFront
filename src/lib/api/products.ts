@@ -34,7 +34,7 @@ export async function getAllProducts(): Promise<Product[]> {
 /**
  * Récupère un produit par ID (endpoint public)
  */
-export async function getProductById(id: number): Promise<Product | undefined> {
+export async function getProductById(id: number, options?: { skipCache?: boolean }): Promise<Product | undefined> {
   if (USE_MOCK_DATA) {
     const product = mockProducts.find((p) => p.id === id);
     return product ? convertLegacyToProduct(product as LegacyProduct) : undefined;
@@ -42,9 +42,12 @@ export async function getProductById(id: number): Promise<Product | undefined> {
 
   try {
     // For static generation, use fetch with shorter revalidation for product details
-    const res = await fetch(PRODUCT_ENDPOINTS.DETAIL(id), {
-      next: { revalidate: 1800 } // 30 minutes - for product details
-    });
+    // Skip cache for deletion operations to get real-time status
+    const fetchOptions: RequestInit = options?.skipCache 
+      ? { cache: 'no-store' }
+      : { next: { revalidate: 1800 } }; // 30 minutes - for product details
+    
+    const res = await fetch(PRODUCT_ENDPOINTS.DETAIL(id), fetchOptions);
     
     if (!res.ok) {
       if (res.status === 404) {
@@ -61,6 +64,30 @@ export async function getProductById(id: number): Promise<Product | undefined> {
       return undefined;
     }
     throw new Error(`Failed to fetch product: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Récupère un produit par ID avec authentification (pour accéder aux brouillons)
+ */
+export async function getProductByIdAuthenticated(id: number): Promise<Product | undefined> {
+  if (USE_MOCK_DATA) {
+    const product = mockProducts.find((p) => p.id === id);
+    return product ? convertLegacyToProduct(product as LegacyProduct) : undefined;
+  }
+
+  try {
+    const response = await apiRequest.get<Product>(PRODUCT_ENDPOINTS.DETAIL(id));
+    return response.data;
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { status?: number }; message?: string };
+    
+    if (axiosError.response?.status === 404) {
+      return undefined;
+    }
+    
+    console.error("Error fetching authenticated product:", error);
+    throw new Error(`Failed to fetch product: ${axiosError.message || 'Unknown error'}`);
   }
 }
 
@@ -210,23 +237,79 @@ export async function updateProduct(id: number, productData: Partial<Product>): 
 }
 
 /**
- * Supprime un produit (nécessite l'authentification)
+ * Supprime un produit et toutes ses ressources (nécessite l'authentification)
  */
 export async function deleteProduct(id: number): Promise<void> {
-  // Since the API doesn't seem to support deletion, we'll mark it as draft
-  // and add a prefix to indicate it's been "deleted"
   try {
-    const product = await getProductById(id);
-    if (product) {
-      await updateProduct(id, { 
-        status: 'draft',
-        name: `[SUPPRIMÉ] ${product.name}`
-      });
-      console.log('Product marked as deleted (draft status with [SUPPRIMÉ] prefix)');
+    console.log(`🗑️ Starting deletion of product ${id}...`);
+    
+    // 1. Essayer de récupérer le produit pour connaître ses ressources
+    let product;
+    try {
+      product = await getProductById(id, { skipCache: true });
+    } catch (error) {
+      // Si le produit n'existe pas (404), on peut considérer qu'il est déjà "supprimé"
+      if (error instanceof Error && (error.message.includes('404') || error.message.includes('not found'))) {
+        console.log(`✅ Product ${id} already deleted or doesn't exist - deletion considered successful`);
+        return;
+      }
+      // Re-throw other errors
+      throw error;
     }
+    
+    if (!product) {
+      console.log(`✅ Product ${id} already deleted or doesn't exist - deletion considered successful`);
+      return;
+    }
+
+    console.log(`📦 Product found: "${product.name}" with ${product.images?.length || 0} images and ${product.stl_files?.length || 0} STL files`);
+
+    // 2. Supprimer toutes les images
+    if (product.images && product.images.length > 0) {
+      console.log(`🖼️ Deleting ${product.images.length} images...`);
+      for (const image of product.images) {
+        try {
+          await deleteProductImage(id, image.id);
+          console.log(`✅ Deleted image ${image.id}`);
+        } catch (error) {
+          console.warn(`⚠️ Failed to delete image ${image.id}:`, error);
+          // Continue with other images even if one fails
+        }
+      }
+    }
+
+    // 3. Supprimer tous les fichiers STL
+    if (product.stl_files && product.stl_files.length > 0) {
+      console.log(`📁 Deleting ${product.stl_files.length} STL files...`);
+      for (const stlFile of product.stl_files) {
+        try {
+          await deleteProductSTL(id, stlFile.id);
+          console.log(`✅ Deleted STL file ${stlFile.id}`);
+        } catch (error) {
+          console.warn(`⚠️ Failed to delete STL file ${stlFile.id}:`, error);
+          // Continue with other files even if one fails
+        }
+      }
+    }
+
+    // 4. Supprimer le produit principal
+    console.log(`🗑️ Deleting main product...`);
+    try {
+      await apiRequest.delete(PRODUCT_ENDPOINTS.DETAIL(id));
+      console.log(`✅ Product ${id} successfully deleted`);
+    } catch (error) {
+      // Si le produit principal n'existe pas non plus, c'est OK
+      if (error instanceof Error && error.message.includes('404')) {
+        console.log(`✅ Product ${id} main record already deleted`);
+      } else {
+        throw error;
+      }
+    }
+    
   } catch (error: unknown) {
-    console.error('Error in deleteProduct:', error);
-    throw new Error('Impossible de supprimer le produit. L\'API ne supporte pas la suppression directe.');
+    console.error('Error deleting product:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression du produit';
+    throw new Error(errorMessage);
   }
 }
 
@@ -415,4 +498,40 @@ export async function getCommercialProducts(): Promise<Product[]> {
       parseFloat(p.professional_license_fee) > 0
     )
     .slice(0, 4);
+}
+
+/**
+ * Récupère les produits avec des tags similaires
+ */
+export async function getProductsByTags(tags: { id: number; name: string }[], excludeProductId?: number): Promise<Product[]> {
+  const products = await getAllProducts();
+  
+  if (!tags || tags.length === 0) {
+    return [];
+  }
+  
+  const tagNames = tags.map(tag => tag.name.toLowerCase());
+  
+  // Calculer le score de similarité pour chaque produit
+  const productsWithScore = products
+    .filter(p => 
+      p.status === 'published' && 
+      p.id !== excludeProductId && // Exclure le produit actuel
+      p.tag && p.tag.length > 0
+    )
+    .map(product => {
+      const productTagNames = product.tag.map(tag => tag.name.toLowerCase());
+      const commonTags = productTagNames.filter(tagName => tagNames.includes(tagName));
+      const score = commonTags.length;
+      
+      return {
+        product,
+        score,
+        commonTags
+      };
+    })
+    .filter(item => item.score > 0) // Garder seulement les produits avec au moins un tag en commun
+    .sort((a, b) => b.score - a.score); // Trier par score décroissant
+  
+  return productsWithScore.map(item => item.product).slice(0, 8);
 }
