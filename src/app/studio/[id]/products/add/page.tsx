@@ -15,7 +15,19 @@ import { uploadMultipleSTLFiles, formatFileSize } from "@/lib/api/stlUploadServi
 import FileUploadZone from "@/components/studio/FileUploadZone";
 import TagInput from "@/components/forms/TagInput";
 import { processTagsForSubmission } from "@/lib/utils/tagUtils";
-import { RiArrowLeftLine, RiArrowDownSLine, RiArrowUpSLine, RiSaveLine } from "react-icons/ri";
+import { 
+  FaChevronRight, 
+  FaInfoCircle, 
+  FaImages, 
+  FaCube, 
+  FaDollarSign, 
+  FaCog, 
+  FaTags, 
+  FaEye,
+  FaSave, 
+  FaChevronUp,
+  FaChevronDown
+} from 'react-icons/fa';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -561,10 +573,10 @@ export default function AddProductPage({ params }: Props) {
   // Show loading while checking studio
   if (myStudioLoading || !studioId) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
-          <p className="mt-4 text-text-secondary">Chargement...</p>
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-[#F4F4F4] text-lg font-medium">Loading studio...</div>
         </div>
       </div>
     );
@@ -576,39 +588,59 @@ export default function AddProductPage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <Link
+    <div className="min-h-screen bg-transparent">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Header Section */}
+        <div className="mb-8 sm:mb-12">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-sm mb-4">
+            <Link 
               href={`/studio/${studioId}/products`}
-              className="p-2 hover:bg-background-hover rounded-lg transition-colors"
+              className="text-[#9ca3af] hover:text-primary transition-colors"
             >
-              <RiArrowLeftLine className="w-5 h-5 text-text-secondary" />
+              Products
             </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-text-primary">Ajouter un nouveau produit</h1>
-              <p className="text-text-secondary mt-1">Créez un nouveau produit pour {myStudio.studio.name}</p>
-            </div>
-          </div>
+            <FaChevronRight className="w-3 h-3 text-[#9ca3af]" />
+            <span className="text-[#F4F4F4]">Add Product</span>
+          </nav>
+          
+          {/* Title */}
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-3">
+            <span className="text-primary">ADD</span>
+            <span className="text-white"> PRODUCT</span>
+          </h1>
+          <p className="text-[#9ca3af] text-base sm:text-lg">
+            Create a new product for <span className="text-primary font-medium">{myStudio.studio.name}</span>
+          </p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+          
           {/* Basic Information */}
-          <div id="basic-info" className={`bg-background-secondary border rounded-lg p-6 ${
-            showValidationHighlight && validationErrors.name ? 'border-red-500 bg-red-500/5' : 'border-border'
-          }`}>
-            <h2 className="text-xl font-semibold text-text-primary mb-6">
-              Informations de base
-              <span className="text-red-500 ml-1">*</span>
-            </h2>
+          <div 
+            id="basic-info"
+            className="rounded-xl p-6 sm:p-8"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                <FaInfoCircle className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                  <span className="text-blue-400">BASIC</span>
+                  <span className="text-white"> INFORMATION</span>
+                </h2>
+                <p className="text-[#9ca3af] text-sm">Essential details about your product</p>
+              </div>
+            </div>
             
             <div className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-text-secondary mb-2">
-                  Nom du produit *
+                <label htmlFor="name" className="block text-sm font-semibold text-[#F4F4F4] mb-3">
+                  Product Name *
                 </label>
                 <input
                   type="text"
@@ -618,13 +650,16 @@ export default function AddProductPage({ params }: Props) {
                   onChange={handleInputChange}
                   maxLength={128}
                   required
-                  className="w-full bg-background border border-border text-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-accent transition-colors"
-                  placeholder="Ex: Vase décoratif 3D"
+                  className="w-full bg-white/5 text-[#F4F4F4] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors placeholder-[#9ca3af]"
+                  placeholder="Ex: Decorative 3D Vase"
                 />
+                {showValidationHighlight && validationErrors.name && (
+                  <p className="text-red-400 text-sm mt-2">{validationErrors.name}</p>
+                )}
               </div>
 
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-text-secondary mb-2">
+                <label htmlFor="description" className="block text-sm font-semibold text-[#F4F4F4] mb-3">
                   Description
                 </label>
                 <textarea
@@ -633,21 +668,31 @@ export default function AddProductPage({ params }: Props) {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows={4}
-                  className="w-full bg-background border border-border text-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-accent transition-colors resize-none"
-                  placeholder="Décrivez votre produit..."
+                  className="w-full bg-white/5 text-[#F4F4F4] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors placeholder-[#9ca3af] resize-none"
+                  placeholder="Describe your product..."
                 />
               </div>
             </div>
           </div>
 
           {/* Images */}
-          <div id="images" className={`bg-background-secondary border rounded-lg p-6 ${
-            showValidationHighlight && validationErrors.images ? 'border-red-500 bg-red-500/5' : 'border-border'
-          }`}>
-            <h2 className="text-xl font-semibold text-text-primary mb-6">
-              Images du produit
-              <span className="text-red-500 ml-1">*</span>
-            </h2>
+          <div 
+            id="images"
+            className="rounded-xl p-6 sm:p-8"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                <FaImages className="w-5 h-5 text-green-400" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                  <span className="text-green-400">PRODUCT</span>
+                  <span className="text-white"> IMAGES</span>
+                </h2>
+                <p className="text-[#9ca3af] text-sm">Upload images to showcase your product</p>
+              </div>
+            </div>
             
             <FileUploadZone
               accept="image/*"
@@ -659,19 +704,32 @@ export default function AddProductPage({ params }: Props) {
               onFileReorder={handleImageReorder}
               onMainImageSelect={handleMainImageSelect}
               onFileRename={handleImageRename}
-              label="Télécharger des images"
+              label="Upload Images"
               fileType="image"
             />
+            {showValidationHighlight && validationErrors.images && (
+              <p className="text-red-400 text-sm mt-4">{validationErrors.images}</p>
+            )}
           </div>
 
           {/* STL Files */}
-          <div id="stl-files" className={`bg-background-secondary border rounded-lg p-6 ${
-            showValidationHighlight && validationErrors.stl ? 'border-red-500 bg-red-500/5' : 'border-border'
-          }`}>
-            <h2 className="text-xl font-semibold text-text-primary mb-6">
-              Fichiers STL
-              <span className="text-red-500 ml-1">*</span>
-            </h2>
+          <div 
+            id="stl-files"
+            className="rounded-xl p-6 sm:p-8"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                <FaCube className="w-5 h-5 text-orange-400" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                  <span className="text-orange-400">STL</span>
+                  <span className="text-white"> FILES</span>
+                </h2>
+                <p className="text-[#9ca3af] text-sm">Upload your 3D model files for printing</p>
+              </div>
+            </div>
             
             <FileUploadZone
               accept=".stl"
@@ -681,22 +739,40 @@ export default function AddProductPage({ params }: Props) {
               onFileRemove={handleSTLRemove}
               onFileReorder={handleSTLReorder}
               onFileRename={handleSTLRename}
-              label="Télécharger des fichiers STL"
+              label="Upload STL Files"
               fileType="stl"
             />
+            {showValidationHighlight && validationErrors.stl && (
+              <p className="text-red-400 text-sm mt-4">{validationErrors.stl}</p>
+            )}
           </div>
 
           {/* Pricing */}
-          <div className="bg-background-secondary border border-border rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-text-primary mb-6">Tarification</h2>
+          <div 
+            id="pricing"
+            className="rounded-xl p-6 sm:p-8"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center">
+                <FaDollarSign className="w-5 h-5 text-yellow-400" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                  <span className="text-yellow-400">PRICING</span>
+                  <span className="text-white"> OPTIONS</span>
+                </h2>
+                <p className="text-[#9ca3af] text-sm">Set your product pricing and licensing options</p>
+              </div>
+            </div>
             
             <div className="space-y-6">
               {!formData.isFree && (
                 <div className="space-y-6">
                   {/* Base price */}
                   <div>
-                    <label htmlFor="price" className="block text-sm font-medium text-text-secondary mb-2">
-                      Prix de base (€) *
+                    <label htmlFor="price" className="block text-sm font-semibold text-[#F4F4F4] mb-3">
+                      Base Price (€) *
                     </label>
                     <input
                       type="number"
@@ -708,31 +784,37 @@ export default function AddProductPage({ params }: Props) {
                       step="0.01"
                       required={!formData.isFree}
                       placeholder="Ex: 4.99"
-                      className="w-full bg-background border border-border text-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-accent transition-colors"
+                      className="w-full bg-white/5 text-[#F4F4F4] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors placeholder-[#9ca3af]"
                     />
-                    <p className="text-xs text-text-secondary mt-1">
-                      Prix pour usage personnel uniquement
+                    <p className="text-xs text-[#9ca3af] mt-2">
+                      Price for personal use only
                     </p>
+                    {showValidationHighlight && validationErrors.price && (
+                      <p className="text-red-400 text-sm mt-2">{validationErrors.price}</p>
+                    )}
                   </div>
 
                   {/* Professional license toggle */}
-                  <div className="border border-border rounded-lg p-4">
+                  <div className="p-4 rounded-lg bg-white/5">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          id="enableProfessionalLicense"
-                          name="enableProfessionalLicense"
-                          checked={formData.enableProfessionalLicense}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-accent bg-background border-border rounded focus:ring-accent focus:ring-2"
-                        />
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            id="enableProfessionalLicense"
+                            name="enableProfessionalLicense"
+                            checked={formData.enableProfessionalLicense}
+                            onChange={handleInputChange}
+                            className="sr-only peer"
+                          />
+                          <div className="w-12 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-6 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
                         <div>
-                          <label htmlFor="enableProfessionalLicense" className="text-sm font-medium text-text-primary cursor-pointer">
-                            Proposer une licence professionnelle
+                          <label htmlFor="enableProfessionalLicense" className="text-sm font-semibold text-[#F4F4F4] cursor-pointer">
+                            Offer Professional License
                           </label>
-                          <p className="text-xs text-text-secondary">
-                            Permettre l&apos;usage commercial avec un supplément
+                          <p className="text-xs text-[#9ca3af]">
+                            Allow commercial use with additional fee
                           </p>
                         </div>
                       </div>
@@ -740,8 +822,8 @@ export default function AddProductPage({ params }: Props) {
 
                     {formData.enableProfessionalLicense && (
                       <div>
-                        <label htmlFor="professional_license_fee" className="block text-sm font-medium text-text-secondary mb-2">
-                          Supplément licence professionnelle (€) *
+                        <label htmlFor="professional_license_fee" className="block text-sm font-semibold text-[#F4F4F4] mb-3">
+                          Professional License Fee (€) *
                         </label>
                         <input
                           type="number"
@@ -753,41 +835,47 @@ export default function AddProductPage({ params }: Props) {
                           step="0.01"
                           required={formData.enableProfessionalLicense}
                           placeholder={formData.price ? `Minimum: ${formData.price}` : "Ex: 9.99"}
-                          className="w-full bg-background border border-border text-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-accent transition-colors"
+                          className="w-full bg-white/5 text-[#F4F4F4] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors placeholder-[#9ca3af]"
                         />
-                        <p className="text-xs text-text-secondary mt-1">
-                          Doit être supérieur ou égal au prix personnel. Prix pour usage commercial: {formData.professional_license_fee ? `${formData.professional_license_fee}€` : '0€'}
+                        <p className="text-xs text-[#9ca3af] mt-2">
+                          Must be equal or higher than personal price. Commercial price: {formData.professional_license_fee ? `${formData.professional_license_fee}€` : '0€'}
                         </p>
+                        {showValidationHighlight && validationErrors.professional_license_fee && (
+                          <p className="text-red-400 text-sm mt-2">{validationErrors.professional_license_fee}</p>
+                        )}
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Free product option - same styling as professional license */}
-              <div className="border border-border rounded-lg p-4">
+              {/* Free product option */}
+              <div className="p-4 rounded-lg bg-white/5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      id="isFree"
-                      name="isFree"
-                      checked={formData.isFree}
-                      onChange={handleInputChange}
-                      className="w-4 h-4 text-accent bg-background border-border rounded focus:ring-accent focus:ring-2"
-                    />
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        id="isFree"
+                        name="isFree"
+                        checked={formData.isFree}
+                        onChange={handleInputChange}
+                        className="sr-only peer"
+                      />
+                      <div className="w-12 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-6 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
                     <div>
-                      <label htmlFor="isFree" className="text-sm font-medium text-text-primary cursor-pointer">
-                        Produit gratuit
+                      <label htmlFor="isFree" className="text-sm font-semibold text-[#F4F4F4] cursor-pointer">
+                        Free Product
                       </label>
-                      <p className="text-xs text-text-secondary">
-                        Offrez ce produit gratuitement à la communauté
+                      <p className="text-xs text-[#9ca3af]">
+                        Offer this product for free to the community
                       </p>
                     </div>
                   </div>
                   {formData.isFree && (
-                    <div className="bg-text-secondary text-background px-3 py-1 rounded-full text-sm font-medium">
-                      GRATUIT
+                    <div className="bg-primary text-black px-3 py-1 rounded-full text-sm font-medium">
+                      FREE
                     </div>
                   )}
                 </div>
@@ -796,25 +884,39 @@ export default function AddProductPage({ params }: Props) {
           </div>
 
           {/* Technical Details (Collapsible) */}
-          <div className="bg-background-secondary border border-border rounded-lg">
+          <div 
+            className="rounded-xl"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
             <button
               type="button"
               onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
-              className="w-full p-6 flex items-center justify-between text-left"
+              className="w-full p-6 sm:p-8 flex items-center justify-between text-left"
             >
-              <h2 className="text-xl font-semibold text-text-primary">Détails techniques</h2>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                  <FaCog className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                    <span className="text-purple-400">TECHNICAL</span>
+                    <span className="text-white"> DETAILS</span>
+                  </h2>
+                  <p className="text-[#9ca3af] text-sm">Optional printing specifications and dimensions</p>
+                </div>
+              </div>
               {showTechnicalDetails ? (
-                <RiArrowUpSLine className="w-5 h-5 text-text-secondary" />
+                <FaChevronUp className="w-5 h-5 text-[#9ca3af]" />
               ) : (
-                <RiArrowDownSLine className="w-5 h-5 text-text-secondary" />
+                <FaChevronDown className="w-5 h-5 text-[#9ca3af]" />
               )}
             </button>
             
             {showTechnicalDetails && (
-              <div className="px-6 pb-6 space-y-6">
+              <div className="px-6 sm:px-8 pb-6 sm:pb-8 space-y-6">
                 <div>
-                  <label htmlFor="print_settings" className="block text-sm font-medium text-text-secondary mb-2">
-                    Paramètres d&apos;impression
+                  <label htmlFor="print_settings" className="block text-sm font-semibold text-[#F4F4F4] mb-3">
+                    Print Settings
                   </label>
                   <textarea
                     id="print_settings"
@@ -822,13 +924,13 @@ export default function AddProductPage({ params }: Props) {
                     value={formData.print_settings}
                     onChange={handleInputChange}
                     rows={3}
-                    className="w-full bg-background border border-border text-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-accent transition-colors resize-none"
-                    placeholder="Ex: Hauteur de couche: 0.2mm, Remplissage: 20%"
+                    className="w-full bg-white/5 text-[#F4F4F4] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors placeholder-[#9ca3af] resize-none"
+                    placeholder="Ex: Layer height: 0.2mm, Infill: 20%"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="dimensions" className="block text-sm font-medium text-text-secondary mb-2">
+                  <label htmlFor="dimensions" className="block text-sm font-semibold text-[#F4F4F4] mb-3">
                     Dimensions
                   </label>
                   <input
@@ -837,8 +939,8 @@ export default function AddProductPage({ params }: Props) {
                     name="dimensions"
                     value={formData.dimensions}
                     onChange={handleInputChange}
-                    className="w-full bg-background border border-border text-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-accent transition-colors"
-                    placeholder="Ex: Hauteur: 200mm, Diamètre: 100mm"
+                    className="w-full bg-white/5 text-[#F4F4F4] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors placeholder-[#9ca3af]"
+                    placeholder="Ex: Height: 200mm, Diameter: 100mm"
                   />
                 </div>
               </div>
@@ -846,18 +948,28 @@ export default function AddProductPage({ params }: Props) {
           </div>
 
           {/* Categorization */}
-          <div id="categorization" className={`bg-background-secondary border rounded-lg p-6 ${
-            showValidationHighlight && (validationErrors.category || validationErrors.tags) ? 'border-red-500 bg-red-500/5' : 'border-border'
-          }`}>
-            <h2 className="text-xl font-semibold text-text-primary mb-6">
-              Catégorisation
-              <span className="text-red-500 ml-1">*</span>
-            </h2>
+          <div 
+            id="categorization"
+            className="rounded-xl p-6 sm:p-8"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                <FaTags className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                  <span className="text-red-400">CATEGORIZATION</span>
+                  <span className="text-white"> & TAGS</span>
+                </h2>
+                <p className="text-[#9ca3af] text-sm">Organize your product for better discoverability</p>
+              </div>
+            </div>
             
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-3">
-                  Catégorie
+                <label className="block text-sm font-semibold text-[#F4F4F4] mb-3">
+                  Category *
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {categories.map((category) => (
@@ -867,60 +979,77 @@ export default function AddProductPage({ params }: Props) {
                       onClick={() => setFormData(prev => ({ ...prev, category: category.id.toString() }))}
                       className={`p-3 rounded-lg border-2 transition-all text-center font-medium ${
                         formData.category === category.id.toString()
-                          ? 'border-accent bg-accent/10 text-accent'
-                          : 'border-border bg-background hover:border-accent/50 text-text-secondary hover:text-text-primary'
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-white/20 bg-white/5 hover:border-primary/50 text-[#9ca3af] hover:text-[#F4F4F4]'
                       }`}
                     >
                       {category.name}
                     </button>
                   ))}
                 </div>
+                {showValidationHighlight && validationErrors.category && (
+                  <p className="text-red-400 text-sm mt-3">{validationErrors.category}</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-3">
-                  Tags
+                <label className="block text-sm font-semibold text-[#F4F4F4] mb-3">
+                  Tags *
                 </label>
                 <TagInput
                   selectedTags={selectedTags}
                   onTagsChange={handleTagsChange}
                   maxTags={5}
-                  placeholder="Tapez pour rechercher ou créer des tags..."
+                  placeholder="Type to search or create tags..."
                 />
+                {showValidationHighlight && validationErrors.tags && (
+                  <p className="text-red-400 text-sm mt-3">{validationErrors.tags}</p>
+                )}
               </div>
             </div>
           </div>
 
 
           {/* Visibility */}
-          <div className="bg-background-secondary border border-border rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-text-primary mb-6">Visibilité</h2>
-            <p className="text-sm text-text-secondary mb-4">
-              Choisissez qui peut voir votre produit
-            </p>
+          <div 
+            className="rounded-xl p-6 sm:p-8"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-gray-500/10 rounded-lg flex items-center justify-center">
+                <FaEye className="w-5 h-5 text-gray-400" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                  <span className="text-gray-400">VISIBILITY</span>
+                  <span className="text-white"> SETTINGS</span>
+                </h2>
+                <p className="text-[#9ca3af] text-sm">Control who can see and discover your product</p>
+              </div>
+            </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
                 type="button"
                 onClick={() => setFormData(prev => ({ ...prev, isPublic: true }))}
                 className={`p-4 rounded-lg border-2 transition-all text-left ${
                   formData.isPublic
-                    ? 'border-accent bg-accent/10 text-accent'
-                    : 'border-border bg-background hover:border-accent/50 text-text-secondary'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-white/20 bg-white/5 hover:border-primary/50 text-[#9ca3af]'
                 }`}
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <div className={`w-4 h-4 rounded-full border-2 ${
-                    formData.isPublic ? 'border-accent bg-accent' : 'border-border'
+                    formData.isPublic ? 'border-primary bg-primary' : 'border-white/20'
                   }`}>
                     {formData.isPublic && (
                       <div className="w-full h-full rounded-full bg-white scale-50"></div>
                     )}
                   </div>
-                  <span className="font-medium">PUBLIC</span>
+                  <span className="font-semibold">PUBLIC</span>
                 </div>
                 <p className="text-xs opacity-75">
-                  Visible par tous les utilisateurs dans les recherches et catalogues
+                  Visible to all users in searches and catalogs
                 </p>
               </button>
               
@@ -929,53 +1058,50 @@ export default function AddProductPage({ params }: Props) {
                 onClick={() => setFormData(prev => ({ ...prev, isPublic: false }))}
                 className={`p-4 rounded-lg border-2 transition-all text-left ${
                   !formData.isPublic
-                    ? 'border-accent bg-accent/10 text-accent'
-                    : 'border-border bg-background hover:border-accent/50 text-text-secondary'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-white/20 bg-white/5 hover:border-primary/50 text-[#9ca3af]'
                 }`}
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <div className={`w-4 h-4 rounded-full border-2 ${
-                    !formData.isPublic ? 'border-accent bg-accent' : 'border-border'
+                    !formData.isPublic ? 'border-primary bg-primary' : 'border-white/20'
                   }`}>
                     {!formData.isPublic && (
                       <div className="w-full h-full rounded-full bg-white scale-50"></div>
                     )}
                   </div>
-                  <span className="font-medium">PRIVÉ</span>
+                  <span className="font-semibold">PRIVATE</span>
                 </div>
                 <p className="text-xs opacity-75">
-                  Visible uniquement via un lien direct, non listé dans les recherches
+                  Only visible via direct link, not listed in searches
                 </p>
               </button>
             </div>
           </div>
 
           {/* Form Actions */}
-          <div className="flex justify-end space-x-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-4">
             <Link
               href={`/studio/${studioId}/products`}
-              className="px-6 py-3 border border-border text-text-secondary rounded-lg font-medium hover:bg-background-hover transition-colors"
+              className="px-6 py-3 bg-white/10 text-[#F4F4F4] rounded-lg font-semibold hover:bg-white/20 transition-colors text-center"
             >
-              Annuler
+              Cancel
             </Link>
             
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 bg-accent text-accent-foreground rounded-lg font-medium hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="px-8 py-3 bg-primary text-black rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
-                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>Validation en cours...</span>
+                  <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                  <span>Creating Product...</span>
                 </>
               ) : (
                 <>
-                  <RiSaveLine className="w-5 h-5" />
-                  <span>VALIDER CREATION</span>
+                  <FaSave className="w-5 h-5" />
+                  <span>CREATE PRODUCT</span>
                 </>
               )}
             </button>

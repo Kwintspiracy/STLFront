@@ -1,7 +1,6 @@
 import { getProductById, getAllProducts, getProductsByStudio, getProductsByTags } from "@/lib/api/products";
 import { notFound } from "next/navigation";
 import { RiDownloadLine } from "react-icons/ri";
-import TagPill from "@/components/card/TagPill";
 import ProductImageGallery from "@/components/product/ProductImageGallery";
 import StudioBlock from "@/components/studio/StudioBlock";
 import ProductLicenseSelector from "@/app/product/[id]/ProductLicenseSelector";
@@ -44,22 +43,22 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
     return (
       <div className="mx-auto">
-        {/* Breadcrumb Section */}
-        <div className="bg-transparent">
-          <div className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <nav className="flex flex-wrap items-center gap-2 sm:gap-4" aria-label="Breadcrumb">
-              {product.tag && product.tag.map((tag: { id: number; name: string }) => (
-                <TagPill key={tag.id} tag={tag.name} />
-              ))}
-            </nav>
-          </div>
-        </div>
-
-        <SectionSeparator />
-
         {/* Main Content Section */}
         <div className="bg-transparent">
           <div className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            
+            {/* Product Header - Above everything */}
+            <div className="space-y-3 mb-8">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight text-white">
+                {product.name}
+              </h1>
+
+              {/* Studio Block */}
+              {product.creator && (
+                <StudioBlock studio={product.creator} />
+              )}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
               
               {/* Product Image Gallery */}
@@ -69,21 +68,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
               {/* Product Information */}
               <div className="space-y-8">
-                
-                {/* Product Header */}
-                <div className="space-y-4">
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight text-white">
-                    {product.name}
-                  </h1>
-
-                  {/* Studio Block */}
-                  {product.creator && (
-                    <StudioBlock studio={product.creator} />
-                  )}
-                </div>
-
-                {/* Divider */}
-                <div className="h-px bg-gray-700"></div>
                 
                 {/* License Selection Component */}
                 <div className="space-y-6">
@@ -134,19 +118,23 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   </div>
                 </div>
 
-                {/* Divider */}
-                <div className="h-px bg-gray-700"></div>
+                {/* Description Section - Only show if description exists */}
+                {product.description && product.description.trim() && (
+                  <>
+                    {/* Divider */}
+                    <div className="h-px bg-gray-700"></div>
 
-                {/* Description Section */}
-                <div className="space-y-6">
-                  <h2 className="text-2xl font-extrabold">
-                    <span className="text-primary">PRODUCT</span>
-                    <span className="text-white"> DESCRIPTION</span>
-                  </h2>
-                  <p className="text-gray-300 leading-relaxed text-base">
-                    {product.description || "No description available for this product."}
-                  </p>
-                </div>
+                    <div className="space-y-6">
+                      <h2 className="text-2xl font-extrabold">
+                        <span className="text-primary">PRODUCT</span>
+                        <span className="text-white"> DESCRIPTION</span>
+                      </h2>
+                      <p className="text-gray-300 leading-relaxed text-base">
+                        {product.description}
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

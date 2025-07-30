@@ -30,9 +30,29 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)] px-4 py-12">
-      <div className="w-full max-w-md mx-auto pt-16">
-        <LoginForm />
+    <div className="min-h-screen bg-transparent">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Header Section */}
+        <div className="max-w-md mx-auto mb-6">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-3">
+            <span className="text-primary">SIGN</span>
+            <span className="text-white"> IN</span>
+          </h1>
+          <p className="text-[#9ca3af] text-base sm:text-lg">
+            Enter your credentials to continue
+          </p>
+        </div>
+
+        {/* Login Form Section */}
+        <div className="max-w-md mx-auto">
+          <div 
+            className="rounded-xl p-6 sm:p-8"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <LoginForm />
+          </div>
+        </div>
       </div>
     </div>
   );

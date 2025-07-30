@@ -19,8 +19,8 @@ export const API_BASE_URL = getApiBaseUrl();
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
   LOGIN: `${API_BASE_URL}/auth/login/`,
-  REGISTER: `${API_BASE_URL}/auth/register/`,
-  EMAIL_CONFIRM: `${API_BASE_URL}/auth/register/account-confirm-email/`,
+  REGISTER: `${API_BASE_URL}/auth/registration/`,
+  EMAIL_CONFIRM: `${API_BASE_URL}/auth/registration/verify-email/`,
   REFRESH: `${API_BASE_URL}/auth/token/refresh/`,
   LOGOUT: `${API_BASE_URL}/auth/logout/`,
   PASSWORD_RESET: `${API_BASE_URL}/auth/password/reset/`,
@@ -28,6 +28,7 @@ export const AUTH_ENDPOINTS = {
   PASSWORD_CHANGE: `${API_BASE_URL}/auth/password/change/`,
   USER_PROFILE: `${API_BASE_URL}/auth/user/`,
   UPDATE_PROFILE: `${API_BASE_URL}/auth/user/`,
+  CHECK_USERNAME: `${API_BASE_URL}/auth/check-username/`,
   GOOGLE_LOGIN: `${API_BASE_URL}/auth/google/`,
   DISCORD: `${API_BASE_URL}/auth/discord/`,
 };

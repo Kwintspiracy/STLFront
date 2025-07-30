@@ -50,45 +50,42 @@ export default function StudioBlock({ studio, className = '' }: StudioBlockProps
   };
 
   return (
-    <div className={`flex items-center ${className}`}>
-      {/* Studio Info - Left aligned */}
-      <div className="flex items-center gap-3 sm:gap-4 flex-1">
-        {/* Studio Avatar */}
-        <div className="relative">
-          {imageError || !studio.badge ? (
-            <DefaultAvatar className="ring-2 ring-gray-600" size={48} />
-          ) : (
-            <Image
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg ring-2 ring-gray-600 object-cover"
-              src={studio.badge}
-              alt={`${studio.name} badge`}
-              width={48}
-              height={48}
-              onError={() => setImageError(true)}
-            />
-          )}
-        </div>
-
-        {/* Studio Details */}
-        <div>
-          <Link 
-            href={`/public/studio/${studio.id}`}
-            className="text-white text-sm sm:text-base font-medium hover:text-primary transition-colors"
-          >
-            by {studio.name}
-          </Link>
-          <p className="text-gray-400 text-xs sm:text-sm">
-            {getFollowerCount()} follower{getFollowerCount() !== 1 ? 's' : ''}
-          </p>
-        </div>
+    <div className={`flex items-center gap-4 ${className}`}>
+      {/* Studio Avatar */}
+      <div className="relative">
+        {imageError || !studio.badge ? (
+          <DefaultAvatar className="ring-2 ring-gray-600" size={48} />
+        ) : (
+          <Image
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg ring-2 ring-gray-600 object-cover"
+            src={studio.badge}
+            alt={`${studio.name} badge`}
+            width={48}
+            height={48}
+            onError={() => setImageError(true)}
+          />
+        )}
       </div>
 
-      {/* Follow Button - Right aligned */}
+      {/* Studio Details */}
+      <div>
+        <Link 
+          href={`/public/studio/${studio.id}`}
+          className="text-white text-sm sm:text-base font-medium hover:text-primary transition-colors"
+        >
+          by {studio.name}
+        </Link>
+        <p className="text-gray-400 text-xs sm:text-sm">
+          {getFollowerCount()} follower{getFollowerCount() !== 1 ? 's' : ''}
+        </p>
+      </div>
+
+      {/* Follow Button - Close to studio info */}
       <button
         onClick={handleFollowToggle}
         disabled={isLoading}
         className={`
-          flex items-center gap-2 px-3 py-1.5 rounded-md font-medium text-xs transition-all duration-200
+          flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200
           ${isFollowing 
             ? 'bg-gray-700 text-gray-300 hover:bg-red-600 hover:text-white border border-gray-600 hover:border-red-600' 
             : 'bg-primary text-white hover:bg-primary/80 border border-primary hover:border-primary/80'
@@ -97,14 +94,14 @@ export default function StudioBlock({ studio, className = '' }: StudioBlockProps
         `}
       >
         {isLoading ? (
-          <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
         ) : isFollowing ? (
-          <RiUserUnfollowLine className="w-3 h-3" />
+          <RiUserUnfollowLine className="w-4 h-4" />
         ) : (
-          <RiUserFollowLine className="w-3 h-3" />
+          <RiUserFollowLine className="w-4 h-4" />
         )}
-        <span className="hidden sm:inline">
-          {isLoading ? 'Chargement...' : isFollowing ? 'Suivi' : 'Suivre'}
+        <span>
+          {isLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
         </span>
       </button>
     </div>

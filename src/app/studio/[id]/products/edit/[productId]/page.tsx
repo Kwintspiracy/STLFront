@@ -10,12 +10,12 @@ import {
   getProductByIdAuthenticated, 
   updateProduct, 
   uploadProductImage, 
-  uploadProductSTL, 
   deleteProductImage, 
   deleteProductSTL,
   setMainProductImage,
   updateImageOrder
 } from "@/lib/api/products";
+import { uploadMultipleSTLFiles, formatFileSize } from "@/lib/api/stlUploadService";
 import { getAllCategories } from "@/lib/api/categories";
 import { getAllTags } from "@/lib/api/tags";
 import { Category, Tag, Product } from "@/types/product";
@@ -23,7 +23,19 @@ import FileUploadZone from "@/components/studio/FileUploadZone";
 import TagInput from "@/components/forms/TagInput";
 import { processTagsForSubmission } from "@/lib/utils/tagUtils";
 import { getSafeImageUrl } from "@/lib/utils/imageUtils";
-import { RiArrowLeftLine, RiArrowDownSLine, RiArrowUpSLine, RiSaveLine } from "react-icons/ri";
+import { 
+  FaChevronRight, 
+  FaInfoCircle, 
+  FaImages, 
+  FaCube, 
+  FaDollarSign, 
+  FaCog, 
+  FaTags, 
+  FaEye,
+  FaSave, 
+  FaChevronUp,
+  FaChevronDown
+} from 'react-icons/fa';
 
 interface Props {
   params: Promise<{ id: string; productId: string }>;
@@ -312,7 +324,10 @@ export default function EditProductPage({ params }: Props) {
   };
 
   const handleSTLFilesAdded = async (files: File[]) => {
-    if (!productId) return;
+    if (!studioId) {
+      showError("Studio ID manquant");
+      return;
+    }
 
     const newFiles = files.map(file => ({
       id: `stl-${Date.now()}-${Math.random()}`,
@@ -320,50 +335,78 @@ export default function EditProductPage({ params }: Props) {
       name: file.name.replace(/\.[^/.]+$/, ""),
       progress: 0,
       isUploading: true,
+      uploadComplete: false,
+      fileSize: file.size,
+      fileSizeDisplay: formatFileSize(file.size),
     }));
 
     setUploadedSTLFiles(prev => [...prev, ...newFiles]);
 
-    // Upload each file to the API
-    for (const stlFile of newFiles) {
-      try {
-        console.log(`📦 Uploading STL: ${stlFile.name}`);
-        
-        // Update progress to show upload starting
-        setUploadedSTLFiles(prev => prev.map(item => 
-          item.id === stlFile.id ? { ...item, progress: 10 } : item
+    // Upload files to GCS using the signed URLs service
+    try {
+      await uploadMultipleSTLFiles(
+        studioId,
+        files,
+        // onFileProgress
+        (fileIndex: number, progress) => {
+          const fileId = newFiles[fileIndex].id;
+          setUploadedSTLFiles(prev => prev.map(file => 
+            file.id === fileId 
+              ? { ...file, progress: progress.percentage }
+              : file
+          ));
+        },
+        // onFileComplete
+        (fileIndex: number, objectKey: string) => {
+          const fileId = newFiles[fileIndex].id;
+          setUploadedSTLFiles(prev => prev.map(file => 
+            file.id === fileId 
+              ? { 
+                  ...file, 
+                  progress: 100, 
+                  isUploading: false, 
+                  uploadComplete: true,
+                  object_key: objectKey 
+                }
+              : file
+          ));
+        },
+        // onFileError
+        (fileIndex: number, error: string) => {
+          const fileId = newFiles[fileIndex].id;
+          setUploadedSTLFiles(prev => prev.map(file => 
+            file.id === fileId 
+              ? { 
+                  ...file, 
+                  isUploading: false, 
+                  uploadComplete: false,
+                  uploadError: error,
+                  error: error 
+                }
+              : file
+          ));
+        }
+      );
+    } catch (error) {
+      console.error('Erreur lors de l\'upload STL:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      
+      // Marquer tous les fichiers comme échoués
+      newFiles.forEach(newFile => {
+        setUploadedSTLFiles(prev => prev.map(file => 
+          file.id === newFile.id 
+            ? { 
+                ...file, 
+                isUploading: false, 
+                uploadComplete: false,
+                uploadError: errorMessage,
+                error: errorMessage 
+              }
+            : file
         ));
-
-        const uploadResult = await uploadProductSTL(productId, stlFile.file, stlFile.name);
-        
-        console.log(`✅ STL uploaded successfully:`, uploadResult);
-
-        // Update with success
-        setUploadedSTLFiles(prev => prev.map(item => 
-          item.id === stlFile.id ? { 
-            ...item, 
-            progress: 100, 
-            isUploading: false,
-            url: stlFile.file.name
-          } : item
-        ));
-
-      } catch (error: unknown) {
-        console.error(`❌ Error uploading STL ${stlFile.name}:`, error);
-        
-        // Update with error
-        setUploadedSTLFiles(prev => prev.map(item => 
-          item.id === stlFile.id ? { 
-            ...item, 
-            progress: 0, 
-            isUploading: false,
-            error: error instanceof Error ? error.message : 'Upload failed'
-          } : item
-        ));
-
-        const errorMessage = error instanceof Error ? error.message : 'Upload failed';
-        showError(`Erreur lors de l'upload de ${stlFile.name}: ${errorMessage}`);
-      }
+      });
+      
+      showError(`Erreur lors de l'upload: ${errorMessage}`);
     }
   };
 
@@ -640,10 +683,10 @@ export default function EditProductPage({ params }: Props) {
   // Show loading while checking studio or loading product
   if (myStudioLoading || !studioId || loadingProduct) {
     return (
-      <div className="min-h-screen bg-[#131618] flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FDD811] mx-auto"></div>
-          <p className="mt-4 text-gray-400">Chargement...</p>
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-[#F4F4F4] text-lg font-medium">Loading product...</div>
         </div>
       </div>
     );
@@ -655,34 +698,58 @@ export default function EditProductPage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-[#131618]">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <Link
+    <div className="min-h-screen bg-transparent">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Header Section */}
+        <div className="mb-8 sm:mb-12">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-sm mb-4">
+            <Link 
               href={`/studio/${studioId}/products`}
-              className="p-2 hover:bg-[#1A1C21] rounded-lg transition-colors"
+              className="text-[#9ca3af] hover:text-primary transition-colors"
             >
-              <RiArrowLeftLine className="w-5 h-5 text-gray-400" />
+              Products
             </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-white">Modifier le produit</h1>
-              <p className="text-gray-400 mt-1">Modifiez les informations de votre produit</p>
-            </div>
-          </div>
+            <FaChevronRight className="w-3 h-3 text-[#9ca3af]" />
+            <span className="text-[#F4F4F4]">Edit Product</span>
+          </nav>
+          
+          {/* Title */}
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-3">
+            <span className="text-primary">EDIT</span>
+            <span className="text-white"> PRODUCT</span>
+          </h1>
+          <p className="text-[#9ca3af] text-base sm:text-lg">
+            Modify your product for <span className="text-primary font-medium">{myStudio.studio.name}</span>
+          </p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+          
           {/* Basic Information */}
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">Informations de base</h2>
+          <div 
+            className="rounded-xl p-6 sm:p-8"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                <FaInfoCircle className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                  <span className="text-blue-400">BASIC</span>
+                  <span className="text-white"> INFORMATION</span>
+                </h2>
+                <p className="text-[#9ca3af] text-sm">Essential details about your product</p>
+              </div>
+            </div>
             
             <div className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-                  Nom du produit *
+                <label htmlFor="name" className="block text-sm font-semibold text-[#F4F4F4] mb-3">
+                  Product Name *
                 </label>
                 <input
                   type="text"
@@ -692,13 +759,13 @@ export default function EditProductPage({ params }: Props) {
                   onChange={handleInputChange}
                   maxLength={128}
                   required
-                  className="w-full bg-[#131618] border border-[#2A2D30] text-white rounded-lg px-4 py-3 focus:outline-none focus:border-[#FDD811] transition-colors"
-                  placeholder="Ex: Vase décoratif 3D"
+                  className="w-full bg-white/5 text-[#F4F4F4] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors placeholder-[#9ca3af]"
+                  placeholder="Ex: Decorative 3D Vase"
                 />
               </div>
 
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="description" className="block text-sm font-semibold text-[#F4F4F4] mb-3">
                   Description
                 </label>
                 <textarea
@@ -707,81 +774,30 @@ export default function EditProductPage({ params }: Props) {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows={4}
-                  className="w-full bg-[#131618] border border-[#2A2D30] text-white rounded-lg px-4 py-3 focus:outline-none focus:border-[#FDD811] transition-colors resize-none"
-                  placeholder="Décrivez votre produit..."
+                  className="w-full bg-white/5 text-[#F4F4F4] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors placeholder-[#9ca3af] resize-none"
+                  placeholder="Describe your product..."
                 />
-              </div>
-
-              {/* Visibility */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-4">
-                  Statut de publication
-                </label>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, status: 'published', isPublic: true }))}
-                    className={`p-4 rounded-lg border-2 transition-all text-left ${
-                      formData.status === 'published' && formData.isPublic
-                        ? 'border-[#FDD811] bg-[#FDD811]/10 text-[#FDD811]'
-                        : 'border-[#2A2D30] bg-[#131618] hover:border-[#FDD811]/50 text-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3 mb-2">
-                      <div className={`w-4 h-4 rounded-full border-2 ${
-                        formData.status === 'published' && formData.isPublic ? 'border-[#FDD811] bg-[#FDD811]' : 'border-[#2A2D30]'
-                      }`}>
-                        {formData.status === 'published' && formData.isPublic && (
-                          <div className="w-full h-full rounded-full bg-black scale-50"></div>
-                        )}
-                      </div>
-                      <span className="font-medium">PUBLIÉ</span>
-                    </div>
-                    <p className="text-xs opacity-75">
-                      Visible par tous les utilisateurs dans les recherches et catalogues
-                    </p>
-                  </button>
-                  
-                  <button
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, status: 'published', isPublic: false }))}
-                    className={`p-4 rounded-lg border-2 transition-all text-left ${
-                      formData.status === 'published' && !formData.isPublic
-                        ? 'border-[#FDD811] bg-[#FDD811]/10 text-[#FDD811]'
-                        : 'border-[#2A2D30] bg-[#131618] hover:border-[#FDD811]/50 text-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3 mb-2">
-                      <div className={`w-4 h-4 rounded-full border-2 ${
-                        formData.status === 'published' && !formData.isPublic ? 'border-[#FDD811] bg-[#FDD811]' : 'border-[#2A2D30]'
-                      }`}>
-                        {formData.status === 'published' && !formData.isPublic && (
-                          <div className="w-full h-full rounded-full bg-black scale-50"></div>
-                        )}
-                      </div>
-                      <span className="font-medium">PRIVÉ</span>
-                    </div>
-                    <p className="text-xs opacity-75">
-                      Visible uniquement via un lien direct, non listé dans les recherches
-                    </p>
-                  </button>
-                </div>
-                
-                {formData.status === 'draft' && (
-                  <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                    <p className="text-sm text-yellow-400">
-                      Ce produit est actuellement en brouillon. Sélectionnez &quot;Publié&quot; ou &quot;Privé&quot; pour le rendre visible.
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
           </div>
 
           {/* Images */}
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">Images du produit *</h2>
+          <div 
+            className="rounded-xl p-6 sm:p-8"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                <FaImages className="w-5 h-5 text-green-400" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                  <span className="text-green-400">PRODUCT</span>
+                  <span className="text-white"> IMAGES</span>
+                </h2>
+                <p className="text-[#9ca3af] text-sm">Upload images to showcase your product</p>
+              </div>
+            </div>
             
             <FileUploadZone
               accept="image/*"
@@ -793,14 +809,28 @@ export default function EditProductPage({ params }: Props) {
               onFileReorder={handleImageReorder}
               onMainImageSelect={handleMainImageSelect}
               onFileRename={handleImageRename}
-              label="Télécharger des images"
+              label="Upload Images"
               fileType="image"
             />
           </div>
 
           {/* STL Files */}
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">Fichiers STL *</h2>
+          <div 
+            className="rounded-xl p-6 sm:p-8"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                <FaCube className="w-5 h-5 text-orange-400" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                  <span className="text-orange-400">STL</span>
+                  <span className="text-white"> FILES</span>
+                </h2>
+                <p className="text-[#9ca3af] text-sm">Upload your 3D model files for printing</p>
+              </div>
+            </div>
             
             <FileUploadZone
               accept=".stl"
@@ -810,22 +840,36 @@ export default function EditProductPage({ params }: Props) {
               onFileRemove={handleSTLRemove}
               onFileReorder={handleSTLReorder}
               onFileRename={handleSTLRename}
-              label="Télécharger des fichiers STL"
+              label="Upload STL Files"
               fileType="stl"
             />
           </div>
 
           {/* Pricing */}
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">Tarification</h2>
+          <div 
+            className="rounded-xl p-6 sm:p-8"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center">
+                <FaDollarSign className="w-5 h-5 text-yellow-400" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                  <span className="text-yellow-400">PRICING</span>
+                  <span className="text-white"> OPTIONS</span>
+                </h2>
+                <p className="text-[#9ca3af] text-sm">Set your product pricing and licensing options</p>
+              </div>
+            </div>
             
             <div className="space-y-6">
               {!formData.isFree && (
                 <div className="space-y-6">
                   {/* Base price */}
                   <div>
-                    <label htmlFor="price" className="block text-sm font-medium text-gray-300 mb-2">
-                      Prix de base (€) *
+                    <label htmlFor="price" className="block text-sm font-semibold text-[#F4F4F4] mb-3">
+                      Base Price (€) *
                     </label>
                     <input
                       type="number"
@@ -837,31 +881,34 @@ export default function EditProductPage({ params }: Props) {
                       step="0.01"
                       required={!formData.isFree}
                       placeholder="Ex: 4.99"
-                      className="w-full bg-[#131618] border border-[#2A2D30] text-white rounded-lg px-4 py-3 focus:outline-none focus:border-[#FDD811] transition-colors"
+                      className="w-full bg-white/5 text-[#F4F4F4] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors placeholder-[#9ca3af]"
                     />
-                    <p className="text-xs text-gray-400 mt-1">
-                      Prix pour usage personnel uniquement
+                    <p className="text-xs text-[#9ca3af] mt-2">
+                      Price for personal use only
                     </p>
                   </div>
 
                   {/* Professional license toggle */}
-                  <div className="border border-[#2A2D30] rounded-lg p-4">
+                  <div className="p-4 rounded-lg bg-white/5">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          id="enableProfessionalLicense"
-                          name="enableProfessionalLicense"
-                          checked={formData.enableProfessionalLicense}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-[#FDD811] bg-[#131618] border-[#2A2D30] rounded focus:ring-[#FDD811] focus:ring-2"
-                        />
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            id="enableProfessionalLicense"
+                            name="enableProfessionalLicense"
+                            checked={formData.enableProfessionalLicense}
+                            onChange={handleInputChange}
+                            className="sr-only peer"
+                          />
+                          <div className="w-12 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-6 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
                         <div>
-                          <label htmlFor="enableProfessionalLicense" className="text-sm font-medium text-white cursor-pointer">
-                            Proposer une licence professionnelle
+                          <label htmlFor="enableProfessionalLicense" className="text-sm font-semibold text-[#F4F4F4] cursor-pointer">
+                            Offer Professional License
                           </label>
-                          <p className="text-xs text-gray-400">
-                          Permettre l&apos;usage commercial avec un supplément
+                          <p className="text-xs text-[#9ca3af]">
+                            Allow commercial use with additional fee
                           </p>
                         </div>
                       </div>
@@ -869,8 +916,8 @@ export default function EditProductPage({ params }: Props) {
 
                     {formData.enableProfessionalLicense && (
                       <div>
-                        <label htmlFor="professional_license_fee" className="block text-sm font-medium text-gray-300 mb-2">
-                          Supplément licence professionnelle (€) *
+                        <label htmlFor="professional_license_fee" className="block text-sm font-semibold text-[#F4F4F4] mb-3">
+                          Professional License Fee (€) *
                         </label>
                         <input
                           type="number"
@@ -881,11 +928,11 @@ export default function EditProductPage({ params }: Props) {
                           min={formData.price ? parseFloat(formData.price) : 0.01}
                           step="0.01"
                           required={formData.enableProfessionalLicense}
-                        placeholder={formData.price ? `Minimum: ${formData.price}` : "Ex: 9.99"}
-                          className="w-full bg-[#131618] border border-[#2A2D30] text-white rounded-lg px-4 py-3 focus:outline-none focus:border-[#FDD811] transition-colors"
+                          placeholder={formData.price ? `Minimum: ${formData.price}` : "Ex: 9.99"}
+                          className="w-full bg-white/5 text-[#F4F4F4] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors placeholder-[#9ca3af]"
                         />
-                        <p className="text-xs text-gray-400 mt-1">
-                          Doit être supérieur ou égal au prix personnel. Prix pour usage commercial: {formData.professional_license_fee ? `${formData.professional_license_fee}€` : '0€'}
+                        <p className="text-xs text-[#9ca3af] mt-2">
+                          Must be equal or higher than personal price. Commercial price: {formData.professional_license_fee ? `${formData.professional_license_fee}€` : '0€'}
                         </p>
                       </div>
                     )}
@@ -893,30 +940,33 @@ export default function EditProductPage({ params }: Props) {
                 </div>
               )}
 
-              {/* Free product option - same styling as professional license */}
-              <div className="border border-[#2A2D30] rounded-lg p-4">
+              {/* Free product option */}
+              <div className="p-4 rounded-lg bg-white/5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      id="isFree"
-                      name="isFree"
-                      checked={formData.isFree}
-                      onChange={handleInputChange}
-                      className="w-4 h-4 text-[#FDD811] bg-[#131618] border-[#2A2D30] rounded focus:ring-[#FDD811] focus:ring-2"
-                    />
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        id="isFree"
+                        name="isFree"
+                        checked={formData.isFree}
+                        onChange={handleInputChange}
+                        className="sr-only peer"
+                      />
+                      <div className="w-12 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-6 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
                     <div>
-                      <label htmlFor="isFree" className="text-sm font-medium text-white cursor-pointer">
-                        Produit gratuit
+                      <label htmlFor="isFree" className="text-sm font-semibold text-[#F4F4F4] cursor-pointer">
+                        Free Product
                       </label>
-                      <p className="text-xs text-gray-400">
-                        Offrez ce produit gratuitement à la communauté
+                      <p className="text-xs text-[#9ca3af]">
+                        Offer this product for free to the community
                       </p>
                     </div>
                   </div>
                   {formData.isFree && (
-                    <div className="bg-gray-300 text-black px-3 py-1 rounded-full text-sm font-medium">
-                      GRATUIT
+                    <div className="bg-primary text-black px-3 py-1 rounded-full text-sm font-medium">
+                      FREE
                     </div>
                   )}
                 </div>
@@ -925,25 +975,39 @@ export default function EditProductPage({ params }: Props) {
           </div>
 
           {/* Technical Details (Collapsible) */}
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg">
+          <div 
+            className="rounded-xl"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
             <button
               type="button"
               onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
-              className="w-full p-6 flex items-center justify-between text-left"
+              className="w-full p-6 sm:p-8 flex items-center justify-between text-left"
             >
-              <h2 className="text-xl font-semibold text-white">Détails techniques</h2>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                  <FaCog className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                    <span className="text-purple-400">TECHNICAL</span>
+                    <span className="text-white"> DETAILS</span>
+                  </h2>
+                  <p className="text-[#9ca3af] text-sm">Optional printing specifications and dimensions</p>
+                </div>
+              </div>
               {showTechnicalDetails ? (
-                <RiArrowUpSLine className="w-5 h-5 text-gray-400" />
+                <FaChevronUp className="w-5 h-5 text-[#9ca3af]" />
               ) : (
-                <RiArrowDownSLine className="w-5 h-5 text-gray-400" />
+                <FaChevronDown className="w-5 h-5 text-[#9ca3af]" />
               )}
             </button>
             
             {showTechnicalDetails && (
-              <div className="px-6 pb-6 space-y-6">
+              <div className="px-6 sm:px-8 pb-6 sm:pb-8 space-y-6">
                 <div>
-                  <label htmlFor="print_settings" className="block text-sm font-medium text-gray-300 mb-2">
-                    Paramètres d&apos;impression
+                  <label htmlFor="print_settings" className="block text-sm font-semibold text-[#F4F4F4] mb-3">
+                    Print Settings
                   </label>
                   <textarea
                     id="print_settings"
@@ -951,13 +1015,13 @@ export default function EditProductPage({ params }: Props) {
                     value={formData.print_settings}
                     onChange={handleInputChange}
                     rows={3}
-                    className="w-full bg-[#131618] border border-[#2A2D30] text-white rounded-lg px-4 py-3 focus:outline-none focus:border-[#FDD811] transition-colors resize-none"
-                    placeholder="Ex: Hauteur de couche: 0.2mm, Remplissage: 20%"
+                    className="w-full bg-white/5 text-[#F4F4F4] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors placeholder-[#9ca3af] resize-none"
+                    placeholder="Ex: Layer height: 0.2mm, Infill: 20%"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="dimensions" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label htmlFor="dimensions" className="block text-sm font-semibold text-[#F4F4F4] mb-3">
                     Dimensions
                   </label>
                   <input
@@ -966,8 +1030,8 @@ export default function EditProductPage({ params }: Props) {
                     name="dimensions"
                     value={formData.dimensions}
                     onChange={handleInputChange}
-                    className="w-full bg-[#131618] border border-[#2A2D30] text-white rounded-lg px-4 py-3 focus:outline-none focus:border-[#FDD811] transition-colors"
-                    placeholder="Ex: Hauteur: 200mm, Diamètre: 100mm"
+                    className="w-full bg-white/5 text-[#F4F4F4] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors placeholder-[#9ca3af]"
+                    placeholder="Ex: Height: 200mm, Diameter: 100mm"
                   />
                 </div>
               </div>
@@ -975,13 +1039,27 @@ export default function EditProductPage({ params }: Props) {
           </div>
 
           {/* Categorization */}
-          <div className="bg-[#1A1C21] border border-[#2A2D30] rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">Catégorisation</h2>
+          <div 
+            className="rounded-xl p-6 sm:p-8"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                <FaTags className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                  <span className="text-red-400">CATEGORIZATION</span>
+                  <span className="text-white"> & TAGS</span>
+                </h2>
+                <p className="text-[#9ca3af] text-sm">Organize your product for better discoverability</p>
+              </div>
+            </div>
             
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-3">
-                  Catégorie
+                <label className="block text-sm font-semibold text-[#F4F4F4] mb-3">
+                  Category *
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {categories.map((category) => (
@@ -991,8 +1069,8 @@ export default function EditProductPage({ params }: Props) {
                       onClick={() => setFormData(prev => ({ ...prev, category: category.id.toString() }))}
                       className={`p-3 rounded-lg border-2 transition-all text-center font-medium ${
                         formData.category === category.id.toString()
-                          ? 'border-[#FDD811] bg-[#FDD811]/10 text-[#FDD811]'
-                          : 'border-[#2A2D30] bg-[#131618] hover:border-[#FDD811]/50 text-gray-300 hover:text-white'
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-white/20 bg-white/5 hover:border-primary/50 text-[#9ca3af] hover:text-[#F4F4F4]'
                       }`}
                     >
                       {category.name}
@@ -1002,45 +1080,119 @@ export default function EditProductPage({ params }: Props) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-3">
-                  Tags
+                <label className="block text-sm font-semibold text-[#F4F4F4] mb-3">
+                  Tags *
                 </label>
                 <TagInput
                   selectedTags={selectedTags}
                   onTagsChange={handleTagsChange}
                   maxTags={5}
-                  placeholder="Tapez pour rechercher ou créer des tags..."
+                  placeholder="Type to search or create tags..."
                 />
               </div>
             </div>
           </div>
 
+          {/* Visibility */}
+          <div 
+            className="rounded-xl p-6 sm:p-8"
+            style={{ background: 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-gray-500/10 rounded-lg flex items-center justify-center">
+                <FaEye className="w-5 h-5 text-gray-400" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#F4F4F4]">
+                  <span className="text-gray-400">VISIBILITY</span>
+                  <span className="text-white"> SETTINGS</span>
+                </h2>
+                <p className="text-[#9ca3af] text-sm">Control who can see and discover your product</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, status: 'published', isPublic: true }))}
+                className={`p-4 rounded-lg border-2 transition-all text-left ${
+                  formData.status === 'published' && formData.isPublic
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-white/20 bg-white/5 hover:border-primary/50 text-[#9ca3af]'
+                }`}
+              >
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className={`w-4 h-4 rounded-full border-2 ${
+                    formData.status === 'published' && formData.isPublic ? 'border-primary bg-primary' : 'border-white/20'
+                  }`}>
+                    {formData.status === 'published' && formData.isPublic && (
+                      <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                    )}
+                  </div>
+                  <span className="font-semibold">PUBLIC</span>
+                </div>
+                <p className="text-xs opacity-75">
+                  Visible to all users in searches and catalogs
+                </p>
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, status: 'published', isPublic: false }))}
+                className={`p-4 rounded-lg border-2 transition-all text-left ${
+                  formData.status === 'published' && !formData.isPublic
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-white/20 bg-white/5 hover:border-primary/50 text-[#9ca3af]'
+                }`}
+              >
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className={`w-4 h-4 rounded-full border-2 ${
+                    formData.status === 'published' && !formData.isPublic ? 'border-primary bg-primary' : 'border-white/20'
+                  }`}>
+                    {formData.status === 'published' && !formData.isPublic && (
+                      <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                    )}
+                  </div>
+                  <span className="font-semibold">PRIVATE</span>
+                </div>
+                <p className="text-xs opacity-75">
+                  Only visible via direct link, not listed in searches
+                </p>
+              </button>
+            </div>
+            
+            {formData.status === 'draft' && (
+              <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                  <p className="text-sm text-yellow-400">
+                    This product is currently in draft. Select &quot;Public&quot; or &quot;Private&quot; to make it visible.
+                  </p>
+              </div>
+            )}
+          </div>
+
           {/* Form Actions */}
-          <div className="flex justify-end space-x-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-4">
             <Link
               href={`/studio/${studioId}/products`}
-              className="px-6 py-3 border border-[#2A2D30] text-gray-300 rounded-lg font-medium hover:bg-[#1A1C21] transition-colors"
+              className="px-6 py-3 bg-white/10 text-[#F4F4F4] rounded-lg font-semibold hover:bg-white/20 transition-colors text-center"
             >
-              Annuler
+              Cancel
             </Link>
             
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 bg-[#FDD811] text-black rounded-lg font-medium hover:bg-[#FDD811]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="px-8 py-3 bg-primary text-black rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
-                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>Mise à jour en cours...</span>
+                  <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                  <span>Updating Product...</span>
                 </>
               ) : (
                 <>
-                  <RiSaveLine className="w-5 h-5" />
-                  <span>VALIDER MODIFICATIONS</span>
+                  <FaSave className="w-5 h-5" />
+                  <span>UPDATE PRODUCT</span>
                 </>
               )}
             </button>

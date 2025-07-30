@@ -32,41 +32,9 @@ export default function ProductLicenseSelector({
 
   return (
     <>
-      {/* Pricing Section */}
-      <div className="bg-gray-800/50 rounded-lg p-4 sm:p-6 space-y-3">
-        <div className="flex items-baseline gap-2">
-          {isFreeProduct ? (
-            <span className="text-2xl sm:text-3xl font-bold text-green-400">
-              FREE
-            </span>
-          ) : (
-            <>
-              <span className="text-2xl sm:text-3xl font-bold text-white">
-                ${getCurrentPrice()}
-              </span>
-              <span className="text-gray-400 text-sm">USD</span>
-            </>
-          )}
-        </div>
-        {!isFreeProduct && (
-          <p className="text-primary text-sm font-medium">
-            ${calculateCreatorEarnings(getCurrentPrice())} goes to the creator
-          </p>
-        )}
-        {isFreeProduct && (
-          <p className="text-green-400 text-sm font-medium">
-            This product is available for free download
-          </p>
-        )}
-      </div>
-
       {/* License Selection - Only show if commercial license is available */}
-      {hasCommercialLicense ? (
+      {hasCommercialLicense && (
         <div className="space-y-4">
-          <h3 className="text-white text-base sm:text-lg font-semibold">
-            Select License Type
-          </h3>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={() => setSelectedLicense('personal')}
@@ -108,8 +76,38 @@ export default function ProductLicenseSelector({
             )}
           </div>
         </div>
-      ) : (
-        /* Single license info when no commercial license available */
+      )}
+
+      {/* Pricing Section */}
+      <div className="bg-gray-800/50 rounded-lg p-4 sm:p-6 space-y-3">
+        <div className="flex items-baseline gap-2">
+          {isFreeProduct ? (
+            <span className="text-2xl sm:text-3xl font-bold text-green-400">
+              FREE
+            </span>
+          ) : (
+            <>
+              <span className="text-2xl sm:text-3xl font-bold text-white">
+                ${getCurrentPrice()}
+              </span>
+              <span className="text-gray-400 text-sm">USD</span>
+            </>
+          )}
+        </div>
+        {!isFreeProduct && (
+          <p className="text-primary text-sm font-medium">
+            ${calculateCreatorEarnings(getCurrentPrice())} goes to the creator
+          </p>
+        )}
+        {isFreeProduct && (
+          <p className="text-green-400 text-sm font-medium">
+            This product is available for free download
+          </p>
+        )}
+      </div>
+
+      {/* Single license info when no commercial license available */}
+      {!hasCommercialLicense && (
         <div className="space-y-4">
           <h3 className="text-white text-base sm:text-lg font-semibold">
             License Information
@@ -132,7 +130,7 @@ export default function ProductLicenseSelector({
           {isFreeProduct ? (
             <>
               <RiDownloadLine className="w-6 h-6" />
-              <span className="font-semibold text-lg">TÉLÉCHARGER</span>
+              <span className="font-semibold text-lg">DOWNLOAD</span>
             </>
           ) : (
             <>

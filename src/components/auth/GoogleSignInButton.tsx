@@ -51,12 +51,12 @@ export default function GoogleSignInButton({
       {isGoogleLoading ? (
         <div className="flex items-center">
           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600 mr-3"></div>
-          Connexion en cours...
+          Signing in...
         </div>
       ) : (
         <div className="flex items-center">
           <FaGoogle className="h-5 w-5 mr-3 text-red-500" />
-          Continuer avec Google
+          Continue with Google
         </div>
       )}
     </button>
