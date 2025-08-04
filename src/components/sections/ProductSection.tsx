@@ -38,7 +38,7 @@ export default function ProductSection({
         if (variant === 'featured') {
           // Featured section - optimized breakpoints
           if (width >= 2560) setVisibleCards(5);      // 4xl: 6 cards
-          else if (width >= 1920) setVisibleCards(6); // 3xl: 6 cards
+          else if (width >= 1920) setVisibleCards(5); // 3xl: 6 cards
           else if (width >= 1536) setVisibleCards(5); // 2xl: 5 cards
           else if (width >= 1280) setVisibleCards(4); // xl: 4 cards
           else if (width >= 1024) setVisibleCards(4); // lg: 3 cards
@@ -49,7 +49,7 @@ export default function ProductSection({
         } else {
           // Other carousel sections - optimized breakpoints
           if (width >= 2560) setVisibleCards(5);      // 4xl: 7 cards
-          else if (width >= 1920) setVisibleCards(6); // 3xl: 6 cards
+          else if (width >= 1920) setVisibleCards(5); // 3xl: 6 cards
           else if (width >= 1536) setVisibleCards(5); // 2xl: 5 cards
           else if (width >= 1280) setVisibleCards(4); // xl: 4 cards
           else if (width >= 1024) setVisibleCards(4); // lg: 3 cards

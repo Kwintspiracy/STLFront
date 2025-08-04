@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { getAllStudios } from '@/lib/api/studioService';
 import { getProductsByStudio } from '@/lib/api/products';
 
@@ -101,6 +102,7 @@ export default function CreatorSpotlight({
       loadStudios();
     }
   }, [creators, loadStudios]);
+  
   return (
     <div 
       className={className} 
@@ -112,8 +114,10 @@ export default function CreatorSpotlight({
       }}
     >
       <div className="max-w-none mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex justify-center mb-8">
-          <div className="text-left sm:text-center w-full sm:px-0 max-w-wide">
+        
+        {/* Section Header - Same structure as ProductSection */}
+        <div className="flex justify-center mb-5 sm:mb-6">
+          <div className="w-full text-left max-w-wide">
             <div className="px-4 sm:px-0" style={{ paddingLeft: '0px', paddingRight: '0px' }}>
               <div style={{ paddingLeft: '0px', paddingRight: '0px' }} className="sm:hidden">
                 <h2 
@@ -122,7 +126,7 @@ export default function CreatorSpotlight({
                     fontFamily: 'Open Sans'
                   }}
                 >
-                  CREATORS CORNER
+                  CREATORS SPOTLIGHT
                 </h2>
                 <p className="text-gray-400 text-lg">Meet the talented artists behind amazing 3D models</p>
               </div>
@@ -133,7 +137,7 @@ export default function CreatorSpotlight({
                     fontFamily: 'Open Sans'
                   }}
                 >
-                  CREATORS CORNER
+                  CREATORS SPOTLIGHT
                 </h2>
                 <p className="text-gray-400 text-xl">Meet the talented artists behind amazing 3D models</p>
               </div>
@@ -141,106 +145,183 @@ export default function CreatorSpotlight({
           </div>
         </div>
         
+        {/* Studios Grid - Same alignment structure as ProductSection */}
         <div className="flex justify-center">
           <div className="w-full" style={{ maxWidth: '1720px' }}>
             {loading ? (
-              <div 
-                className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 gap-3 xs:gap-4 sm:gap-4 lg:gap-6"
-                style={{ paddingLeft: '0px', paddingRight: '0px' }}
-              >
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="w-full animate-pulse">
-                    <div 
-                      className="rounded-2xl p-3 flex flex-col h-[240px]"
-                      style={{ background: 'rgba(0, 0, 0, 0.10)' }}
-                    >
-                      {/* Image placeholder - fixed height */}
-                      <div className="bg-gray-700 rounded-lg h-[140px] mb-3" />
-                      
-                      {/* Name placeholder */}
-                      <div 
-                        className="rounded-lg mb-3 flex items-center justify-center h-[40px] px-2"
-                        style={{ background: 'rgba(255, 255, 255, 0.10)' }}
-                      >
-                        <div className="bg-gray-700 rounded w-20 h-4" />
-                      </div>
-                      
-                      {/* Models count placeholder */}
-                      <div className="text-center">
-                        <div className="bg-gray-700 rounded w-16 h-4 mx-auto" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div 
-                className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 gap-3 xs:gap-4 sm:gap-4 lg:gap-6"
-                style={{ paddingLeft: '0px', paddingRight: '0px' }}
-              >
-                {studios.map((studio) => (
-                  <div 
-                    key={studio.id} 
-                    className="w-full hover:opacity-90 transition-opacity cursor-pointer"
-                  >
-                    <div 
-                      className="rounded-2xl p-3 flex flex-col h-[240px]"
-                      style={{ background: 'rgba(0, 0, 0, 0.10)' }}
-                    >
-                      {/* Studio Image - fixed height instead of aspect-square */}
-                      <div className="rounded-lg overflow-hidden h-[140px] mb-3 relative">
-                        {studio.logo && studio.logo.trim() !== '' && !studio.imageError ? (
-                          <Image 
-                            src={studio.logo} 
-                            alt={studio.name} 
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                            onError={() => {
-                              console.log(`Image error for studio ${studio.id}: ${studio.name}, URL: ${studio.logo}`);
-                              handleImageError(studio.id);
-                            }}
-                            onLoad={() => {
-                              console.log(`Image loaded for studio ${studio.id}: ${studio.name}`);
-                            }}
-                            unoptimized={studio.logo?.startsWith('http')}
-                          />
-                        ) : (
+              <>
+                {/* Mobile Loading */}
+                <div className="sm:hidden">
+                  <div className="grid grid-cols-2 gap-3">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="w-full animate-pulse">
+                        <div 
+                          className="rounded-2xl p-3 flex flex-col h-[240px]"
+                          style={{ background: 'rgba(0, 0, 0, 0.10)' }}
+                        >
+                          <div className="bg-gray-700 rounded-lg h-[140px] mb-3" />
                           <div 
-                            className="w-full h-full flex items-center justify-center text-white text-2xl font-bold"
-                            style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+                            className="rounded-lg mb-3 flex items-center justify-center h-[40px] px-2"
+                            style={{ background: 'rgba(255, 255, 255, 0.10)' }}
                           >
-                            {studio.avatar}
+                            <div className="bg-gray-700 rounded w-20 h-4" />
                           </div>
-                        )}
+                          <div className="text-center">
+                            <div className="bg-gray-700 rounded w-16 h-4 mx-auto" />
+                          </div>
+                        </div>
                       </div>
-                      
-                      {/* Studio Name - fixed height */}
-                      <div 
-                        className="rounded-lg mb-3 flex items-center justify-center text-center text-white text-sm font-normal px-2 h-[40px]"
-                        style={{ 
-                          background: 'rgba(255, 255, 255, 0.10)', 
-                          fontFamily: 'Open Sans'
-                        }}
-                      >
-                        <span className="line-clamp-2 leading-tight">
-                          {studio.name}
-                        </span>
-                      </div>
-                      
-                      {/* Models Count - no mt-auto, fixed position */}
-                      <div 
-                        className="text-center text-white text-sm"
-                        style={{ fontFamily: 'Open Sans' }}
-                      >
-                        <span className="font-normal font-xs"> {studio.models} </span>
-                        <span className="font-xs">Models</span>
-                        
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+                
+                {/* Desktop Loading */}
+                <div className="hidden sm:block">
+                  <div 
+                    className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6"
+                    style={{ paddingLeft: '40px', paddingRight: '40px' }}
+                  >
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="w-full animate-pulse">
+                        <div 
+                          className="rounded-2xl p-3 flex flex-col h-[240px]"
+                          style={{ background: 'rgba(0, 0, 0, 0.10)' }}
+                        >
+                          <div className="bg-gray-700 rounded-lg h-[140px] mb-3" />
+                          <div 
+                            className="rounded-lg mb-3 flex items-center justify-center h-[40px] px-2"
+                            style={{ background: 'rgba(255, 255, 255, 0.10)' }}
+                          >
+                            <div className="bg-gray-700 rounded w-20 h-4" />
+                          </div>
+                          <div className="text-center">
+                            <div className="bg-gray-700 rounded w-16 h-4 mx-auto" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Mobile Studios Grid */}
+                <div className="sm:hidden">
+                  <div className="grid grid-cols-2 gap-3">
+                    {studios.map((studio) => (
+                      <Link
+                        key={studio.id}
+                        href={`/public/studio/${studio.id}`}
+                        className="w-full hover:opacity-90 transition-opacity cursor-pointer"
+                      >
+                        <div 
+                          className="rounded-2xl p-3 flex flex-col h-[240px]"
+                          style={{ background: 'rgba(0, 0, 0, 0.10)' }}
+                        >
+                          <div className="rounded-lg overflow-hidden h-[140px] mb-3 relative">
+                            {studio.logo && studio.logo.trim() !== '' && !studio.imageError ? (
+                              <Image 
+                                src={studio.logo} 
+                                alt={studio.name} 
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                onError={() => handleImageError(studio.id)}
+                                unoptimized={studio.logo?.startsWith('http')}
+                              />
+                            ) : (
+                              <div 
+                                className="w-full h-full flex items-center justify-center text-white text-2xl font-bold"
+                                style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+                              >
+                                {studio.avatar}
+                              </div>
+                            )}
+                          </div>
+                          <div 
+                            className="rounded-lg mb-3 flex items-center justify-center text-center text-white text-sm font-normal px-2 h-[40px]"
+                            style={{ 
+                              background: 'rgba(255, 255, 255, 0.10)', 
+                              fontFamily: 'Open Sans'
+                            }}
+                          >
+                            <span className="line-clamp-2 leading-tight">
+                              {studio.name}
+                            </span>
+                          </div>
+                          <div 
+                            className="text-center text-white text-sm"
+                            style={{ fontFamily: 'Open Sans' }}
+                          >
+                            <span className="font-normal font-xs"> {studio.models} </span>
+                            <span className="font-xs">Models</span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Desktop Studios Grid - Aligned with ProductSection */}
+                <div className="hidden sm:block">
+                  <div 
+                    className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6"
+                    style={{ paddingLeft: '40px', paddingRight: '40px' }}
+                  >
+                    {studios.map((studio) => (
+                      <Link
+                        key={studio.id}
+                        href={`/public/studio/${studio.id}`}
+                        className="w-full hover:opacity-90 transition-opacity cursor-pointer"
+                      >
+                        <div 
+                          className="rounded-2xl p-3 flex flex-col h-[240px]"
+                          style={{ background: 'rgba(0, 0, 0, 0.10)' }}
+                        >
+                          <div className="rounded-lg overflow-hidden h-[140px] mb-3 relative">
+                            {studio.logo && studio.logo.trim() !== '' && !studio.imageError ? (
+                              <Image 
+                                src={studio.logo} 
+                                alt={studio.name} 
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                onError={() => handleImageError(studio.id)}
+                                unoptimized={studio.logo?.startsWith('http')}
+                              />
+                            ) : (
+                              <div 
+                                className="w-full h-full flex items-center justify-center text-white text-2xl font-bold"
+                                style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+                              >
+                                {studio.avatar}
+                              </div>
+                            )}
+                          </div>
+                          <div 
+                            className="rounded-lg mb-3 flex items-center justify-center text-center text-white text-sm font-normal px-2 h-[40px]"
+                            style={{ 
+                              background: 'rgba(255, 255, 255, 0.10)', 
+                              fontFamily: 'Open Sans'
+                            }}
+                          >
+                            <span className="line-clamp-2 leading-tight">
+                              {studio.name}
+                            </span>
+                          </div>
+                          <div 
+                            className="text-center text-white text-sm"
+                            style={{ fontFamily: 'Open Sans' }}
+                          >
+                            <span className="font-normal font-xs"> {studio.models} </span>
+                            <span className="font-xs">Models</span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>
