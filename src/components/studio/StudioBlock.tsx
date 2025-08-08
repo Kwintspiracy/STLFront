@@ -53,7 +53,7 @@ export default function StudioBlock({ studio, className = '' }: StudioBlockProps
     <div className={`flex items-center gap-4 ${className}`}>
       {/* Studio Avatar */}
       <div className="relative">
-        {imageError || !studio.badge ? (
+        {imageError || !studio.badge || studio.badge.includes('/None/') ? (
           <DefaultAvatar className="ring-2 ring-gray-600" size={48} />
         ) : (
           <Image

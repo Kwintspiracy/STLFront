@@ -426,34 +426,36 @@ export default function StudioSettings({ params }: Props) {
           </div>
         </div>
 
-        {/* Floating Action Buttons */}
+        {/* Form Actions */}
         {hasChanges && (
-          <div className="fixed bottom-6 right-6 flex items-center gap-3 z-50">
-            <button 
-              onClick={handleCancel}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-4 py-3 bg-gray-700 text-[#F4F4F4] rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-            >
-              <FaTimes className="w-4 h-4" />
-              Cancel
-            </button>
-            <button
-              onClick={handleSaveSettings}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-6 py-3 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-            >
-              {isSaving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <FaSave className="w-4 h-4" />
-                  Save Changes
-                </>
-              )}
-            </button>
+          <div className="mt-8 pt-6 border-t border-white/10">
+            <div className="flex flex-col sm:flex-row items-center justify-end gap-3">
+              <button 
+                onClick={handleCancel}
+                disabled={isSaving}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-gray-700 text-[#F4F4F4] rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              >
+                <FaTimes className="w-4 h-4" />
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveSettings}
+                disabled={isSaving}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <FaSave className="w-4 h-4" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         )}
       </div>

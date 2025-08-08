@@ -166,18 +166,23 @@ export default function UserMenu({
 
       {/* User Sidebar Menu */}
       {dropdownOpen && (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-[9999]">
           <div 
-            className={`fixed inset-0 bg-black/50 transition-opacity duration-300 ${
+            className={`fixed inset-0 bg-black/50 transition-opacity duration-300 z-[9998] ${
               backdropVisible ? 'opacity-100' : 'opacity-0'
             }`}
             onClick={toggleDropdown}
           />
           
-          <div className="fixed right-0 top-0 h-screen w-80 max-w-[85vw] bg-primarybackground border-l border-gray-700/50 shadow-2xl transform transition-transform duration-300 ease-out" data-sidebar="user-menu">
+          <div className="fixed right-0 w-80 max-w-[85vw] bg-primarybackground border-l border-gray-700/50 shadow-2xl z-[9999]" 
+               style={{ 
+                 top: 'var(--header-height)', 
+                 height: 'calc(100vh - var(--header-height))'
+               }}
+               data-sidebar="user-menu">
             
             {/* Sidebar Header */}
-            <div className="flex items-center justify-between p-4 h-16 border-b border-gray-700/50">
+            <div className="flex items-center justify-between p-4 h-16 border-b border-gray-700/50 bg-primarybackground">
               <div className="flex items-center space-x-3">
                 {user.profilePicture ? (
                   <Image
@@ -207,7 +212,7 @@ export default function UserMenu({
             </div>
 
             {/* Sidebar Content */}
-            <div className="flex flex-col h-[calc(100vh-4rem)] overflow-y-auto">
+            <div className="h-[calc(100vh-4rem)] overflow-y-auto">
               <div className="py-4">
                 {/* Account Section */}
                 <div className="px-4 py-2">

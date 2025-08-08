@@ -65,3 +65,11 @@ export const PRODUCT_ENDPOINTS = {
   UPLOAD_STL: (id: number) => `${API_BASE_URL}/products/products/${id}/upload_stl/`,
   STL_UPLOAD_URLS: `${API_BASE_URL}/products/stl-upload-urls/`,
 };
+
+// Favorites endpoints
+export const FAVORITES_ENDPOINTS = {
+  LIST: `${API_BASE_URL}/favourites/`,
+  ADD: `${API_BASE_URL}/favourites/`,
+  CHECK: (productId: number) => `${API_BASE_URL}/favourites/${productId}/`,
+  REMOVE: (productId: number) => `${API_BASE_URL}/favourites/${productId}/`,
+};

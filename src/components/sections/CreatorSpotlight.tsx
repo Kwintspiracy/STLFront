@@ -219,7 +219,7 @@ export default function CreatorSpotlight({
                           style={{ background: 'rgba(0, 0, 0, 0.10)' }}
                         >
                           <div className="rounded-lg overflow-hidden h-[140px] mb-3 relative">
-                            {studio.logo && studio.logo.trim() !== '' && !studio.imageError ? (
+                            {studio.logo && studio.logo.trim() !== '' && !studio.logo.includes('/None/') && !studio.imageError ? (
                               <Image 
                                 src={studio.logo} 
                                 alt={studio.name} 
@@ -279,7 +279,7 @@ export default function CreatorSpotlight({
                           style={{ background: 'rgba(0, 0, 0, 0.10)' }}
                         >
                           <div className="rounded-lg overflow-hidden h-[140px] mb-3 relative">
-                            {studio.logo && studio.logo.trim() !== '' && !studio.imageError ? (
+                            {studio.logo && studio.logo.trim() !== '' && !studio.logo.includes('/None/') && !studio.imageError ? (
                               <Image 
                                 src={studio.logo} 
                                 alt={studio.name} 

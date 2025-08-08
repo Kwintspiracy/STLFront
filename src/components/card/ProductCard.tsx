@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { BaseProductCardProps } from './types';
 import { useCart } from '@/context/CartContext';
+import { useFavorites } from '@/context/FavoritesContext';
 interface ProductCardProps extends BaseProductCardProps {
   loading?: boolean;
   ranking?: number;
@@ -23,14 +24,14 @@ export default function ProductCard({
 }: ProductCardProps) {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
-  const [isFavorited, setIsFavorited] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { addToCart, isProductInCart } = useCart();
+  const { isFavorited, isProductLoading, addToFavorites, removeFromFavorites } = useFavorites();
   
   // Check if product is already in cart
   const isInCart = isProductInCart(product.id);
 
-  const sortedImages = [...product.images].sort((a, b) => a.rank - b.rank);
+  const sortedImages = [...(product.images || [])].sort((a, b) => a.rank - b.rank);
   const mainImage = sortedImages[0]?.url || sortedImages[0]?.image;
 
   const handleImageLoad = () => {
@@ -42,10 +43,21 @@ export default function ProductCard({
     setImageError(true);
   };
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsFavorited(!isFavorited);
+    
+    // Éviter les doubles clics
+    if (isProductLoading(product.id)) {
+      return;
+    }
+    
+    // Basculer le statut favori
+    if (isFavorited(product.id)) {
+      await removeFromFavorites(product.id);
+    } else {
+      await addToFavorites(product.id);
+    }
   };
 
   const handleAddToCart = async (e: React.MouseEvent) => {
@@ -138,14 +150,21 @@ export default function ProductCard({
             {showFavorite && (
               <button 
                 onClick={handleFavoriteClick}
+                disabled={isProductLoading(product.id)}
                 className={`absolute bottom-1 right-1 sm:bottom-2 sm:right-2 w-12 h-12 rounded-full flex items-center justify-center text-white text-xl cursor-pointer transition-all duration-300 backdrop-blur-[10px] border-none hover:scale-110 ${
-                  isFavorited 
+                  isFavorited(product.id) 
                     ? 'bg-red-500/80 hover:bg-red-600/80' 
                     : 'bg-black/30 hover:bg-white/20'
-                }`}
-                aria-label="Add to favorites"
+                } ${isProductLoading(product.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                aria-label={isFavorited(product.id) ? "Remove from favorites" : "Add to favorites"}
               >
-                {isFavorited ? <FaHeart /> : <FaRegHeart />}
+                {isProductLoading(product.id) ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : isFavorited(product.id) ? (
+                  <FaHeart />
+                ) : (
+                  <FaRegHeart />
+                )}
               </button>
             )}
           </div>
@@ -163,32 +182,46 @@ export default function ProductCard({
           {/* Creator Section */}
           <div className="flex items-start mb-3 xs:mb-4 sm:mb-6">
             <div className="w-10 h-10 xs:w-10 xs:h-10 sm:w-12 sm:h-12 flex-shrink-0">
-              {product.creator.badge ? (
-                <div className="w-full h-full bg-[#242627] border-2 border-white/5 rounded-lg overflow-hidden">
-                  <Image
-                    src={product.creator.badge}
-                    alt={`${product.creator.name} avatar`}
-                    width={48}
-                    height={48}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="w-full h-full bg-gray-700 border-2 border-white/5 rounded-lg flex items-center justify-center">
-                  <svg 
-                    className="w-6 h-6 sm:w-7 sm:h-7 text-gray-400"
-                    viewBox="0 0 48 48" 
-                    fill="none" 
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle cx="24" cy="18" r="6" fill="currentColor"/>
-                    <path d="M12 36c0-6.627 5.373-12 12-12s12 5.373 12 12v4H12v-4z" fill="currentColor"/>
-                  </svg>
-                </div>
-              )}
+              {(() => {
+                // Debug logging
+                if (product.creator.badge) {
+                  console.log(`Badge URL for ${product.creator.name}:`, product.creator.badge);
+                  console.log(`Contains /None/:`, product.creator.badge.includes('/None/'));
+                  console.log(`Contains /studios/None/:`, product.creator.badge.includes('/studios/None/'));
+                }
+                
+                if (product.creator.badge && !product.creator.badge.includes('/studios/None/')) {
+                  return (
+                    <div className="w-full h-full bg-[#242627] border-2 border-white/5 rounded-lg overflow-hidden">
+                      <Image
+                        src={product.creator.badge}
+                        alt={`${product.creator.name} avatar`}
+                        width={48}
+                        height={48}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.log(`Image error for ${product.creator.name}:`, product.creator.badge);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div className="w-full h-full bg-gray-700 border-2 border-white/5 rounded-lg flex items-center justify-center">
+                      <svg 
+                        className="w-6 h-6 sm:w-7 sm:h-7 text-gray-400"
+                        viewBox="0 0 48 48" 
+                        fill="none" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle cx="24" cy="18" r="6" fill="currentColor"/>
+                        <path d="M12 36c0-6.627 5.373-12 12-12s12 5.373 12 12v4H12v-4z" fill="currentColor"/>
+                      </svg>
+                    </div>
+                  );
+                }
+              })()}
             </div>
             <div className="ml-2 sm:ml-2 flex flex-col pt-0">
               <div className="text-[#F4F4F4] text-sm sm:text-base font-regular mb-0 whitespace-nowrap overflow-hidden text-ellipsis">
