@@ -36,7 +36,7 @@ export interface AddFavoriteRequest {
   product_id: number;
 }
 
-export interface AddFavoriteResponse extends FavoriteItem {}
+export type AddFavoriteResponse = FavoriteItem;
 
 export interface CheckFavoriteResponse {
   product_id: number;
@@ -47,7 +47,7 @@ export interface FavoriteError {
   error?: string;
   detail?: string;
   product_id?: string[];
-  [key: string]: any; // Pour capturer d'autres champs d'erreur possibles
+  [key: string]: unknown; // Pour capturer d'autres champs d'erreur possibles
 }
 
 // Types pour le contexte

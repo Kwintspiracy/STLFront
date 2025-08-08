@@ -10,25 +10,36 @@ import {
 import { FAVORITES_ENDPOINTS } from './config';
 import { getAccessToken } from '@/lib/utils/tokenService';
 
+// Interface pour les erreurs avec response
+interface ErrorWithResponse {
+  response?: {
+    status: number;
+    data: unknown;
+  };
+  message?: string;
+}
+
 // Fonction utilitaire pour gérer les erreurs API
-const handleFavoriteError = (error: any): never => {
+const handleFavoriteError = (error: unknown): never => {
   console.error('API Error details:', error);
   
-  if (error.response?.status === 401) {
+  const errorWithResponse = error as ErrorWithResponse;
+  
+  if (errorWithResponse.response?.status === 401) {
     throw new Error('Authentication required. Please log in.');
   }
   
-  if (error.response?.status === 400) {
-    const data = error.response.data;
+  if (errorWithResponse.response?.status === 400) {
+    const data = errorWithResponse.response.data;
     console.error('400 Error data:', data);
     
     // Si c'est un tableau (comme ["Product is already favourited."])
     if (Array.isArray(data) && data.length > 0) {
       const message = data[0];
-      if (message.includes('already favourited')) {
+      if (typeof message === 'string' && message.includes('already favourited')) {
         throw new Error('Product is already in favorites.');
       }
-      throw new Error(message);
+      throw new Error(String(message));
     }
     
     // Si c'est un objet avec des champs spécifiques
@@ -48,18 +59,19 @@ const handleFavoriteError = (error: any): never => {
     throw new Error(`Bad request: ${JSON.stringify(data)}`);
   }
   
-  if (error.response?.status === 404) {
-    const data = error.response.data as FavoriteError;
+  if (errorWithResponse.response?.status === 404) {
+    const data = errorWithResponse.response.data as FavoriteError;
     throw new Error(data.error || 'Product not found or not available.');
   }
   
-  if (error.response?.status === 409) {
-    const data = error.response.data as FavoriteError;
+  if (errorWithResponse.response?.status === 409) {
+    const data = errorWithResponse.response.data as FavoriteError;
     throw new Error(data.error || 'Product is already in favorites.');
   }
   
   // Erreur générique
-  throw new Error(error.message || 'An unexpected error occurred.');
+  const errorMessage = errorWithResponse.message || 'An unexpected error occurred.';
+  throw new Error(errorMessage);
 };
 
 // Fonction utilitaire pour faire les requêtes avec authentification
@@ -188,10 +200,12 @@ export const toggleFavorite = async (productId: number, currentlyFavorited: bool
 };
 
 // Export par défaut pour faciliter l'import
-export default {
+const favoritesService = {
   getFavorites,
   addToFavorites,
   removeFromFavorites,
   checkFavorite,
   toggleFavorite,
 };
+
+export default favoritesService;

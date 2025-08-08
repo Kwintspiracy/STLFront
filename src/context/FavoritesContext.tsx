@@ -75,7 +75,7 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(undefin
 // Provider des favoris
 export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(favoritesReducer, initialState);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { showToast } = useToast();
 
   // Charger les favoris au login
@@ -242,7 +242,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } finally {
       dispatch({ type: 'SET_PRODUCT_LOADING', payload: { productId, loading: false } });
     }
-  }, [isAuthenticated, state.loadingProducts, state.favorites, showToast]);
+  }, [isAuthenticated, state.loadingProducts, state.favorites, showToast, loadFavorites]);
 
   // Vérifier si un produit est en favoris
   const checkFavorite = useCallback(async (productId: number): Promise<boolean> => {
