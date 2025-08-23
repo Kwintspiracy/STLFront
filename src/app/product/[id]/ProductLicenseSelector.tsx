@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { RiShoppingCart2Fill, RiDownloadLine } from "react-icons/ri";
-import CardCartButton from "@/components/card/CardCartButton";
-import { Product } from "@/types/product";
+import { FaCheck } from "react-icons/fa";
+import { useCart } from '@/context/CartContext';
+import { Product, getPersonalPrice, getCommercialPrice, hasCommercialLicense, getPersonalLicense, getCommercialLicense } from "@/types/product";
 
 interface ProductLicenseSelectorProps {
   product: Product;
@@ -13,16 +14,35 @@ interface ProductLicenseSelectorProps {
 
 export default function ProductLicenseSelector({
   product,
-  hasCommercialLicense,
+  hasCommercialLicense: hasCommercialLicenseProp,
   isFreeProduct
 }: ProductLicenseSelectorProps) {
   const [selectedLicense, setSelectedLicense] = useState<'personal' | 'commercial'>('personal');
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  
+  // Cart functionality
+  const { addToCart, isProductInCart } = useCart();
+  const isInCart = isProductInCart(product.id);
+
+  // Use new helper functions for pricing
+  const hasCommercial = hasCommercialLicense(product);
+  const personalPrice = getPersonalPrice(product);
+  const commercialPrice = getCommercialPrice(product);
+  const personalLicense = getPersonalLicense(product);
+  const commercialLicense = getCommercialLicense(product);
 
   const getCurrentPrice = () => {
-    if (selectedLicense === 'commercial' && product.professional_license_fee) {
-      return product.professional_license_fee;
+    if (selectedLicense === 'commercial' && commercialPrice) {
+      return commercialPrice;
     }
-    return product.price;
+    return personalPrice;
+  };
+
+  const getCurrentLicense = () => {
+    if (selectedLicense === 'commercial') {
+      return commercialLicense;
+    }
+    return personalLicense;
   };
 
   const calculateCreatorEarnings = (price: string) => {
@@ -30,10 +50,32 @@ export default function ProductLicenseSelector({
     return (numPrice * 0.7).toFixed(2); // Assuming 70% goes to creator
   };
 
+  const handleAddToCart = async () => {
+    if (isInCart || isAddingToCart || isFreeProduct) return;
+    
+    setIsAddingToCart(true);
+    
+    try {
+      // Pass the license information to addToCart
+      const includeProlicense = selectedLicense === 'commercial';
+      await addToCart(product, includeProlicense);
+      setIsAddingToCart(false);
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
+      setIsAddingToCart(false);
+    }
+  };
+
+  const handleDownload = () => {
+    // For free products, handle download logic here
+    console.log('Download product:', product.name);
+    // You can implement actual download logic here
+  };
+
   return (
     <>
       {/* License Selection - Only show if commercial license is available */}
-      {hasCommercialLicense && (
+      {hasCommercial && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
@@ -107,7 +149,7 @@ export default function ProductLicenseSelector({
       </div>
 
       {/* Single license info when no commercial license available */}
-      {!hasCommercialLicense && (
+      {!hasCommercial && (
         <div className="space-y-4">
           <h3 className="text-white text-base sm:text-lg font-semibold">
             License Information
@@ -126,19 +168,48 @@ export default function ProductLicenseSelector({
 
       {/* Add to Cart Button */}
       <div className="sticky bottom-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 p-4 -mx-4 lg:relative lg:bg-transparent lg:border-0 lg:p-0 lg:mx-0">
-        <CardCartButton href="/cart/" className="w-full">
+        <button
+          onClick={isFreeProduct ? handleDownload : handleAddToCart}
+          disabled={!isFreeProduct && (isAddingToCart || isInCart)}
+          className={`w-full px-6 py-4 rounded-lg flex items-center justify-center gap-3 font-semibold text-lg transition-all duration-300 ${
+            isFreeProduct
+              ? 'bg-green-500 hover:bg-green-600 text-white'
+              : isInCart
+                ? 'bg-green-500 cursor-default text-white'
+                : isAddingToCart
+                  ? 'bg-green-500 hover:bg-green-600 text-white'
+                  : 'bg-[#324FEE] hover:bg-[#2940d9] text-white hover:-translate-y-0.5'
+          }`}
+          aria-label={
+            isFreeProduct 
+              ? "Download product" 
+              : isInCart 
+                ? "Product in cart" 
+                : "Add to cart"
+          }
+        >
           {isFreeProduct ? (
             <>
               <RiDownloadLine className="w-6 h-6" />
-              <span className="font-semibold text-lg">DOWNLOAD</span>
+              <span>DOWNLOAD</span>
+            </>
+          ) : isInCart ? (
+            <>
+              <FaCheck className="w-6 h-6" />
+              <span>Added to Cart</span>
+            </>
+          ) : isAddingToCart ? (
+            <>
+              <FaCheck className="w-6 h-6" />
+              <span>Adding...</span>
             </>
           ) : (
             <>
               <RiShoppingCart2Fill className="w-6 h-6" />
-              <span className="font-semibold text-lg">Add to Cart - ${getCurrentPrice()}</span>
+              <span>Add to Cart - ${getCurrentPrice()}</span>
             </>
           )}
-        </CardCartButton>
+        </button>
       </div>
     </>
   );

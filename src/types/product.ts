@@ -24,7 +24,7 @@ export interface Studio {
   id: number;
   name: string;
   slug?: string;
-  badge?: string;
+  badge?: string | null;
   description?: string;
   created_at?: string;
   updated_at?: string;
@@ -47,15 +47,35 @@ export interface ProductSTL {
   file: string; // URL du fichier STL
   title: string;
   description?: string;
-  rank: number;
-  file_size: number;
-  file_size_display: string;
+  rank?: number;
+  file_size: number | null;
+  file_size_display: string | null;
+  created_at: string;
+}
+
+// New License System Types
+export interface License {
+  id: number;
+  name: string;
+  slug: string;
+  license_type: string;
+  short_description: string;
+  full_terms: string;
+  logo_url: string;
+  external_url: string;
+}
+
+export interface ProductLicense {
+  id: number;
+  license: License;
+  price: string;
   created_at: string;
 }
 
 export interface Product {
   id: number;
   name: string;
+  slug: string; // New field from API
   description?: string;
   price: string;
   professional_license_fee: string;
@@ -66,17 +86,19 @@ export interface Product {
   publication_date?: string;
   print_settings?: string;
   dimensions?: string;
-  zip_file?: string;
+  zip_file?: string | null;
   zip_size: string;
   zip_size_bytes: number;
   created_at: string;
   updated_at: string;
   tags?: Tag[]; // Pour compatibilité
   tag: Tag[]; // L'API retourne 'tag'
-  category?: Category;
+  category: Category[]; // Changed to array as per new API
   images: ProductImage[];
   stl_files: ProductSTL[];
-  downloads?: number;
+  downloads: number; // New field from API
+  views: number; // New field from API
+  licenses: ProductLicense[]; // New license system
 }
 
 // Type pour la compatibilité avec l'ancien format (utilisé dans les mocks)
@@ -113,6 +135,7 @@ export function convertLegacyToProduct(legacy: LegacyProduct): Product {
   return {
     id: legacy.id,
     name: legacy.name,
+    slug: legacy.name.toLowerCase().replace(/\s+/g, '-'), // Generate slug from name
     description: legacy.description,
     price: legacy.price,
     professional_license_fee: legacy.professionalLicenseFee,
@@ -122,14 +145,14 @@ export function convertLegacyToProduct(legacy: LegacyProduct): Product {
     publication_date: legacy.release_date,
     print_settings: '',
     dimensions: '',
-    zip_file: '',
+    zip_file: null,
     zip_size: '',
     zip_size_bytes: 0,
     created_at: legacy.release_date,
     updated_at: legacy.release_date,
     tags: legacy.tag,
     tag: legacy.tag, // L'API retourne 'tag'
-    category: legacy.category[0], // Prendre la première catégorie
+    category: legacy.category, // Keep as array for new API structure
     images: legacy.images.map(img => ({
       id: img.id,
       url: img.url,
@@ -151,8 +174,89 @@ export function convertLegacyToProduct(legacy: LegacyProduct): Product {
       file_size_display: '',
       created_at: legacy.release_date,
     })) || [],
+    downloads: 0, // Default value for legacy products
+    views: 0, // Default value for legacy products
+    licenses: [], // Default empty array for legacy products
   };
 }
 
 // Type pour les anciens composants (temporaire)
 export type ProductTag = Tag;
+
+// Helper functions for backward compatibility and license extraction
+export function getPersonalPrice(product: Product): string {
+  // First try to get from new license system
+  if (product.licenses && product.licenses.length > 0) {
+    const personalLicense = product.licenses.find(
+      license => license.license.license_type === 'personal' || 
+                 license.license.slug === 'personal' ||
+                 license.license.name.toLowerCase().includes('personal')
+    );
+    if (personalLicense) {
+      return personalLicense.price;
+    }
+  }
+  
+  // Fallback to legacy price field
+  return product.price || '0.00';
+}
+
+export function getCommercialPrice(product: Product): string | null {
+  // First try to get from new license system
+  if (product.licenses && product.licenses.length > 0) {
+    const commercialLicense = product.licenses.find(
+      license => license.license.license_type === 'commercial' || 
+                 license.license.license_type === 'cc_by_nc_sa' ||
+                 license.license.slug === 'commercial' ||
+                 license.license.name.toLowerCase().includes('commercial')
+    );
+    if (commercialLicense) {
+      return commercialLicense.price;
+    }
+  }
+  
+  // Fallback to legacy professional_license_fee field
+  if (product.professional_license_fee && parseFloat(product.professional_license_fee) > 0) {
+    return product.professional_license_fee;
+  }
+  
+  return null;
+}
+
+export function hasCommercialLicense(product: Product): boolean {
+  return getCommercialPrice(product) !== null;
+}
+
+export function getPersonalLicense(product: Product): ProductLicense | null {
+  if (product.licenses && product.licenses.length > 0) {
+    return product.licenses.find(
+      license => license.license.license_type === 'personal' || 
+                 license.license.slug === 'personal' ||
+                 license.license.name.toLowerCase().includes('personal')
+    ) || null;
+  }
+  return null;
+}
+
+export function getCommercialLicense(product: Product): ProductLicense | null {
+  if (product.licenses && product.licenses.length > 0) {
+    return product.licenses.find(
+      license => license.license.license_type === 'commercial' || 
+                 license.license.license_type === 'cc_by_nc_sa' ||
+                 license.license.slug === 'commercial' ||
+                 license.license.name.toLowerCase().includes('commercial')
+    ) || null;
+  }
+  return null;
+}
+
+export function isLegacyProduct(product: Product): boolean {
+  return !product.licenses || product.licenses.length === 0;
+}
+
+export function getPrimaryCategory(product: Product): Category | undefined {
+  if (Array.isArray(product.category) && product.category.length > 0) {
+    return product.category[0];
+  }
+  return undefined;
+}

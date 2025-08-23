@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { AuthState, ApiUser, LoginRequest, AuthResponse } from '@/types/auth';
-import { AUTH_ENDPOINTS, USE_MOCK_DATA } from '@/lib/api/config';
+import { AUTH_ENDPOINTS } from '@/lib/api/config';
 import { 
   setTokenCookies, 
   clearTokenCookies, 
@@ -60,12 +60,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize auth state on mount
   const initializeAuth = useCallback(async () => {
-    if (USE_MOCK_DATA) {
-      // Skip JWT auth for mock data
-      setAuthState(prev => ({ ...prev, isLoading: false }));
-      return;
-    }
-
     const token = getAccessToken();
     if (token) {
       try {
@@ -109,11 +103,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [initializeAuth]);
 
   const login = useCallback(async (credentials: LoginRequest) => {
-    if (USE_MOCK_DATA) {
-      showError('Mock data mode is enabled. Please disable it to use real API.');
-      return;
-    }
-
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
@@ -170,11 +159,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [showSuccess]);
 
   const loginWithGoogle = useCallback(async () => {
-    if (USE_MOCK_DATA) {
-      showError('Mock data mode is enabled. Please disable it to use real API.');
-      return;
-    }
-
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
@@ -199,11 +183,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [showError]);
 
   const loginWithDiscord = useCallback(async () => {
-    if (USE_MOCK_DATA) {
-      showError('Mock data mode is enabled. Please disable it to use real API.');
-      return;
-    }
-
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {

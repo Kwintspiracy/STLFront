@@ -1,8 +1,5 @@
 // src/lib/api/config.ts
 
-// Environment variables with fallback values
-export const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' || false;
-
 // Dynamic API Configuration based on environment
 const getApiBaseUrl = (): string => {
   // In production, use the production API URL

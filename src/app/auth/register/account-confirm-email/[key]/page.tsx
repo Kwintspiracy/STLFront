@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
-import { AUTH_ENDPOINTS, USE_MOCK_DATA } from '@/lib/api/config';
+import { AUTH_ENDPOINTS } from '@/lib/api/config';
 import type { EmailConfirmResponse } from '@/types/auth';
 import axios from 'axios';
 import Link from 'next/link';
@@ -19,14 +19,6 @@ export default function EmailConfirmPage() {
 
   const confirmEmail = useCallback(async () => {
     try {
-      if (USE_MOCK_DATA) {
-        // Mock email confirmation - always succeed
-        setStatus('success');
-        setMessage('Email confirmed successfully! You can now login.');
-        showSuccess('Email confirmed successfully!');
-        return;
-      }
-
       // Real API email confirmation
       const response = await axios.get<EmailConfirmResponse>(
         `${AUTH_ENDPOINTS.EMAIL_CONFIRM}${key}/`,

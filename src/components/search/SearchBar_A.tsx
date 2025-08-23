@@ -1,6 +1,6 @@
 "use client";
 
-import { Tag } from "@/data/mock-tags";
+import { Tag } from "@/types/tag";
 import { useRef } from "react";
 
 interface Props {

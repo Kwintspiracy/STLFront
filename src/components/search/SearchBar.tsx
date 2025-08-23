@@ -1,6 +1,6 @@
 "use client";
 
-import { Tag } from "@/data/mock-tags";
+import { Tag } from "@/types/tag";
 import { useRef, useEffect, useState } from "react";
 
 type SearchElement = { type: "tag"; value: Tag } | { type: "text"; value: string };

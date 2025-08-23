@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { BaseProductCardProps } from './types';
 import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
+import { getPersonalPrice, getCommercialPrice, hasCommercialLicense } from '@/types/product';
 interface ProductCardProps extends BaseProductCardProps {
   loading?: boolean;
   ranking?: number;
@@ -20,6 +21,7 @@ export default function ProductCard({
   product, 
   loading = false,
   showFavorite = true,
+  showCommercialPrice = false,
   className = ""
 }: ProductCardProps) {
   const [imageLoading, setImageLoading] = useState(true);
@@ -74,7 +76,9 @@ export default function ProductCard({
     setIsAddingToCart(true);
     
     try {
-      await addToCart(product);
+      // If showing commercial price, add with commercial license
+      const includeProlicense = showCommercialPrice && hasCommercialLicense(product);
+      await addToCart(product, includeProlicense);
       // Reset loading state after successful add
       setIsAddingToCart(false);
     } catch (error) {
@@ -236,7 +240,21 @@ export default function ProductCard({
           {/* Price Section */}
           <div className="flex justify-between items-center">
             <div className="text-[#F4F4F4] text-lg sm:text-xl font-semibold">
-              {parseFloat(product.price) === 0 ? 'FREE' : `$${product.price}`}
+              {(() => {
+                const personalPrice = getPersonalPrice(product);
+                const commercialPrice = getCommercialPrice(product);
+                const hasCommercial = hasCommercialLicense(product);
+                
+                if (parseFloat(personalPrice) === 0) {
+                  return 'FREE';
+                }
+                
+                if (showCommercialPrice && hasCommercial && commercialPrice) {
+                  return `$${commercialPrice}`;
+                }
+                
+                return `$${personalPrice}`;
+              })()}
             </div>
             
             <button 

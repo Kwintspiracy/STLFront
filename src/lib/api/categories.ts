@@ -1,13 +1,9 @@
 import { Category } from "@/types/product";
 import { mockCategories } from "@/data/mock-categories"; // create this mock
-import { API_BASE_URL, USE_MOCK_DATA } from "@/lib/api/config"; // optional shared config
+import { API_BASE_URL } from "@/lib/api/config"; // optional shared config
 import { getAllProducts } from "./products";
 
 export async function getAllCategories(): Promise<Category[]> {
-  if (USE_MOCK_DATA) {
-    return mockCategories;
-  }
-
   try {
     const res = await fetch(`${API_BASE_URL}/categories/`, { 
       next: { revalidate: 3600 } // 1 hour - shorter cache for categories

@@ -149,7 +149,6 @@ export default function DebugGoogleAuth() {
   const showCurrentConfig = () => {
     addLog('📋 Current Configuration:');
     addLog(`- Environment: ${process.env.NODE_ENV}`);
-    addLog(`- Use Mock Data: ${process.env.NEXT_PUBLIC_USE_MOCK_DATA}`);
     addLog(`- API Base URL: ${process.env.NEXT_PUBLIC_API_BASE_URL}`);
     addLog(`- API Base URL Prod: ${process.env.NEXT_PUBLIC_API_BASE_URL_PROD}`);
     addLog(`- Google Client ID: ${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.substring(0, 20)}...`);

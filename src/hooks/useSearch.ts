@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Tag, allTags } from '@/data/mock-tags';
+import { Tag } from '@/types/tag';
 import { Product } from '@/types/product';
-import { searchProducts } from '@/lib/api/searchService';
+import { searchProducts, getSearchSuggestions } from '@/lib/api/searchService';
 import type { SearchElement, SearchFilters } from '@/lib/api/searchService';
 
 // Re-export types for convenience
@@ -28,6 +28,7 @@ export function useSearch() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Tag[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [totalResults, setTotalResults] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,6 +36,7 @@ export function useSearch() {
   const [shouldExecuteSearch, setShouldExecuteSearch] = useState(false);
 
   const router = useRouter();
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load search history from localStorage on mount
   useEffect(() => {
@@ -69,11 +71,10 @@ export function useSearch() {
         const newElements: SearchElement[] = [];
         
         if (tags) {
-          tags.split(',').forEach(tagName => {
-            const tag = allTags.find(t => t.name.toLowerCase() === tagName.toLowerCase());
-            if (tag) {
-              newElements.push({ type: 'tag', value: tag });
-            }
+          tags.split(',').forEach((tagName, index) => {
+            // Create a temporary tag object - the real tag data will come from API
+            const tag: Tag = { id: Date.now() + index, name: tagName.trim() };
+            newElements.push({ type: 'tag', value: tag });
           });
         }
         
@@ -91,19 +92,35 @@ export function useSearch() {
     }
   }, []);
 
-  // Suggestions
-  const updateSuggestions = useCallback((inputText: string) => {
+  // API-based suggestions with debounce
+  const updateSuggestions = useCallback(async (inputText: string) => {
     if (inputText.trim() === '') {
       setSuggestions([]);
       return;
     }
 
-    const filteredSuggestions = allTags.filter(tag =>
-      tag.name.toLowerCase().startsWith(inputText.toLowerCase()) &&
-      !elements.some(el => el.type === 'tag' && el.value.id === tag.id)
-    ).slice(0, 5);
+    // Clear previous debounce
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
 
-    setSuggestions(filteredSuggestions);
+    // Debounce API calls
+    debounceRef.current = setTimeout(async () => {
+      setSuggestionsLoading(true);
+      try {
+        const apiSuggestions = await getSearchSuggestions(inputText);
+        // Filter out already selected tags
+        const filteredSuggestions = apiSuggestions.filter(tag =>
+          !elements.some(el => el.type === 'tag' && el.value.name.toLowerCase() === tag.name.toLowerCase())
+        );
+        setSuggestions(filteredSuggestions);
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        setSuggestions([]);
+      } finally {
+        setSuggestionsLoading(false);
+      }
+    }, 300); // 300ms debounce
   }, [elements]);
 
   // Input management
@@ -129,7 +146,7 @@ export function useSearch() {
   const removeElement = useCallback((type: string, id?: number, value?: string) => {
     setElements(prev => prev.filter(el => {
       if (type === 'tag' && el.type === 'tag') {
-        return el.value.id !== id;
+        return el.value.name !== (value || '');
       }
       if (type === 'text' && el.type === 'text') {
         return el.value !== value;
@@ -232,11 +249,11 @@ export function useSearch() {
   // Keyboard handling
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === " ") {
-      // Check if current input matches a tag
-      const match = allTags.find(
+      // Check if current input matches a suggestion
+      const match = suggestions.find(
         (tag) =>
           tag.name.toLowerCase() === input.trim().toLowerCase() &&
-          !elements.some((el) => el.type === "tag" && el.value.id === tag.id)
+          !elements.some((el) => el.type === "tag" && el.value.name.toLowerCase() === tag.name.toLowerCase())
       );
 
       if (match) {
@@ -247,11 +264,11 @@ export function useSearch() {
       // If no tag match, allow space to work normally for multi-word input
     } else if (e.key === "Enter") {
       if (input.trim()) {
-        // Check if the input matches a tag
-        const match = allTags.find(
+        // Check if the input matches a suggestion
+        const match = suggestions.find(
           (tag) =>
             tag.name.toLowerCase() === input.trim().toLowerCase() &&
-            !elements.some((el) => el.type === "tag" && el.value.id === tag.id)
+            !elements.some((el) => el.type === "tag" && el.value.name.toLowerCase() === tag.name.toLowerCase())
         );
 
         if (match) {
@@ -265,12 +282,12 @@ export function useSearch() {
       }
     } else if (e.key === "Backspace" && input === "" && elements.length > 0) {
       const last = elements[elements.length - 1];
-      removeElement(last.type, last.type === 'tag' ? last.value.id : undefined, last.type === 'text' ? last.value : undefined);
+      removeElement(last.type, last.type === 'tag' ? last.value.id : undefined, last.type === 'text' ? last.value : last.value.name);
       if (last.type === "text") {
         setInput(last.value + " ");
       }
     }
-  }, [input, elements, addElement, addElementAndSearch, removeElement, executeSearch]);
+  }, [input, elements, suggestions, addElement, addElementAndSearch, removeElement, executeSearch]);
 
   // Tag handling
   const handleTagAdd = useCallback((tag: Tag) => {
@@ -278,8 +295,12 @@ export function useSearch() {
   }, [addElement]);
 
   const handleTagRemove = useCallback((tagId: number) => {
-    removeElement('tag', tagId);
-  }, [removeElement]);
+    // Find the tag by name since we might not have consistent IDs
+    const tagElement = elements.find(el => el.type === 'tag' && el.value.id === tagId);
+    if (tagElement && tagElement.type === 'tag') {
+      removeElement('tag', tagId, tagElement.value.name);
+    }
+  }, [elements, removeElement]);
 
   // Auto-execute search ONLY when shouldExecuteSearch flag is set to true
   useEffect(() => {
@@ -312,6 +333,15 @@ export function useSearch() {
     router.push('/search');
   }, [router]);
 
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
   return {
     // State
     elements,
@@ -321,6 +351,7 @@ export function useSearch() {
     isLoading,
     error,
     suggestions,
+    suggestionsLoading,
     searchHistory,
     totalResults,
     currentPage,

@@ -2,11 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { login } from '@/lib/api/authService';
-import { useUser } from '@/context/UserContext';
 import { useAuth } from '@/context/AuthContext';
-import { USE_MOCK_DATA } from '@/lib/api/config';
-import type { User } from '@/data/mock-users';
 import Link from 'next/link';
 import { FaEye, FaEyeSlash, FaUser, FaLock } from 'react-icons/fa';
 import GoogleSignInButton from './GoogleSignInButton';
@@ -19,7 +15,6 @@ export default function LoginForm() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { setUser } = useUser();
   const auth = useAuth();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -28,18 +23,11 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      if (USE_MOCK_DATA) {
-        // Use existing mock authentication
-        const user: User = await login(email, password);
-        setUser(user); // ✅ met à jour le contexte global
-        router.push(user.studio ? `/studio/${user.studio.id}` : '/');
-      } else {
-        // Use real API authentication via AuthContext
-        await auth.login({ email, password });
-        // The AuthContext will handle the success toast and state updates
-        // Redirect based on user data (for now, just go to home)
-        router.replace('/');
-      }
+      // Use real API authentication via AuthContext
+      await auth.login({ email, password });
+      // The AuthContext will handle the success toast and state updates
+      // Redirect based on user data (for now, just go to home)
+      router.replace('/');
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Identifiants invalides';
       setError(errorMessage);

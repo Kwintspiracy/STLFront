@@ -1,4 +1,5 @@
 import { getProductById, getAllProducts, getProductsByStudio, getProductsByTags } from "@/lib/api/products";
+import { hasCommercialLicense, getPersonalPrice } from "@/types/product";
 import { notFound } from "next/navigation";
 import { RiDownloadLine } from "react-icons/ri";
 import ProductImageGallery from "@/components/product/ProductImageGallery";
@@ -25,11 +26,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
       notFound();
     }
 
-    const hasCommercialLicense = product.professional_license_fee !== null && 
-                                 product.professional_license_fee !== undefined &&
-                                 parseFloat(product.professional_license_fee) > 0;
-
-    const isFreeProduct = parseFloat(product.price) === 0;
+    const hasCommercialLicenseAvailable = hasCommercialLicense(product);
+    const personalPrice = getPersonalPrice(product);
+    const isFreeProduct = parseFloat(personalPrice) === 0;
 
     // Récupérer les produits du même studio (exclure le produit actuel)
     const studioProducts = product.creator ? 
@@ -77,7 +76,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   </h2>
                   <ProductLicenseSelector 
                     product={product}
-                    hasCommercialLicense={hasCommercialLicense}
+                    hasCommercialLicense={hasCommercialLicenseAvailable}
                     isFreeProduct={isFreeProduct}
                   />
                 </div>

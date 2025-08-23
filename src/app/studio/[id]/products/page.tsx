@@ -10,6 +10,7 @@ import { notFound, useRouter } from 'next/navigation';
 import { getProductsByStudio, deleteProduct } from '@/lib/api/products';
 import type { Studio } from '@/types/studio';
 import type { Product } from '@/types/product';
+import { getPrimaryCategory } from '@/types/product';
 import { RiEditLine, RiEyeLine, RiDeleteBinLine, RiBox3Line } from 'react-icons/ri';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 
@@ -327,7 +328,7 @@ export default function StudioProducts({ params }: Props) {
                     <div>
                       <h3 className="text-[#F4F4F4] font-medium">{product.name}</h3>
                       <p className="text-[#9ca3af] text-sm">
-                        {product.category?.name || 'No category'} • 
+                        {getPrimaryCategory(product)?.name || 'No category'} • 
                         Created on {new Date(product.created_at).toLocaleDateString('en-US')}
                       </p>
                       <div className="flex items-center space-x-4 mt-1">

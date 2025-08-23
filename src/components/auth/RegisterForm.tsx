@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
-import { AUTH_ENDPOINTS, USE_MOCK_DATA } from '@/lib/api/config';
+import { AUTH_ENDPOINTS } from '@/lib/api/config';
 import type { RegisterRequest, RegisterResponse } from '@/types/auth';
 import axios from 'axios';
 import Link from 'next/link';
@@ -45,16 +45,9 @@ export default function RegisterForm() {
     setUsernameStatus('checking');
 
     try {
-      if (USE_MOCK_DATA) {
-        // Mock check - simulate some usernames as taken
-        const takenUsernames = ['admin', 'test', 'user', 'demo'];
-        const isTaken = takenUsernames.includes(username.toLowerCase());
-        setUsernameStatus(isTaken ? 'taken' : 'available');
-      } else {
-        // Real API check
-        const response = await axios.get(`${AUTH_ENDPOINTS.CHECK_USERNAME}?username=${encodeURIComponent(username)}`);
-        setUsernameStatus(response.data.available ? 'available' : 'taken');
-      }
+      // Real API check
+      const response = await axios.get(`${AUTH_ENDPOINTS.CHECK_USERNAME}?username=${encodeURIComponent(username)}`);
+      setUsernameStatus(response.data.available ? 'available' : 'taken');
     } catch (error) {
       console.error('Error checking username:', error);
       setUsernameStatus('invalid');
@@ -163,30 +156,24 @@ export default function RegisterForm() {
     setIsLoading(true);
 
     try {
-      if (USE_MOCK_DATA) {
-        // Mock registration - simulate success
-        showSuccess('Account created successfully! You can now login.');
-        router.push('/auth/signin');
-      } else {
-        // Real API registration
-        const credentials: RegisterRequest = { 
-          username, 
-          email, 
-          password1, 
-          password2 
-        };
-        
-        const response = await axios.post<RegisterResponse>(
-          AUTH_ENDPOINTS.REGISTER,
-          credentials,
-          {
-            headers: { 'Content-Type': 'application/json' },
-          }
-        );
+      // Real API registration
+      const credentials: RegisterRequest = { 
+        username, 
+        email, 
+        password1, 
+        password2 
+      };
+      
+      const response = await axios.post<RegisterResponse>(
+        AUTH_ENDPOINTS.REGISTER,
+        credentials,
+        {
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
 
-        showSuccess(response.data.detail || 'Registration successful! Please check your email for verification.');
-        router.push('/auth/register/check-email');
-      }
+      showSuccess(response.data.detail || 'Registration successful! Please check your email for verification.');
+      router.push('/auth/register/check-email');
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { data?: Record<string, string[]> } };

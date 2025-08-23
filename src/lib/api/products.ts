@@ -1,6 +1,5 @@
-import { Product, LegacyProduct, convertLegacyToProduct } from "@/types/product";
-import { mockProducts } from "@/data/mock-products";
-import { USE_MOCK_DATA, PRODUCT_ENDPOINTS } from "@/lib/api/config";
+import { Product, hasCommercialLicense } from "@/types/product";
+import { PRODUCT_ENDPOINTS } from "@/lib/api/config";
 import { apiRequest } from "./httpClient";
 import { getAccessToken } from "@/lib/utils/tokenService";
 
@@ -8,11 +7,6 @@ import { getAccessToken } from "@/lib/utils/tokenService";
  * Récupère tous les produits (endpoint public)
  */
 export async function getAllProducts(): Promise<Product[]> {
-  if (USE_MOCK_DATA) {
-    // Convertir les mocks du format legacy vers le nouveau format
-    return mockProducts.map(product => convertLegacyToProduct(product as LegacyProduct));
-  }
-
   try {
     // Pour l'endpoint public, on utilise fetch directement (pas d'auth requise)
     const res = await fetch(PRODUCT_ENDPOINTS.LIST, {
@@ -35,11 +29,6 @@ export async function getAllProducts(): Promise<Product[]> {
  * Récupère un produit par ID (endpoint public)
  */
 export async function getProductById(id: number, options?: { skipCache?: boolean }): Promise<Product | undefined> {
-  if (USE_MOCK_DATA) {
-    const product = mockProducts.find((p) => p.id === id);
-    return product ? convertLegacyToProduct(product as LegacyProduct) : undefined;
-  }
-
   try {
     // For static generation, use fetch with shorter revalidation for product details
     // Skip cache for deletion operations to get real-time status
@@ -71,11 +60,6 @@ export async function getProductById(id: number, options?: { skipCache?: boolean
  * Récupère un produit par ID avec authentification (pour accéder aux brouillons)
  */
 export async function getProductByIdAuthenticated(id: number): Promise<Product | undefined> {
-  if (USE_MOCK_DATA) {
-    const product = mockProducts.find((p) => p.id === id);
-    return product ? convertLegacyToProduct(product as LegacyProduct) : undefined;
-  }
-
   try {
     const response = await apiRequest.get<Product>(PRODUCT_ENDPOINTS.DETAIL(id));
     return response.data;
@@ -95,14 +79,6 @@ export async function getProductByIdAuthenticated(id: number): Promise<Product |
  * Récupère les produits d'une catégorie
  */
 export async function getProductsByCategory(categorySlug: string): Promise<Product[]> {
-  if (USE_MOCK_DATA) {
-    return mockProducts
-      .filter((p) =>
-        p.category.some((cat) => cat.name.toLowerCase() === categorySlug.toLowerCase())
-      )
-      .map(product => convertLegacyToProduct(product as LegacyProduct));
-  }
-
   try {
     // Try different parameter formats that the API might expect
     const possibleEndpoints = [
@@ -148,14 +124,6 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
  * Récupère les produits par tag
  */
 export async function getProductsByTag(tagSlug: string): Promise<Product[]> {
-  if (USE_MOCK_DATA) {
-    return mockProducts
-      .filter((p) =>
-        p.tag.some((tag) => tag.name.toLowerCase() === tagSlug.toLowerCase())
-      )
-      .map(product => convertLegacyToProduct(product as LegacyProduct));
-  }
-
   try {
     const res = await fetch(PRODUCT_ENDPOINTS.BY_TAG(tagSlug));
     if (!res.ok) {
@@ -175,12 +143,6 @@ export async function getProductsByTag(tagSlug: string): Promise<Product[]> {
  * Récupère les produits d'un studio
  */
 export async function getProductsByStudio(studioId: number): Promise<Product[]> {
-  if (USE_MOCK_DATA) {
-    return mockProducts
-      .filter((p) => p.creator.id === studioId)
-      .map(product => convertLegacyToProduct(product as LegacyProduct));
-  }
-
   console.log(`🏢 Fetching products for studio ${studioId}...`);
 
   try {
@@ -489,13 +451,11 @@ export async function getLatestProducts(): Promise<Product[]> {
  */
 export async function getCommercialProducts(): Promise<Product[]> {
   const products = await getAllProducts();
-  // Filtrer les produits avec une licence commerciale disponible (non null) et > 0
+  // Filtrer les produits avec une licence commerciale disponible
   return products
     .filter(p => 
       p.status === 'published' && 
-      p.professional_license_fee !== null && 
-      p.professional_license_fee !== undefined &&
-      parseFloat(p.professional_license_fee) > 0
+      hasCommercialLicense(p)
     )
     .slice(0, 4);
 }

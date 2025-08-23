@@ -175,7 +175,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
 interface CartContextType {
   state: CartState;
-  addToCart: (product: Product) => Promise<void>;
+  addToCart: (product: Product, includeProlicense?: boolean) => Promise<void>;
   removeFromCart: (backendId: number) => Promise<void>;
   updateLicense: (backendId: number, includeProlicense: boolean) => Promise<void>;
   clearCart: () => void;
@@ -211,12 +211,35 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addToCart = async (product: Product) => {
+  const addToCart = async (product: Product, includeProlicense: boolean = false) => {
     try {
+      // Prevent adding if already loading or product already in cart
+      if (state.isLoading || isProductInCart(product.id)) {
+        return;
+      }
+
       dispatch({ type: 'SET_LOADING', payload: true });
       
       const cartCode = state.cartCode || getOrCreateCartCode();
       const response = await cartService.addToCart(product.id, cartCode);
+      
+      // If commercial license was requested, update the cart item immediately
+      if (includeProlicense && response.data.cartitems.length > 0) {
+        // Find the newly added item - look for the product that matches our product ID
+        const newItem = response.data.cartitems.find(item => 
+          item.product.id === product.id && !item.includeprolicense
+        );
+        
+        if (newItem) {
+          // Update the license for the newly added item
+          await cartService.editCartItem(newItem.id, true);
+          
+          // Reload the cart to get the updated state with correct pricing
+          const updatedCart = await cartService.getCart(cartCode);
+          dispatch({ type: 'ADD_TO_CART_SUCCESS', payload: { cart: updatedCart } });
+          return;
+        }
+      }
       
       dispatch({ type: 'ADD_TO_CART_SUCCESS', payload: { cart: response.data } });
     } catch (error: unknown) {
