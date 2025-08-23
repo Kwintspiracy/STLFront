@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { RiShoppingCart2Fill, RiDownloadLine } from "react-icons/ri";
 import { FaCheck } from "react-icons/fa";
 import { useCart } from '@/context/CartContext';
-import { Product, getPersonalPrice, getCommercialPrice, hasCommercialLicense, getPersonalLicense, getCommercialLicense } from "@/types/product";
+import { Product, getPersonalPrice, getCommercialPrice, hasCommercialLicense } from "@/types/product";
 
 interface ProductLicenseSelectorProps {
   product: Product;
@@ -14,7 +14,6 @@ interface ProductLicenseSelectorProps {
 
 export default function ProductLicenseSelector({
   product,
-  hasCommercialLicense: hasCommercialLicenseProp,
   isFreeProduct
 }: ProductLicenseSelectorProps) {
   const [selectedLicense, setSelectedLicense] = useState<'personal' | 'commercial'>('personal');
@@ -28,8 +27,6 @@ export default function ProductLicenseSelector({
   const hasCommercial = hasCommercialLicense(product);
   const personalPrice = getPersonalPrice(product);
   const commercialPrice = getCommercialPrice(product);
-  const personalLicense = getPersonalLicense(product);
-  const commercialLicense = getCommercialLicense(product);
 
   const getCurrentPrice = () => {
     if (selectedLicense === 'commercial' && commercialPrice) {
@@ -38,12 +35,6 @@ export default function ProductLicenseSelector({
     return personalPrice;
   };
 
-  const getCurrentLicense = () => {
-    if (selectedLicense === 'commercial') {
-      return commercialLicense;
-    }
-    return personalLicense;
-  };
 
   const calculateCreatorEarnings = (price: string) => {
     const numPrice = parseFloat(price);

@@ -28,12 +28,14 @@ export default function WishlistPage() {
     return {
       id: item.product.id,
       name: item.product.name,
+      slug: item.product.slug,
       description: '', // Non disponible dans FavoriteProduct
       price: item.product.price,
       professional_license_fee: '0.00', // Non disponible dans FavoriteProduct
       creator: {
         id: item.product.studio_id,
         name: item.product.studio_name,
+        slug: item.product.studio_slug,
         badge: undefined
       },
       status: 'published' as const,
@@ -42,6 +44,7 @@ export default function WishlistPage() {
       created_at: item.created_at,
       updated_at: item.created_at,
       tag: [], // Non disponible dans FavoriteProduct
+      category: [], // Non disponible dans FavoriteProduct
       images: item.product.primary_image ? [{
         id: 1,
         url: item.product.primary_image.url,
@@ -49,7 +52,10 @@ export default function WishlistPage() {
         rank: 1,
         title: item.product.primary_image.title
       }] : [],
-      stl_files: []
+      stl_files: [],
+      downloads: 0, // Non disponible dans FavoriteProduct
+      views: 0, // Non disponible dans FavoriteProduct
+      licenses: [] // Non disponible dans FavoriteProduct
     };
   };
 

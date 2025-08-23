@@ -187,13 +187,6 @@ export default function ProductCard({
           <div className="flex items-start mb-3 xs:mb-4 sm:mb-6">
             <div className="w-10 h-10 xs:w-10 xs:h-10 sm:w-12 sm:h-12 flex-shrink-0">
               {(() => {
-                // Debug logging
-                if (product.creator.badge) {
-                  console.log(`Badge URL for ${product.creator.name}:`, product.creator.badge);
-                  console.log(`Contains /None/:`, product.creator.badge.includes('/None/'));
-                  console.log(`Contains /studios/None/:`, product.creator.badge.includes('/studios/None/'));
-                }
-                
                 if (product.creator.badge && !product.creator.badge.includes('/studios/None/')) {
                   return (
                     <div className="w-full h-full bg-[#242627] border-2 border-white/5 rounded-lg overflow-hidden">
@@ -204,7 +197,6 @@ export default function ProductCard({
                         height={48}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          console.log(`Image error for ${product.creator.name}:`, product.creator.badge);
                           e.currentTarget.style.display = 'none';
                         }}
                       />

@@ -76,9 +76,6 @@ export async function getMyStudio(): Promise<MyStudioResponse> {
     const { getAccessToken } = await import('@/lib/utils/tokenService');
     const token = getAccessToken();
     
-    console.log('🔑 getMyStudio - Token exists:', !!token);
-    console.log('🌐 getMyStudio - Endpoint:', STUDIO_ENDPOINTS.MINE);
-    
     const response = await fetch(STUDIO_ENDPOINTS.MINE, {
       method: 'GET',
       headers: {
@@ -87,25 +84,19 @@ export async function getMyStudio(): Promise<MyStudioResponse> {
       }
     });
 
-    console.log('📡 getMyStudio - Response status:', response.status);
-
     if (response.status === 404) {
       // User doesn't have a studio - this is expected and normal
-      console.log('📋 getMyStudio - User has no studio (404)');
       throw new Error('You are not a member of any studio');
     }
 
     if (!response.ok) {
-      console.log('❌ getMyStudio - HTTP error:', response.status);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('✅ getMyStudio - Success:', data);
     return data;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.log('❌ getMyStudio - Error:', errorMessage);
     // Re-throw with consistent error message for 404s
     if (errorMessage === 'You are not a member of any studio') {
       throw error;
@@ -178,16 +169,14 @@ export async function getAllStudios(): Promise<Studio[]> {
       return data;
     }
     
-    console.warn("Unexpected API response format:", data);
     return [];
-  } catch (error) {
-    console.error("Error fetching studios:", error);
+  } catch {
     return [];
   }
 }
 
 // Helper function to check if user can manage studio
-export function canManageStudio(studio: Studio, userId: number): boolean {
+export function canManageStudio(): boolean {
   // For real API, this would be determined by the backend
   return false;
 }

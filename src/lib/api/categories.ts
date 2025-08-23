@@ -1,5 +1,4 @@
 import { Category } from "@/types/product";
-import { mockCategories } from "@/data/mock-categories"; // create this mock
 import { API_BASE_URL } from "@/lib/api/config"; // optional shared config
 import { getAllProducts } from "./products";
 
@@ -48,9 +47,12 @@ export async function getCategoriesWithProductCount(): Promise<(Category & { pro
     const categoryProductCounts = new Map<number, number>();
     
     products.forEach(product => {
-      if (product.category && product.status === 'published') {
-        const categoryId = product.category.id;
-        categoryProductCounts.set(categoryId, (categoryProductCounts.get(categoryId) || 0) + 1);
+      if (product.category && Array.isArray(product.category) && product.status === 'published') {
+        // Parcourir toutes les catégories du produit (car c'est maintenant un tableau)
+        product.category.forEach(cat => {
+          const categoryId = cat.id;
+          categoryProductCounts.set(categoryId, (categoryProductCounts.get(categoryId) || 0) + 1);
+        });
       }
     });
 
