@@ -27,28 +27,33 @@ const generateRemotePatterns = (): Array<{
     port?: string;
     pathname: string;
   }> = [
-    // Images externes (toujours autorisées)
-    {
-      protocol: 'https',
-      hostname: 'images.unsplash.com',
-      pathname: '/**',
-    },
-    {
-      protocol: 'https',
-      hostname: 'picsum.photos',
-      pathname: '/**',
-    },
-    {
-      protocol: 'https',
-      hostname: 'fbi.cults3d.com',
-      pathname: '/**',
-    },
-    {
-      protocol: 'https',
-      hostname: 'storage.googleapis.com',
-      pathname: '/**',
-    },
-  ];
+      // Images externes (toujours autorisées)
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'fbi.cults3d.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'stlforge-new-upload.fly.dev',
+        pathname: '/media/**',
+      },
+    ];
 
   // Configuration API selon l'environnement
   if (isDevelopment) {
@@ -68,7 +73,7 @@ const generateRemotePatterns = (): Array<{
       hostname: apiHostname,
       pathname: `${mediaPath}/**`,
     });
-    
+
     // Aussi autoriser HTTP pour la compatibilité (si nécessaire)
     if (!isProduction) {
       patterns.push({

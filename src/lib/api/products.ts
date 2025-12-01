@@ -18,8 +18,7 @@ export async function getAllProducts(): Promise<Product[]> {
     const data = await res.json();
     // L'API Django retourne une réponse paginée avec results
     return data.results || data;
-  } catch (error) {
-    console.error("Error fetching products:", error);
+  } catch {
     // Return empty array instead of mock data
     return [];
   }
@@ -48,7 +47,6 @@ export async function getProductById(id: number, options?: { skipCache?: boolean
     const data = await res.json();
     return data;
   } catch (error: unknown) {
-    console.error("Error fetching product:", error);
     if (error instanceof Error && error.message.includes('404')) {
       return undefined;
     }
@@ -70,7 +68,6 @@ export async function getProductByIdAuthenticated(id: number): Promise<Product |
       return undefined;
     }
     
-    console.error("Error fetching authenticated product:", error);
     throw new Error(`Failed to fetch product: ${axiosError.message || 'Unknown error'}`);
   }
 }
@@ -113,8 +110,7 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
     // If all endpoints failed, throw the last error
     throw lastError || new Error('All category endpoint formats failed');
     
-  } catch (error) {
-    console.error("Error fetching products by category:", error);
+  } catch {
     // Return empty array instead of mock data for graceful fallback
     return [];
   }
@@ -132,8 +128,7 @@ export async function getProductsByTag(tagSlug: string): Promise<Product[]> {
     const data = await res.json();
     // L'API Django retourne une réponse paginée avec results
     return data.results || data;
-  } catch (error) {
-    console.error("Error fetching products by tag:", error);
+  } catch {
     // Return empty array instead of mock data
     return [];
   }
@@ -143,32 +138,26 @@ export async function getProductsByTag(tagSlug: string): Promise<Product[]> {
  * Récupère les produits d'un studio
  */
 export async function getProductsByStudio(studioId: number): Promise<Product[]> {
-  console.log(`🏢 Fetching products for studio ${studioId}...`);
-
   try {
     // Always try with authentication first to get draft products
     const response = await apiRequest.get<{ results?: Product[] } | Product[]>(PRODUCT_ENDPOINTS.BY_STUDIO(studioId));
-    console.log(`✅ Authenticated request successful: ${Array.isArray(response.data) ? response.data.length : response.data.results?.length || 0} products`);
     // L'API Django retourne une réponse paginée avec results
     return Array.isArray(response.data) ? response.data : (response.data.results || []);
   } catch (error: unknown) {
     const axiosError = error as { response?: { status?: number }; message?: string };
-    console.log(`❌ Authenticated request failed:`, axiosError.response?.status, axiosError.message);
     
     // If it's a 401, try without auth (public endpoint) - will only show published products
     if (axiosError.response?.status === 401) {
       try {
-        console.log(`🔓 Trying public endpoint...`);
         const res = await fetch(PRODUCT_ENDPOINTS.BY_STUDIO(studioId));
         if (!res.ok) {
           throw new Error(`Failed to fetch products: ${res.status}`);
         }
         const data = await res.json();
-        console.log(`✅ Public request successful: ${data.results?.length || data.length || 0} products (published only)`);
         // L'API Django retourne une réponse paginée avec results
         return data.results || data;
-      } catch (publicError) {
-        console.error("Error fetching products (public):", publicError);
+      } catch {
+        // Silent error handling
       }
     }
     
@@ -182,11 +171,6 @@ export async function getProductsByStudio(studioId: number): Promise<Product[]> 
  */
 export async function createProduct(productData: Partial<Product>): Promise<Product> {
   const response = await apiRequest.post<Product>(PRODUCT_ENDPOINTS.CREATE, productData);
-  
-  console.log('Raw response:', response);
-  console.log('Response data:', response.data);
-  console.log('Product ID from response:', response.data?.id);
-  
   return response.data;
 }
 
@@ -203,8 +187,6 @@ export async function updateProduct(id: number, productData: Partial<Product>): 
  */
 export async function deleteProduct(id: number): Promise<void> {
   try {
-    console.log(`🗑️ Starting deletion of product ${id}...`);
-    
     // 1. Essayer de récupérer le produit pour connaître ses ressources
     let product;
     try {
@@ -212,7 +194,6 @@ export async function deleteProduct(id: number): Promise<void> {
     } catch (error) {
       // Si le produit n'existe pas (404), on peut considérer qu'il est déjà "supprimé"
       if (error instanceof Error && (error.message.includes('404') || error.message.includes('not found'))) {
-        console.log(`✅ Product ${id} already deleted or doesn't exist - deletion considered successful`);
         return;
       }
       // Re-throw other errors
@@ -220,21 +201,15 @@ export async function deleteProduct(id: number): Promise<void> {
     }
     
     if (!product) {
-      console.log(`✅ Product ${id} already deleted or doesn't exist - deletion considered successful`);
       return;
     }
 
-    console.log(`📦 Product found: "${product.name}" with ${product.images?.length || 0} images and ${product.stl_files?.length || 0} STL files`);
-
     // 2. Supprimer toutes les images
     if (product.images && product.images.length > 0) {
-      console.log(`🖼️ Deleting ${product.images.length} images...`);
       for (const image of product.images) {
         try {
           await deleteProductImage(id, image.id);
-          console.log(`✅ Deleted image ${image.id}`);
-        } catch (error) {
-          console.warn(`⚠️ Failed to delete image ${image.id}:`, error);
+        } catch {
           // Continue with other images even if one fails
         }
       }
@@ -242,34 +217,26 @@ export async function deleteProduct(id: number): Promise<void> {
 
     // 3. Supprimer tous les fichiers STL
     if (product.stl_files && product.stl_files.length > 0) {
-      console.log(`📁 Deleting ${product.stl_files.length} STL files...`);
       for (const stlFile of product.stl_files) {
         try {
           await deleteProductSTL(id, stlFile.id);
-          console.log(`✅ Deleted STL file ${stlFile.id}`);
-        } catch (error) {
-          console.warn(`⚠️ Failed to delete STL file ${stlFile.id}:`, error);
+        } catch {
           // Continue with other files even if one fails
         }
       }
     }
 
     // 4. Supprimer le produit principal
-    console.log(`🗑️ Deleting main product...`);
     try {
       await apiRequest.delete(PRODUCT_ENDPOINTS.DETAIL(id));
-      console.log(`✅ Product ${id} successfully deleted`);
     } catch (error) {
       // Si le produit principal n'existe pas non plus, c'est OK
-      if (error instanceof Error && error.message.includes('404')) {
-        console.log(`✅ Product ${id} main record already deleted`);
-      } else {
+      if (error instanceof Error && !error.message.includes('404')) {
         throw error;
       }
     }
     
   } catch (error: unknown) {
-    console.error('Error deleting product:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression du produit';
     throw new Error(errorMessage);
   }

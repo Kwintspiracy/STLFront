@@ -37,6 +37,7 @@ function GoogleCallbackContent() {
         console.log('🔄 Sending authorization code to backend...');
         const response = await axios.post(AUTH_ENDPOINTS.GOOGLE_LOGIN, {
           code: code,
+          callback_url: `${window.location.origin}/auth/google/callback`,
         }, {
           headers: {
             'Content-Type': 'application/json',
@@ -59,9 +60,9 @@ function GoogleCallbackContent() {
 
       } catch (error: unknown) {
         console.error('❌ Google authentication failed:', error);
-        
+
         let errorMessage = "Échec de l'authentification Google";
-        
+
         if (error instanceof Error) {
           errorMessage = error.message;
         } else if (error && typeof error === 'object' && 'response' in error) {
@@ -75,17 +76,20 @@ function GoogleCallbackContent() {
             };
             message?: string;
           };
-          
-          errorMessage = axiosError.response?.data?.detail || 
-                        axiosError.response?.data?.message || 
-                        axiosError.response?.data?.error ||
-                        axiosError.message || 
-                        "Échec de l'authentification Google";
+
+          // Log full error details for debugging
+          console.error('❌ Google Auth Error Details:', JSON.stringify(axiosError.response?.data, null, 2));
+
+          errorMessage = axiosError.response?.data?.detail ||
+            axiosError.response?.data?.message ||
+            axiosError.response?.data?.error ||
+            axiosError.message ||
+            "Échec de l'authentification Google";
         }
-        
+
         setError(errorMessage);
         showError(errorMessage);
-        
+
         // Redirect to login page after a delay
         setTimeout(() => {
           router.replace('/auth/signin');

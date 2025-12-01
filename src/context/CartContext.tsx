@@ -2,9 +2,9 @@
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { Product } from '@/types/product';
-import { 
-  cartService, 
-  Cart as BackendCart, 
+import {
+  cartService,
+  Cart as BackendCart,
   CartItem as BackendCartItem,
   getOrCreateCartCode
 } from '@/lib/api/cartService';
@@ -87,7 +87,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case 'LOAD_CART_SUCCESS': {
       const { cart } = action.payload;
       const items = cart.cartitems.map(mapBackendCartItem);
-      
+
       return {
         ...state,
         items,
@@ -102,7 +102,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case 'ADD_TO_CART_SUCCESS': {
       const { cart } = action.payload;
       const items = cart.cartitems.map(mapBackendCartItem);
-      
+
       return {
         ...state,
         items,
@@ -117,7 +117,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case 'REMOVE_FROM_CART_SUCCESS': {
       const { cartItemId } = action.payload;
       const newItems = state.items.filter(item => item.backendId !== cartItemId);
-      
+
       return {
         ...state,
         items: newItems,
@@ -133,13 +133,13 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       const updatedItems = state.items.map(item =>
         item.backendId === cartItem.id
           ? {
-              ...item,
-              includeprolicense: cartItem.includeprolicense,
-              license: (cartItem.includeprolicense ? 'commercial' : 'personal') as 'personal' | 'commercial' | 'extended',
-            }
+            ...item,
+            includeprolicense: cartItem.includeprolicense,
+            license: (cartItem.includeprolicense ? 'commercial' : 'personal') as 'personal' | 'commercial' | 'extended',
+          }
           : item
       );
-      
+
       return {
         ...state,
         items: updatedItems,
@@ -198,15 +198,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const loadCart = async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      
+
       // Get cart code for anonymous users
       const cartCode = getOrCreateCartCode();
       dispatch({ type: 'SET_CART_CODE', payload: cartCode });
-      
+
       const cart = await cartService.getCart(cartCode);
       dispatch({ type: 'LOAD_CART_SUCCESS', payload: { cart } });
     } catch (error: unknown) {
       console.error('Error loading cart:', error);
+
+      // Handle 404 (Cart not found) by creating a new cart
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } };
+        if (axiosError.response?.status === 404) {
+          console.log('Cart not found (404), creating new cart...');
+          // Clear invalid cart code
+          localStorage.removeItem('cart_code');
+          // Create new cart code
+          const newCartCode = getOrCreateCartCode();
+          dispatch({ type: 'SET_CART_CODE', payload: newCartCode });
+
+          // Try to get cart again (this should create a new empty cart on backend if it auto-creates, 
+          // or we might need to just set empty state if backend doesn't auto-create on get)
+          // Assuming backend creates on GET or we just start fresh
+          dispatch({ type: 'CLEAR_CART' });
+          dispatch({ type: 'SET_LOADING', payload: false });
+          return;
+        }
+      }
+
       dispatch({ type: 'SET_ERROR', payload: 'Failed to load cart' });
     }
   };
@@ -219,28 +240,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
 
       dispatch({ type: 'SET_LOADING', payload: true });
-      
+
       const cartCode = state.cartCode || getOrCreateCartCode();
       const response = await cartService.addToCart(product.id, cartCode);
-      
+
       // If commercial license was requested, update the cart item immediately
       if (includeProlicense && response.data.cartitems.length > 0) {
         // Find the newly added item - look for the product that matches our product ID
-        const newItem = response.data.cartitems.find(item => 
+        const newItem = response.data.cartitems.find(item =>
           item.product.id === product.id && !item.includeprolicense
         );
-        
+
         if (newItem) {
           // Update the license for the newly added item
           await cartService.editCartItem(newItem.id, true);
-          
+
           // Reload the cart to get the updated state with correct pricing
           const updatedCart = await cartService.getCart(cartCode);
           dispatch({ type: 'ADD_TO_CART_SUCCESS', payload: { cart: updatedCart } });
           return;
         }
       }
-      
+
       dispatch({ type: 'ADD_TO_CART_SUCCESS', payload: { cart: response.data } });
     } catch (error: unknown) {
       console.error('Error adding to cart:', error);
@@ -251,7 +272,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const removeFromCart = async (backendId: number) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      
+
       await cartService.removeFromCart(backendId);
       dispatch({ type: 'REMOVE_FROM_CART_SUCCESS', payload: { cartItemId: backendId } });
     } catch (error: unknown) {
@@ -263,7 +284,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateLicense = async (backendId: number, includeProlicense: boolean) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      
+
       const response = await cartService.editCartItem(backendId, includeProlicense);
       dispatch({ type: 'UPDATE_LICENSE_SUCCESS', payload: { cartItem: response.data } });
     } catch (error: unknown) {
